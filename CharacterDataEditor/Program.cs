@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Enrichers;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace CharacterDataEditor
@@ -42,6 +43,23 @@ namespace CharacterDataEditor
                     .WriteTo.Console()
                     .WriteTo.File(path: $"{argValues.LogPath}KOArcadeLog-{DateTime.Now.Year}{DateTime.Now.Month.ToString().PadLeft(2, '0')}{DateTime.Now.Day.ToString().PadLeft(2, '0')}.log")
                     .CreateLogger();
+            }
+
+            if (!argValues.EnableConsole)
+            {
+                #if _WINDOWS
+                [DllImport("kernel32.dll")]
+                static extern IntPtr GetConsoleWindow();
+
+                [DllImport("user32.dll")]
+                static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+                const int SW_HIDE = 0;
+                const int SW_SHOW = 5;
+
+                var handle = GetConsoleWindow();
+                ShowWindow(handle, SW_HIDE);
+                #endif
             }
 
             Log.Logger.Information(MessageConstants.LoggerAttachedMessage);

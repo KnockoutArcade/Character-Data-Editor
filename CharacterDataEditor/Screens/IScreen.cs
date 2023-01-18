@@ -1,8 +1,10 @@
-﻿namespace CharacterDataEditor.Screens
+﻿using CharacterDataEditor.Services;
+
+namespace CharacterDataEditor.Screens
 {
     public interface IScreen
     {
-        public void Init();
-        public void Render();
+        public void Init(dynamic screenData);
+        public void Render(IScreenManager screenManager);
     }
 }

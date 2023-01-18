@@ -8,8 +8,11 @@ namespace CharacterDataEditor.Services
     public interface IScreenManager
     {
         public IScreen CurrentScreen { get; }
+        public float ScreenScale { get; set; }
         public void NavigateTo(string screenName);
         public void NavigateTo(Type screenType);
+        public void NavigateTo(string screenName, dynamic screenData);
+        public void NavigateTo(Type screenType, dynamic screenData);
     }
 
     public class ScreenManager : IScreenManager
@@ -25,18 +28,30 @@ namespace CharacterDataEditor.Services
         private IScreen _currentScreen;
         public IScreen CurrentScreen { get { return _currentScreen; } }
 
+        public float ScreenScale { get; set; }
+
         public void NavigateTo(string screenName)
         {
-            var screenType = _screens.Where(x => x.GetType().Name == screenName).FirstOrDefault().GetType();
-            
-            NavigateTo(screenType);
+            NavigateTo(screenName, null);
         }
 
         public void NavigateTo(Type screenType)
         {
+            NavigateTo(screenType, null);
+        }
+
+        public void NavigateTo(string screenName, dynamic screenData)
+        {
+            var screenType = _screens.Where(x => x.GetType().Name == screenName).FirstOrDefault().GetType();
+
+            NavigateTo(screenType, screenData);
+        }
+
+        public void NavigateTo(Type screenType, dynamic screenData)
+        {
             var screen = _screens.Where(x => x.GetType() == screenType).FirstOrDefault();
             _currentScreen = screen;
-            _currentScreen.Init();
+            _currentScreen.Init(screenData);
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using CharacterDataEditor.Screens;
+using Hardware.Info;
 using ImGuiNET;
 using Raylib_cs;
+using System.Threading;
 
 namespace CharacterDataEditor.Services
 {
@@ -20,10 +22,24 @@ namespace CharacterDataEditor.Services
         public int StartUI()
         {
             var logo = Raylib.LoadImage("Resources/logo.png");
-            //initial the graphics lib
-            Raylib.InitWindow(1920, 1080, "Knockout Arcade - Character Data Editor");
+
+            //get hardware info about screen resolution...
+            var hardwareInfo = new HardwareInfo();
+            hardwareInfo.RefreshVideoControllerList();
+
+            var height = hardwareInfo.VideoControllerList[0].CurrentVerticalResolution;
+            var width = hardwareInfo.VideoControllerList[0].CurrentHorizontalResolution;
+
+            var windowHeight = (int)(height - (height * 0.1));
+            var windowWidth = (int)(width - (width * 0.1));
+
+            //initialize the graphics lib
+            Raylib.InitWindow(windowWidth, windowHeight, "Knockout Arcade - Character Data Editor");
             Raylib.SetWindowIcon(logo);
             Raylib.SetTargetFPS(60);
+
+            _screenManager.ScreenScale = height / 720.0f;
+
 
             //create a context to access ImGui
             var context = ImGui.CreateContext();
@@ -43,7 +59,7 @@ namespace CharacterDataEditor.Services
                 Raylib.ClearBackground(Color.DARKGRAY);
 
                 //render goes here
-                _screenManager.CurrentScreen.Render();
+                _screenManager.CurrentScreen.Render(_screenManager);
 
                 ImGui.Render();
                 controller.Render(ImGui.GetDrawData());
