@@ -16,6 +16,7 @@ namespace CharacterDataEditor
         {
             services.AddSingleton<IRenderUI, RaylibImGui>();
             services.AddSingleton<IRecentFiles, RecentFiles>();
+            services.AddSingleton<ICharacterOperations, CharacterOperations>();
 
             //register screens
             services.RegisterScreens();
