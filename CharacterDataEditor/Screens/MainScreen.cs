@@ -28,6 +28,7 @@ namespace CharacterDataEditor.Screens
         {
             screenWidth = screenData?.width ?? 1280.0f;
             screenHeight = screenData?.height ?? 720.0f;
+            _recentProjects = new List<RecentProjectModel>();
         }
 
         public void Render(IScreenManager screenManager)
@@ -66,7 +67,7 @@ namespace CharacterDataEditor.Screens
                 //recently opened projects
                 ImGui.Text("Recently Opened Projects");
 
-                if (_recentProjects == null)
+                if (_recentProjects == null || _recentProjects.Count < 1)
                 {
                     _recentProjects = _recentFiles.GetRecentProjectFiles();
                 }
@@ -76,6 +77,7 @@ namespace CharacterDataEditor.Screens
                     if (ImGui.Button(item.ProjectFileName))
                     {
                         //open the item here
+                        _recentFiles.AddRecentProjectFile(item.FullPath);
                         screenManager.NavigateTo("ProjectHomeScreen", new { width = screenWidth, height = screenHeight, projectData = item });
                     }
                 }
