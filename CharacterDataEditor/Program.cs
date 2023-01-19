@@ -1,80 +1,43 @@
-﻿using CharacterDataEditor.Constants;
-using CharacterDataEditor.Helpers;
-using CharacterDataEditor.Options;
-using CharacterDataEditor.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Serilog;
-using Serilog.Enrichers;
-using System;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+﻿using ImGuiNET;
+using Raylib_cs;
 
 namespace CharacterDataEditor
 {
-    class Program
+    internal class Program
     {
-        static int Main(string[] args)
+        static void Main(string[] args)
         {
-            return CommandHelper.GenerateRootCommandAndExecuteHandler(args, Run);
-        }
+            var logo = Raylib.LoadImage("Resources/logo.png");
+            //initial the graphics lib
+            Raylib.InitWindow(1920, 1080, "Knockout Arcade - Character Data Editor");
+            Raylib.SetWindowIcon(logo);
+            Raylib.SetTargetFPS(60);
 
-        static int Run(ArgValues argValues, string[] args)
-        {
-            var startup = new Startup();
+            //create a context to access ImGui
+            var context = ImGui.CreateContext();
+            ImGui.SetCurrentContext(context);
 
-            if (string.IsNullOrEmpty(argValues.LogPath))
+            //create a reference to the gui controller
+            var controller = new GuiController();
+
+            //enter the program loop
+            while (!Raylib.WindowShouldClose())
             {
-                Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Override(LogSourceConstants.Microsoft, Serilog.Events.LogEventLevel.Information)
-                    .MinimumLevel.Override(LogSourceConstants.System, Serilog.Events.LogEventLevel.Warning)
-                    .MinimumLevel.Information()
-                    .Enrich.With(new MachineNameEnricher())
-                    .WriteTo.Console()
-                    .CreateLogger();
-            }
-            else
-            {
-                Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Override(LogSourceConstants.Microsoft, Serilog.Events.LogEventLevel.Information)
-                    .MinimumLevel.Override(LogSourceConstants.System, Serilog.Events.LogEventLevel.Warning)
-                    .MinimumLevel.Information()
-                    .Enrich.With(new MachineNameEnricher())
-                    .WriteTo.Console()
-                    .WriteTo.File(path: $"{argValues.LogPath}KOArcadeLog-{DateTime.Now.Year}{DateTime.Now.Month.ToString().PadLeft(2, '0')}{DateTime.Now.Day.ToString().PadLeft(2, '0')}.log")
-                    .CreateLogger();
-            }
+                controller.NewFrame();
+                controller.ProcessEvent();
+                ImGui.NewFrame();
 
-            if (!argValues.EnableConsole)
-            {
-                #if _WINDOWS
-                [DllImport("kernel32.dll")]
-                static extern IntPtr GetConsoleWindow();
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Color.DARKGRAY);
 
-                [DllImport("user32.dll")]
-                static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+                //render goes here
 
-                const int SW_HIDE = 0;
-                const int SW_SHOW = 5;
-
-                var handle = GetConsoleWindow();
-                ShowWindow(handle, SW_HIDE);
-                #endif
+                ImGui.Render();
+                controller.Render(ImGui.GetDrawData());
+                Raylib.EndDrawing();
             }
 
-            Log.Logger.Information(MessageConstants.LoggerAttachedMessage);
-
-            var host = Host.CreateDefaultBuilder(args)
-                .ConfigureServices((context, services) =>
-                {
-                    startup.ConfigureServices(services);
-                })
-                .UseSerilog()
-                .Build();
-
-            var svc = ActivatorUtilities.GetServiceOrCreateInstance<IRenderUI>(host.Services);
-
-            return svc.StartUI();
+            controller.Shutdown();
         }
     }
 }
