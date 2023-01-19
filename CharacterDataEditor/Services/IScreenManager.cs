@@ -1,4 +1,5 @@
 ﻿using CharacterDataEditor.Screens;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +19,12 @@ namespace CharacterDataEditor.Services
     public class ScreenManager : IScreenManager
     {
         private readonly List<IScreen> _screens;
-        public ScreenManager(IEnumerable<IScreen> screens)
+        private readonly ILogger<IScreenManager> _logger;
+
+        public ScreenManager(IEnumerable<IScreen> screens, ILogger<IScreenManager> logger)
         {
             _screens = screens.ToList();
-
-            NavigateTo(typeof(MainScreen));
+            _logger = logger;
         }
 
         private IScreen _currentScreen;
@@ -42,13 +44,21 @@ namespace CharacterDataEditor.Services
 
         public void NavigateTo(string screenName, dynamic screenData)
         {
-            var screenType = _screens.Where(x => x.GetType().Name == screenName).FirstOrDefault().GetType();
+            var screenType = _screens.Where(x => x.GetType().Name == screenName).FirstOrDefault();
 
-            NavigateTo(screenType, screenData);
+            if (screenType == null)
+            {
+                _logger.LogCritical($"Screen not found: {screenName}");
+                return;
+            }
+
+            NavigateTo(screenType.GetType(), screenData);
         }
 
         public void NavigateTo(Type screenType, dynamic screenData)
         {
+            _logger.LogInformation($"Navigating to: {screenType.Name}");
+
             var screen = _screens.Where(x => x.GetType() == screenType).FirstOrDefault();
             _currentScreen = screen;
             _currentScreen.Init(screenData);
