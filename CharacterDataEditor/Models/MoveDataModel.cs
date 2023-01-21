@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CharacterDataEditor.Enums;
 
 namespace CharacterDataEditor.Models
 {
