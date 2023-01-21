@@ -17,6 +17,9 @@ namespace CharacterDataEditor.Models
         public string ResourceVersion { get; set; }
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
+
+        [JsonIgnore]
+        public string SpriteFilePath { get; set; }
     }
 
     public class Sequence

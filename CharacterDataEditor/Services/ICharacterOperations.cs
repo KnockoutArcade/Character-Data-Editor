@@ -1,4 +1,5 @@
-﻿using CharacterDataEditor.Models;
+﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -8,8 +9,10 @@ namespace CharacterDataEditor.Services
 {
     public interface ICharacterOperations
     {
+        public void SaveCharacter(CharacterDataModel character, string projectPath, string path = "");
         public List<CharacterDataModel> GetCharactersFromProject(string projectPath);
         public SpriteDataModel GetSpriteData(string spriteFilePath);
+        public List<SpriteDataModel> GetAllSprites(string projectPath);
     }
 
     public class CharacterOperations : ICharacterOperations
@@ -21,6 +24,26 @@ namespace CharacterDataEditor.Services
             _logger = logger;
         }
 
+        public List<SpriteDataModel> GetAllSprites(string projectPath)
+        {
+            var allSprites = new List<SpriteDataModel>();
+
+            if (Directory.Exists(projectPath))
+            {
+                var spritePath = Path.Combine(projectPath, "sprites");
+                var spriteFiles = Directory.GetFiles(spritePath, "*.yy", SearchOption.AllDirectories);
+
+                foreach (var spriteFile in spriteFiles)
+                {
+                    allSprites.Add(GetSpriteData(spriteFile));
+                }
+
+                return allSprites;
+            }
+
+            return null;
+        }
+
         public List<CharacterDataModel> GetCharactersFromProject(string projectPath)
         {
             if (!Directory.Exists(projectPath))
@@ -29,7 +52,7 @@ namespace CharacterDataEditor.Services
                 return null;
             }
 
-            var characterDataPath = Path.Combine(projectPath, "characterdata");
+            var characterDataPath = Path.Combine(projectPath, ResourceConstants.CharacterDataPathStub);
 
             if (!Directory.Exists(characterDataPath))
             {
@@ -72,9 +95,38 @@ namespace CharacterDataEditor.Services
             var spriteData = JsonConvert.DeserializeObject<SpriteDataModel>(jsonData);
 
             // modify the sprite data so everything is in order by default... just in case it isn't already
-
+            spriteData.SpriteFilePath = spriteFilePath;
 
             return spriteData;
+        }
+
+        public void SaveCharacter(CharacterDataModel character, string projectPath, string savePath = "")
+        {
+            var fileName = $"{character.Name}.json";
+            string path;
+
+            if (savePath == string.Empty)
+            {
+                path = Path.Combine(projectPath, ResourceConstants.CharacterDataPathStub);
+                savePath = Path.Combine(path, fileName);
+            }
+            else
+            {
+                fileName = Path.GetFileName(savePath);
+                path = savePath.Replace(Path.GetFileName(savePath), "");
+            }
+
+            if (!Directory.Exists(path))
+            {
+                _logger.LogInformation("Character Data save path did not exist... creating...");
+                Directory.CreateDirectory(path);
+            }
+
+            _logger.LogInformation($"Saving {fileName} to {path}");
+
+            using StreamWriter streamWriter = new StreamWriter(savePath, false);
+            var json = JsonConvert.SerializeObject(character);
+            streamWriter.Write(json);
         }
     }
 }
