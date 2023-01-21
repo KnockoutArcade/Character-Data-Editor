@@ -1,0 +1,222 @@
+﻿using CharacterDataEditor.Enums;
+using CharacterDataEditor.Models;
+using Microsoft.Extensions.Logging;
+using Raylib_cs;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+
+namespace CharacterDataEditor.Helpers
+{
+    public class SpriteDrawingHelper
+    {
+        private int currentAnimationFrame = 0;
+        private int frameCounter = 0;
+        private int nextFrameAdvance = 0;
+        private string previousSprite = string.Empty;
+        private string currentSprite = string.Empty;
+
+        private List<Texture2D> spriteTextures;
+
+        private Vector2 ClientWindow
+        {
+            get
+            {
+                if (_client == Vector2.Zero)
+                {
+                    _client = HardwareHelper.GetClientWindowSize();
+                }
+
+                return _client;
+            }
+        }
+
+        private Vector2 _client = Vector2.Zero;
+
+        private void DrawSprite(Vector2 drawPosition, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags)
+        {
+            Texture2D textureToDraw;
+
+            if (flags.HasFlag(SpriteDrawFlags.NotAnimated))
+            {
+                textureToDraw = spriteTextures.FirstOrDefault();
+            }
+            else
+            {
+                textureToDraw = spriteTextures[currentAnimationFrame];
+            }
+
+            Rectangle textureSourceRectangle = new Rectangle(0.0f, 0.0f, textureToDraw.width, textureToDraw.height);
+
+            //destination rectangle determines the size to scale it to and the position on screen
+            Rectangle destinationRectangle = new Rectangle();
+            destinationRectangle.width = (textureToDraw.width * 3) * scale;
+            destinationRectangle.height = (textureToDraw.height * 3) * scale;
+
+            //check if sprite destination is above max size, if so... determine the scale between x and y, and adjust the larger to the bounds
+            // and the smaller to be scaled appropriately
+
+            Vector2 Rescale(float w, float h, Vector2 max)
+            {
+                var widthOver = w - max.X;
+                var heightOver = h - maxDrawSize.Y;
+
+                if (widthOver >= heightOver)
+                {
+                    var differenceScale = h / w;
+
+                    w = max.X;
+                    h = max.X * differenceScale;
+                }
+                else
+                {
+                    var differenceScale = w / h;
+
+                    h = max.Y;
+                    w = max.Y * differenceScale;
+                }
+
+                widthOver = w - max.X;
+                heightOver = h - maxDrawSize.Y;
+
+                if (widthOver > 0 || heightOver > 0)
+                {
+                    return Rescale(w, h, max);
+                }
+
+                return new Vector2(w, h);
+            }
+
+            if (maxDrawSize != Vector2.Zero && (destinationRectangle.width > maxDrawSize.X || destinationRectangle.height > maxDrawSize.Y))
+            {
+                maxDrawSize *= scale;
+                var newWH = Rescale(destinationRectangle.width, destinationRectangle.height, maxDrawSize);
+
+                destinationRectangle.width = newWH.X;
+                destinationRectangle.height = newWH.Y;
+            }
+
+            if (flags.HasFlag(SpriteDrawFlags.CenterHorizontal))
+            {
+                var centerHorizontal = ClientWindow.X / 2 - (destinationRectangle.width / 2);
+                destinationRectangle.x = centerHorizontal;
+            }
+            else
+            {
+                destinationRectangle.x = drawPosition.X * scale;
+            }
+
+            if (flags.HasFlag(SpriteDrawFlags.CenterVertical))
+            {
+                var centerVertical = ClientWindow.Y / 2 - (destinationRectangle.height / 2);
+                destinationRectangle.y = centerVertical;
+            }
+            else
+            {
+                destinationRectangle.y = drawPosition.Y * scale;
+            }
+
+            if (flags.HasFlag(SpriteDrawFlags.ShowSpriteOutline))
+            {
+                Raylib.DrawRectangle((int)destinationRectangle.x, (int)destinationRectangle.y, (int)destinationRectangle.width, (int)destinationRectangle.height, Color.BLACK);
+            }
+
+            // Origin determines where everything is based, passing 0x0y keeps it default
+            // Color.White is used to not tint the texture at all
+            Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, new Vector2(0, 0), 0.0f, Color.WHITE);
+        }
+
+        public int DrawSpecificFrameSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, ILogger logger, Vector2 maxDrawSize, FrameAdvance frameAdvance, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        {
+            if (frameAdvance == FrameAdvance.Forward)
+            {
+                currentAnimationFrame++;
+
+                if (currentAnimationFrame >= spriteData.Frames.Count())
+                {
+                    currentAnimationFrame = 0;
+                }
+            }
+            else if (frameAdvance == FrameAdvance.Backward)
+            {
+                currentAnimationFrame--;
+
+                if (currentAnimationFrame < 0)
+                {
+                    currentAnimationFrame = spriteData.Frames.Count() - 1;
+                }
+            }
+
+            DrawSprite(drawPosition, scale, maxDrawSize, flags);
+
+            return currentAnimationFrame;
+        }
+
+        public int DrawSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, string defaultTexture, ILogger logger, Vector2 maxDrawSize, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        {
+            if (spriteData == null)
+            {
+                spriteTextures = new List<Texture2D> { Raylib.LoadTexture(defaultTexture) };
+            }
+            else
+            {
+                currentSprite = spriteData.Name;
+
+                if (previousSprite != currentSprite)
+                {
+                    previousSprite = currentSprite;
+                    currentAnimationFrame = 0;
+                    nextFrameAdvance = (int)spriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)spriteData.Sequence.playbackSpeed;
+                    frameCounter = 0;
+                    spriteTextures = new List<Texture2D>();
+
+                    //load all textures now...
+
+                    var spriteDataPathFragments = spriteData.SpriteFilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var sequenceItem in spriteData.Sequence.tracks[0].keyframes.Frames)
+                    {
+                        var spriteImagePath = spriteData.SpriteFilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
+                        var frameData = spriteData.Frames.Where(x => x.name == sequenceItem.Channels._0.Id.name).FirstOrDefault();
+
+                        if (frameData == null)
+                        {
+                            logger.LogError($"Frame data not found for current frame {currentAnimationFrame}");
+                        }
+
+                        spriteImagePath = Path.Combine(spriteImagePath, frameData.name + ".png");
+
+                        if (!File.Exists(spriteImagePath))
+                        {
+                            logger.LogError("unable to open file for frame data");
+                        }
+
+                        spriteTextures.Add(Raylib.LoadTexture(spriteImagePath));
+                    }
+                }
+
+                if (!flags.HasFlag(SpriteDrawFlags.Pause))
+                {
+                    frameCounter++;
+
+                    if (frameCounter >= nextFrameAdvance)
+                    {
+                        frameCounter = 0;
+                        currentAnimationFrame++;
+
+                        if (currentAnimationFrame >= spriteData.Frames.Count())
+                        {
+                            currentAnimationFrame = 0;
+                        }
+                    }
+                }
+            }
+
+            DrawSprite(drawPosition, scale, maxDrawSize, flags);
+
+            return currentAnimationFrame;
+        }
+    }
+}
