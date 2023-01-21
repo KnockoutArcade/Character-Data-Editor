@@ -1,4 +1,5 @@
-﻿using CharacterDataEditor.Screens;
+﻿using CharacterDataEditor.Helpers;
+using CharacterDataEditor.Screens;
 using Hardware.Info;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
@@ -28,26 +29,20 @@ namespace CharacterDataEditor.Services
             _logger.LogInformation("Icon Loaded");
 
             //get hardware info about screen resolution...
-            var hardwareInfo = new HardwareInfo();
-            hardwareInfo.RefreshVideoControllerList();
+            var clientWindow = HardwareHelper.GetClientWindowSize();
+            var monitorSize = HardwareHelper.GetMonitorResolution();
 
-            var height = hardwareInfo.VideoControllerList[0].CurrentVerticalResolution;
-            var width = hardwareInfo.VideoControllerList[0].CurrentHorizontalResolution;
-
-            var windowHeight = (int)(height - (height * 0.1));
-            var windowWidth = (int)(width - (width * 0.1));
-
-            _logger.LogInformation($"Default client area determined based on resolution of {width} by {height}");
+            _logger.LogInformation($"Default client area determined based on resolution of {monitorSize.X} by {monitorSize.Y}");
 
             //initialize the graphics lib
-            Raylib.InitWindow(windowWidth, windowHeight, "Knockout Arcade - Character Data Editor");
+            Raylib.InitWindow((int)clientWindow.X, (int)clientWindow.Y, "Knockout Arcade - Character Data Editor");
             Raylib.SetWindowIcon(logo);
             Raylib.SetTargetFPS(60);
             Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
 
             _logger.LogInformation("Window created with Raylib and sent to video card");
 
-            _screenManager.ScreenScale = height / 720.0f;
+            _screenManager.ScreenScale = monitorSize.Y / 720.0f;
 
             _logger.LogInformation($"GUI Scaling calculated to be: {_screenManager.ScreenScale}");
 
@@ -61,7 +56,7 @@ namespace CharacterDataEditor.Services
 
             _logger.LogInformation("DearIMGui context and controller created, beginning main render loop");
 
-            _screenManager.NavigateTo(typeof(MainScreen), new { height = (float)windowHeight, width = (float)windowWidth });
+            _screenManager.NavigateTo(typeof(MainScreen), new { height = clientWindow.Y, width = clientWindow.X });
             _logger.LogInformation("Setting initial screen to MainScreen");
 
             //enter the program loop

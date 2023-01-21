@@ -1,4 +1,4 @@
-﻿namespace CharacterDataEditor.Models
+﻿namespace CharacterDataEditor.Enums
 {
     public enum MoveType
     {

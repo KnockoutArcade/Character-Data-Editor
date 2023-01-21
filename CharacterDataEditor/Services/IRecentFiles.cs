@@ -91,7 +91,7 @@ namespace CharacterDataEditor.Services
             using (StreamWriter streamWriter = new StreamWriter(path, false))
             {
                 var json = JsonConvert.SerializeObject(recentProjects);
-                streamWriter.Write(JsonConvert.SerializeObject(recentProjects));
+                streamWriter.Write(json);
             }
         }
     }

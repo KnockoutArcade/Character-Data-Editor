@@ -17,6 +17,7 @@ namespace CharacterDataEditor.Screens
         private readonly ILogger<MainScreen> _logger;
         private float screenWidth, screenHeight;
         private List<RecentProjectModel> _recentProjects;
+        private SpriteDrawingHelper spriteDrawer;
 
         public MainScreen(ILogger<MainScreen> logger, IRecentFiles recentFiles)
         {
@@ -29,13 +30,14 @@ namespace CharacterDataEditor.Screens
             screenWidth = screenData?.width ?? 1280.0f;
             screenHeight = screenData?.height ?? 720.0f;
             _recentProjects = new List<RecentProjectModel>();
+            spriteDrawer = new SpriteDrawingHelper();
         }
 
         public void Render(IScreenManager screenManager)
         {
             DrawMainMenu(screenManager.ScreenScale);
-            DrawLogo(screenManager.ScreenScale);
             DrawOpenProjectWindow(screenManager.ScreenScale, screenManager);
+            DrawLogo(screenManager.ScreenScale);
         }
 
         private void DrawOpenProjectWindow(float scale, IScreenManager screenManager)
@@ -94,16 +96,14 @@ namespace CharacterDataEditor.Screens
 
         private void DrawLogo(float scale)
         {
-            var texture = Raylib.LoadTexture(ResourceConstants.LogoPath);
-            Rectangle logoRectangle = new Rectangle(0.0f, 0.0f, texture.width, texture.height);
-
-            Rectangle destinationRectangle = new Rectangle();
-            destinationRectangle.width = (texture.width * 3) * scale;
-            destinationRectangle.height = (texture.height * 3) * scale;
-            destinationRectangle.x = (screenWidth / 2 - (destinationRectangle.width / 2));
-            destinationRectangle.y = 5 * scale;
-
-            Raylib.DrawTexturePro(texture, logoRectangle, destinationRectangle, new Vector2(0, 0), 0.0f, Color.WHITE);
+            spriteDrawer.DrawSpriteToScreen(
+                null,
+                new Vector2(0, 0),
+                scale,
+                ResourceConstants.LogoPath,
+                _logger,
+                new Vector2(400, 400),
+                SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.NotAnimated);
         }
 
         private void DrawMainMenu(float scale)

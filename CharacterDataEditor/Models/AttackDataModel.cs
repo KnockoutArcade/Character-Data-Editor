@@ -1,4 +1,6 @@
-﻿namespace CharacterDataEditor.Models
+﻿using CharacterDataEditor.Enums;
+
+namespace CharacterDataEditor.Models
 {
     public record AttackDataModel
     {
