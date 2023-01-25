@@ -2,11 +2,11 @@
 {
     public record HurtboxDataModel
     {
-        public int Start { get; set; }
-        public int Lifetime { get; set; }
-        public int AttackWidth { get; set; }
-        public int AttackHeight { get; set; }
-        public int WidthOffset { get; set; }
-        public int HeightOffset { get; set; }
+        public int Start { get; set; } = 0;
+        public int Lifetime { get; set; } = 0;
+        public int AttackWidth { get; set; } = 0;
+        public int AttackHeight { get; set; } = 0;
+        public int WidthOffset { get; set; } = 0;
+        public int HeightOffset { get; set; } = 0;
     }
 }

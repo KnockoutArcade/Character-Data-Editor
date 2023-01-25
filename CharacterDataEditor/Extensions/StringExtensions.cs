@@ -14,7 +14,21 @@ namespace CharacterDataEditor.Extensions
             return spacedString;
         }
 
-        public static string CamelCase(this string input)
+        public static string UpperCaseFirstLetter(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+
+            if (input.Length == 1)
+            {
+                return input.ToUpper();
+            }
+
+            var firstChar = input[0];
+
+            return $"{firstChar.ToString().ToUpper()}{input.Substring(1)}";
+        }
+
+        public static string ToCamelCase(this string input)
         {
             return input.Replace(" ", "");
         }

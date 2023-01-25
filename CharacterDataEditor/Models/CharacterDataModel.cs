@@ -5,10 +5,10 @@ namespace CharacterDataEditor.Models
 {
     public record CharacterDataModel
     {
-        public string Name { get; set; }
-        public string BaseSprite { get; set; }
-        public PaletteModel BaseColor { get; set; }
-        public List<PaletteModel> Palettes { get; set; }
-        public List<MoveDataModel> MoveData { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string BaseSprite { get; set; } = string.Empty;
+        public PaletteModel BaseColor { get; set; } = new PaletteModel();
+        public List<PaletteModel> Palettes { get; set; } = new List<PaletteModel>();
+        public List<MoveDataModel> MoveData { get; set; } = new List<MoveDataModel>();
     }
 }

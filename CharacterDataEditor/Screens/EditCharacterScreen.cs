@@ -30,10 +30,10 @@ namespace CharacterDataEditor.Screens
         private Texture2D advanceOneFrameForwardTexture;
         private Texture2D advanceOneFrameBackTexture;
 
-        private int selectedMoveType = 0;
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         List<string> moveTypesList = new List<string>();
+        List<string> attackTypesList = new List<string>();
 
         List<SpriteDataModel> allSprites;
 
@@ -51,6 +51,8 @@ namespace CharacterDataEditor.Screens
         private int currentFrame;
 
         private const int buttonSpacing = 8;
+
+        private string editorWindowTitle;
 
         public EditCharacterScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations)
         {
@@ -98,13 +100,23 @@ namespace CharacterDataEditor.Screens
                 moveTypesList.Add(itemAsString);
             }
 
-            moveTypesList.Sort();
+            var attackTypes = Enum.GetValues(typeof(AttackType));
+            attackTypesList = new List<string>();
+
+            foreach (AttackType item in attackTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                attackTypesList.Add(itemAsString);
+            }
 
             //init spritedrawposition
             spriteDrawPosition = new Vector2(0, 40);
 
             currentFrame = 0;
             frameAdvance = FrameAdvance.None;
+
+            editorWindowTitle = "Editor";
         }
 
         public void Render(IScreenManager screenManager)
@@ -181,15 +193,22 @@ namespace CharacterDataEditor.Screens
 
         private void RenderMoveEditor(float scale)
         {
+            editorWindowTitle = "Move Editor";
+
             if (moveInEditor == null)
             {
                 ImGui.Text("No move selected...");
             }
             else
             {
+                int selectedMoveType = (int)moveInEditor.MoveType;
+
                 ImGui.Text("Move Type");
                 ImGui.SameLine();
+
                 ImGui.Combo("##MoveType", ref selectedMoveType, moveTypesList.ToArray(), moveTypesList.Count);
+
+                moveInEditor.MoveType = (MoveType)selectedMoveType;
                 //file open for sprite... or should we enumerate them and display a list...?
                 ImGui.Text("Sprite ID");
                 ImGui.SameLine();
@@ -207,18 +226,191 @@ namespace CharacterDataEditor.Screens
                         spriteData = allSprites[selectedSpriteIndex];
                     }
                 }
-                //ImGui.InputText("##spriteID", ref spriteId, 200);
-                //moveInEditor.SpriteName = spriteId;
-
+                
                 if (ImGui.CollapsingHeader("Windows"))
                 {
-                    ImGui.Button("Add Window");
-                    ImGui.Text("No windows...");
+                    int windowCount = moveInEditor.NumberOfFrames;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfWindows", ref windowCount);
+
+                    if (windowCount < 0)
+                    {
+                        windowCount = 0;
+                    }
+
+                    if (windowCount < moveInEditor.NumberOfFrames)
+                    {
+                        while (windowCount < moveInEditor.NumberOfFrames)
+                        {
+                            moveInEditor.FrameData.RemoveAt(moveInEditor.NumberOfFrames - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (windowCount > moveInEditor.NumberOfFrames)
+                        {
+                            moveInEditor.FrameData.Add(new FrameDataModel());
+                        }
+                    }
+
+                    if (windowCount == 0)
+                    {
+                        ImGui.Text("No windows");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.NumberOfFrames; i++)
+                        {
+                            var windowItem = moveInEditor.FrameData[i];
+
+                            if (ImGui.TreeNode($"Window [{i}]"))
+                            {
+                                int imageIndex = windowItem.ImageIndex;
+                                int length = windowItem.Length;
+
+                                ImguiDrawingHelper.DrawIntInput("imageIndex", ref imageIndex);
+                                ImguiDrawingHelper.DrawIntInput("length", ref length);
+
+                                windowItem.ImageIndex = imageIndex;
+                                windowItem.Length = length;
+
+                                ImGui.TreePop();
+                            }
+                        }
+                    }
+                }
+
+                if (character.MoveData == null)
+                {
+                    character.MoveData = new List<MoveDataModel>();
                 }
 
                 if (ImGui.CollapsingHeader("Attack Properties"))
                 {
-                    ImGui.Text("No properties");
+                    int hitboxCount = moveInEditor.NumberOfHitboxes;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfHitboxes", ref hitboxCount);
+
+                    if (hitboxCount < 0)
+                    {
+                        hitboxCount = 0;
+                    }
+
+                    if (hitboxCount < moveInEditor.NumberOfHitboxes)
+                    {
+                        while (hitboxCount < moveInEditor.NumberOfHitboxes)
+                        {
+                            moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (hitboxCount > moveInEditor.NumberOfHitboxes)
+                        {
+                            moveInEditor.AttackData.Add(new AttackDataModel());
+                        }
+                    }
+
+                    if (hitboxCount == 0)
+                    {
+                        ImGui.Text("No properties");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
+                        {
+                            var attackDataItem = moveInEditor.AttackData[i];
+
+                            if (ImGui.TreeNode($"Hitbox [{i}]"))
+                            {
+                                int start = attackDataItem.Start;
+                                int lifetime = attackDataItem.Lifetime;
+                                int attackWidth = attackDataItem.AttackWidth;
+                                int attackHeight = attackDataItem.AttackHeight;
+                                int widthOffset = attackDataItem.WidthOffset;
+                                int heightOffset = attackDataItem.HeightOffset;
+                                int group = attackDataItem.Group;
+                                int damage = attackDataItem.Damage;
+                                int attackHitstop = attackDataItem.AttackHitStop;
+                                int attackHitstun = attackDataItem.AttackHitStun;
+                                AttackType attackType = attackDataItem.AttackType;
+                                int blockStun = attackDataItem.BlockStun;
+                                int knockBack = attackDataItem.KnockBack;
+                                int airKnockbackH = attackDataItem.AirKnockbackHorizontal;
+                                int airKnockbackV = attackDataItem.AirKnockbackVertical;
+                                bool launches = attackDataItem.Launches;
+                                int launchKnockbackV = attackDataItem.LaunchKnockbackVertical;
+                                int launchKnockbackH = attackDataItem.LaunchKnockbackHorizontal;
+                                int pushback = attackDataItem.Pushback;
+                                int particleOffsetX = attackDataItem.ParticleXOffset;
+                                int particleOffsetY = attackDataItem.ParticleYOffset;
+                                string particleEffect = attackDataItem.ParticleEffect;
+                                int particleDuration = attackDataItem.ParticleDuration;
+                                int holdOffsetX = attackDataItem.HoldXOffset;
+                                int holdOffsetY = attackDataItem.HoldYOffset;
+
+                                ImguiDrawingHelper.DrawIntInput("start", ref start);
+                                ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
+                                ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
+                                ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
+                                ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
+                                ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
+                                ImguiDrawingHelper.DrawIntInput("group", ref group);
+                                ImguiDrawingHelper.DrawIntInput("damage", ref damage);
+                                ImguiDrawingHelper.DrawIntInput("attackHitStop", ref attackHitstop);
+                                ImguiDrawingHelper.DrawIntInput("attackHitStun", ref attackHitstun);
+
+                                int selectedAttackType = (int)attackType;
+                                ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
+
+                                ImguiDrawingHelper.DrawIntInput("blockStun", ref blockStun);
+                                ImguiDrawingHelper.DrawIntInput("knockback", ref knockBack);
+                                ImguiDrawingHelper.DrawIntInput("airKnockbackVertical", ref airKnockbackV);
+                                ImguiDrawingHelper.DrawIntInput("airKnockbackHorizontal", ref airKnockbackH);
+                                ImguiDrawingHelper.DrawBoolInput("launches", ref launches);
+                                ImguiDrawingHelper.DrawIntInput("launchKnockbackVertical", ref launchKnockbackV);
+                                ImguiDrawingHelper.DrawIntInput("launchKnockbackHorizontal", ref launchKnockbackH);
+                                ImguiDrawingHelper.DrawIntInput("pushback", ref pushback);
+                                ImguiDrawingHelper.DrawIntInput("particleOffsetX", ref particleOffsetX);
+                                ImguiDrawingHelper.DrawIntInput("particleOffsetY", ref particleOffsetY);
+
+                                int selectedParticleEffect = string.IsNullOrWhiteSpace(particleEffect) ? 0 : allSprites.IndexOf(allSprites.Where(x => x.Name == particleEffect).First());
+                                ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
+                                
+                                ImguiDrawingHelper.DrawIntInput("particleDuration", ref particleDuration);
+                                ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
+                                ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
+
+                                attackDataItem.Start = start;
+                                attackDataItem.Lifetime = lifetime;
+                                attackDataItem.AttackWidth = attackWidth;
+                                attackDataItem.AttackHeight = attackHeight;
+                                attackDataItem.WidthOffset = widthOffset;
+                                attackDataItem.HeightOffset = heightOffset;
+                                attackDataItem.Group = group;
+                                attackDataItem.Damage = damage;
+                                attackDataItem.AttackHitStop = attackHitstop;
+                                attackDataItem.AttackHitStun = attackHitstun;
+                                attackDataItem.AttackType = (AttackType)selectedAttackType;
+                                attackDataItem.BlockStun = blockStun;
+                                attackDataItem.KnockBack = knockBack;
+                                attackDataItem.AirKnockbackHorizontal = airKnockbackH;
+                                attackDataItem.AirKnockbackVertical = airKnockbackV;
+                                attackDataItem.Launches = launches;
+                                attackDataItem.LaunchKnockbackHorizontal = launchKnockbackH;
+                                attackDataItem.LaunchKnockbackVertical = launchKnockbackV;
+                                attackDataItem.Pushback = pushback;
+                                attackDataItem.ParticleXOffset = particleOffsetX;
+                                attackDataItem.ParticleYOffset = particleOffsetY;
+                                attackDataItem.ParticleEffect = allSprites[selectedParticleEffect].Name;
+                                attackDataItem.ParticleDuration = particleDuration;
+                                attackDataItem.HoldXOffset = holdOffsetX;
+                                attackDataItem.HoldYOffset = holdOffsetY;
+
+                                ImGui.TreePop();
+                            }
+                        }
+                    }
                 }
 
                 bool isThrow = moveInEditor.IsThrow;
@@ -229,14 +421,74 @@ namespace CharacterDataEditor.Screens
 
                 if (ImGui.CollapsingHeader("Hurtboxes"))
                 {
-                    ImGui.Button("Add Hurtbox");
-                    ImGui.Text("No hurtboxes...");
+                    int hurtboxCount = moveInEditor.NumberOfHurtboxes;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfHurtboxes", ref hurtboxCount);
+
+                    if (hurtboxCount < 0)
+                    {
+                        hurtboxCount = 0;
+                    }
+
+                    if (hurtboxCount < moveInEditor.NumberOfHurtboxes)
+                    {
+                        while (hurtboxCount < moveInEditor.NumberOfHurtboxes)
+                        {
+                            moveInEditor.HurtboxData.RemoveAt(moveInEditor.NumberOfHurtboxes - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (hurtboxCount > moveInEditor.NumberOfHurtboxes)
+                        {
+                            moveInEditor.HurtboxData.Add(new HurtboxDataModel());
+                        }
+                    }
+
+                    if (hurtboxCount == 0)
+                    {
+                        ImGui.Text("No hurtboxes");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
+                        {
+                            var currentHurtbox = moveInEditor.HurtboxData[i];
+
+                            if (ImGui.TreeNode($"Hurtbox [{i}]"))
+                            {
+                                int start = currentHurtbox.Start;
+                                int lifetime = currentHurtbox.Lifetime;
+                                int attackWidth = currentHurtbox.AttackWidth;
+                                int attackHeight = currentHurtbox.AttackHeight;
+                                int widthOffset = currentHurtbox.WidthOffset;
+                                int heightOffset = currentHurtbox.HeightOffset;
+
+                                ImguiDrawingHelper.DrawIntInput("start", ref start);
+                                ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
+                                ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
+                                ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
+                                ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
+                                ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
+
+                                currentHurtbox.Start = start;
+                                currentHurtbox.Lifetime = lifetime;
+                                currentHurtbox.AttackWidth = attackWidth;
+                                currentHurtbox.AttackHeight = attackHeight;
+                                currentHurtbox.WidthOffset = widthOffset;
+                                currentHurtbox.HeightOffset = heightOffset;
+
+                                ImGui.TreePop();
+                            }
+                        }
+                    }
                 }
             }
         }
 
         private void RenderPaletteEditor(float scale)
         {
+            editorWindowTitle = "Palette Editor";
         }
 
         private void RenderEditor(float scale)
@@ -252,7 +504,7 @@ namespace CharacterDataEditor.Screens
             ImGui.SetNextWindowPos(windowPos);
             ImGui.SetNextWindowSize(windowSize);
 
-            if (ImGui.Begin("Editor", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
+            if (ImGui.Begin($"{editorWindowTitle}##EditorWindow", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGui.SetWindowFontScale(scale);
 
@@ -379,16 +631,32 @@ namespace CharacterDataEditor.Screens
                 {
                     if (ImGui.Button("Add New Move"))
                     {
-                        selectedMoveType = 0;
                         moveInEditor = new MoveDataModel();
+                        
+                        if (character.MoveData == null)
+                        {
+                            character.MoveData = new List<MoveDataModel>();
+                        }
+
+                        character.MoveData.Add(moveInEditor);
                         editorMode = EditorMode.Move;
                     }
                     ImGui.Separator();
                     if (character.MoveData != null && character.MoveData.Count > 0)
                     {
-                        foreach (var move in character.MoveData)
+                        for (int i = 0; i < character.MoveData.Count; i++)
                         {
-
+                            var selected = character.MoveData[i] == moveInEditor;
+                            if (ImGui.Selectable($"{character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase()}##{i}", selected))
+                            {
+                                moveInEditor = character.MoveData[i];
+                                editorMode = EditorMode.Move;
+                                var moveSpriteIndex = string.IsNullOrWhiteSpace(moveInEditor.SpriteName) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName));
+                                if (moveSpriteIndex > -1)
+                                {
+                                    spriteData = allSprites[moveSpriteIndex];
+                                }
+                            }
                         }
                     }
                     else
