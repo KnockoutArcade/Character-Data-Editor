@@ -2,21 +2,21 @@
 {
     public enum MoveType
     {
-        SideSpecial,
-        NeutralSpecial,
         BackwardThrow,
         ForwardThrow,
         Grab,
-        JumpingHeavy,
-        JumpingMedium,
-        JumpingLight,
-        CrouchingHeavy,
-        CrouchingMedium,
-        CrouchingLight,
-        StandingHeavy,
-        StandingMedium,
+        SideSpecial,
+        NeutralSpecial,
         StandingLight,
         StandingLight2,
-        StandingLight3
+        StandingLight3,
+        StandingMedium,
+        StandingHeavy,
+        CrouchingLight,
+        CrouchingMedium,
+        CrouchingHeavy,
+        JumpingLight,
+        JumpingMedium,
+        JumpingHeavy
     }
 }
