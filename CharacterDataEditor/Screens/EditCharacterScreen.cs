@@ -153,6 +153,7 @@ namespace CharacterDataEditor.Screens
 
         private void RenderPaletteWindow(float scale)
         {
+            //set the window size, scale as necessary
             var windowSize = new Vector2();
             windowSize.X = 320 * scale;
             windowSize.Y = 620 * scale;
@@ -166,24 +167,141 @@ namespace CharacterDataEditor.Screens
 
                 if (ImGui.CollapsingHeader("Base Palette", ImGuiTreeNodeFlags.DefaultOpen))
                 {
-                }
-
-                if (ImGui.CollapsingHeader("All Palettes", ImGuiTreeNodeFlags.DefaultOpen))
-                {
-                    if (ImGui.Button("Add New Palette"))
+                    if (character.BaseColor == null)
                     {
+                        character.BaseColor = new PaletteModel();
                     }
-                    ImGui.Separator();
-                    if (character.Palettes != null && character.Palettes.Count > 0)
-                    {
-                        foreach (var palette in character.Palettes)
-                        {
 
+                    int numberOfReplacableColors = character.BaseColor.NumberOfReplacableColors;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfColors", ref numberOfReplacableColors);
+
+                    if (numberOfReplacableColors < 0)
+                    {
+                        numberOfReplacableColors = 0;
+                    }
+
+                    if (numberOfReplacableColors < character.BaseColor.NumberOfReplacableColors)
+                    {
+                        while (numberOfReplacableColors < character.BaseColor.NumberOfReplacableColors)
+                        {
+                            character.BaseColor.ColorPalette.RemoveAt(character.BaseColor.NumberOfReplacableColors - 1);
                         }
                     }
                     else
                     {
-                        ImGui.Text("No Palettes...");
+                        while (numberOfReplacableColors > character.BaseColor.NumberOfReplacableColors)
+                        {
+                            character.BaseColor.ColorPalette.Add(new RGBModel());
+                        }
+                    }
+
+                    if (numberOfReplacableColors == 0)
+                    {
+                        ImGui.Text("No replacable colors");
+                    }
+                    else
+                    {
+                        var palettes = character.BaseColor.ColorPalette;
+
+                        ImguiDrawingHelper.DrawPaletteEditor(ref palettes);
+
+                        character.BaseColor.ColorPalette = palettes;
+                    }
+                }
+
+                if (ImGui.CollapsingHeader("Alt Palettes", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    if (character.Palettes == null)
+                    {
+                        character.Palettes = new List<PaletteModel>();
+                    }
+
+                    int numberOfPalettes = character.NumberOfPalettes;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfPalettes", ref numberOfPalettes);
+
+                    if (numberOfPalettes < 0)
+                    {
+                        numberOfPalettes = 0;
+                    }
+
+                    if (numberOfPalettes < character.NumberOfPalettes)
+                    {
+                        while (numberOfPalettes < character.NumberOfPalettes)
+                        {
+                            character.Palettes.RemoveAt(character.NumberOfPalettes - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (numberOfPalettes > character.NumberOfPalettes)
+                        {
+                            character.Palettes.Add(new PaletteModel());
+                        }
+                    }
+
+                    if (numberOfPalettes == 0)
+                    {
+                        ImGui.Text("No alternate palettes");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < character.NumberOfPalettes; i++)
+                        {
+                            var palette = character.Palettes[i];
+
+                            if (ImGui.TreeNodeEx($"##{i}", ImGuiTreeNodeFlags.DefaultOpen, palette.Name))
+                            {
+                                var name = palette.Name;
+
+                                ImguiDrawingHelper.DrawStringInput("paletteName", ref name);
+
+                                palette.Name = name;
+
+                                if (palette.ColorPalette == null)
+                                {
+                                    palette.ColorPalette = new List<RGBModel>();
+                                }
+
+                                int numberOfReplacableColors = character.BaseColor.NumberOfReplacableColors;
+
+                                if (numberOfReplacableColors < 0)
+                                {
+                                    numberOfReplacableColors = 0;
+                                }
+
+                                if (numberOfReplacableColors < palette.NumberOfReplacableColors)
+                                {
+                                    while (numberOfReplacableColors < palette.NumberOfReplacableColors)
+                                    {
+                                        palette.ColorPalette.RemoveAt(palette.NumberOfReplacableColors - 1);
+                                    }
+                                }
+                                else
+                                {
+                                    while (numberOfReplacableColors > palette.NumberOfReplacableColors)
+                                    {
+                                        palette.ColorPalette.Add(new RGBModel());
+                                    }
+                                }
+
+                                if (numberOfReplacableColors == 0)
+                                {
+                                    ImGui.Text("No replacable colors");
+                                }
+                                else
+                                {
+                                    var palettes = palette.ColorPalette;
+
+                                    ImguiDrawingHelper.DrawPaletteEditor(ref palettes);
+
+                                    palette.ColorPalette = palettes;
+
+                                    ImGui.TreePop();
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -489,6 +607,14 @@ namespace CharacterDataEditor.Screens
         private void RenderPaletteEditor(float scale)
         {
             editorWindowTitle = "Palette Editor";
+
+            if (paletteInEditor == null)
+            {
+                ImGui.Text("No palette selected...");
+            }
+            else
+            {
+            }
         }
 
         private void RenderEditor(float scale)
