@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CharacterDataEditor.Enums;
 
 namespace CharacterDataEditor.Models
 {
     public record MoveDataModel
     {
+        public string UID { get; set; } = Guid.NewGuid().ToString();
         public MoveType MoveType { get; set; } = MoveType.BackwardThrow;
         public string SpriteName { get; set; } = string.Empty;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
