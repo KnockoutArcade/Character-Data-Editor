@@ -70,10 +70,13 @@ namespace CharacterDataEditor.Services
                 Raylib.ClearBackground(Color.DARKGRAY);
 
                 //render goes here
-                _screenManager.CurrentScreen.Render(_screenManager);
+                _screenManager.CurrentScreen.RenderImGui(_screenManager);
 
                 ImGui.Render();
                 controller.Render(ImGui.GetDrawData());
+
+                _screenManager.CurrentScreen.RenderAfterImGui(_screenManager);
+
                 Raylib.EndDrawing();
             }
             

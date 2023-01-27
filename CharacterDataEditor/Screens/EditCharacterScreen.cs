@@ -46,8 +46,12 @@ namespace CharacterDataEditor.Screens
         private FrameAdvance frameAdvance;
 
         private EditorMode editorMode;
+        private BoxDrawMode boxDrawMode;
+
+        private Rectangle boxRect;
 
         private int currentFrame;
+        private AnimatedSpriteReturnDataModel spriteDrawData;
 
         private const int buttonSpacing = 8;
 
@@ -79,7 +83,8 @@ namespace CharacterDataEditor.Screens
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.BaseSprite))
             {
-                spriteData = allSprites.FirstOrDefault(x => x.Name == character.BaseSprite);
+                var sprite = allSprites.FirstOrDefault(x => x.Name == character.BaseSprite);
+                ChangeAnimatedSprite(sprite);
             }
 
             playButtonTexture = Raylib.LoadTexture(ResourceConstants.PlayButtonPath);
@@ -114,18 +119,37 @@ namespace CharacterDataEditor.Screens
 
             currentFrame = 0;
             frameAdvance = FrameAdvance.None;
+            boxDrawMode = BoxDrawMode.None;
 
             editorWindowTitle = "Editor";
         }
 
-        public void Render(IScreenManager screenManager)
+        public void RenderImGui(IScreenManager screenManager)
         {
             RenderMainMenu(screenManager.ScreenScale, screenManager);
             RenderCharacterDataWindow(screenManager.ScreenScale);
             RenderSpriteDisplayArea(screenManager.ScreenScale, screenManager);
             RenderEditor(screenManager.ScreenScale);
             RenderPaletteWindow(screenManager.ScreenScale);
+        }
 
+        public void RenderAfterImGui(IScreenManager screenManager)
+        {
+            RenderAnimatedSprite(screenManager.ScreenScale);
+
+            RenderHitHurtBox(screenManager.ScreenScale);
+        }
+
+        private void ChangeAnimatedSprite(SpriteDataModel sprite)
+        {
+            //disable box drawing when the change first happens
+            boxDrawMode = BoxDrawMode.None;
+
+            spriteData = sprite;
+        }
+
+        private void RenderAnimatedSprite(float scale)
+        {
             var maxSpriteSize = new Vector2(200, 200);
 
             var animationFlags = SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.ShowSpriteOutline;
@@ -141,13 +165,71 @@ namespace CharacterDataEditor.Screens
 
             if (frameAdvance != FrameAdvance.None)
             {
-                currentFrame = spriteDrawer.DrawSpecificFrameSpriteToScreen(spriteData, spriteDrawPosition, screenManager.ScreenScale, _logger, maxSpriteSize, frameAdvance, animationFlags);
+                var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(spriteData, spriteDrawPosition, scale, _logger, maxSpriteSize, frameAdvance, animationFlags);
+
+                currentFrame = frameData.CurrentFrame;
+                spriteDrawData = frameData;
+
                 frameAdvance = FrameAdvance.None;
             }
             else
             {
-                currentFrame = spriteDrawer.DrawSpriteToScreen(spriteData, spriteDrawPosition, screenManager.ScreenScale, ResourceConstants.LogoPath, _logger, maxSpriteSize, animationFlags);
+                var frameData = spriteDrawer.DrawSpriteToScreen(spriteData, spriteDrawPosition, scale, ResourceConstants.LogoPath, _logger, maxSpriteSize, animationFlags);
+
+                currentFrame = frameData.CurrentFrame;
+                spriteDrawData = frameData;
             }
+        }
+
+        private void RenderHitHurtBox(float scale)
+        {
+            Color boxDrawColor;
+
+            switch (boxDrawMode)
+            {
+                case BoxDrawMode.Hurtbox:
+                    boxDrawColor = Color.RED;
+                    break;
+                case BoxDrawMode.Hitbox:
+                    boxDrawColor = Color.BLUE;
+                    break;
+                case BoxDrawMode.None:
+                default:
+                    return;
+            }
+
+            var spriteFinalScale = spriteDrawData.ScaledDrawSize.X / spriteData.Width;
+
+            //adjust height and width to triple then multiply by scale
+            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+            var xOffsetAdjusted = boxRect.x * spriteFinalScale;
+            var yOffsetAdjusted = boxRect.y * spriteFinalScale;
+
+            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+            var finalWidth = boxRect.width * spriteFinalScale;
+            var finalHeight = boxRect.height * spriteFinalScale;
+
+            yDrawPos -= yOffsetAdjusted;
+            xDrawPos += xOffsetAdjusted;
+
+            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+            if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+            {
+                xDrawPos += (0.5f * spriteFinalScale);
+            }
+
+            var destRect = new Rectangle(
+                xDrawPos,
+                yDrawPos,
+                finalWidth, 
+                finalHeight);
+            
+            //draw the box
+            Raylib.DrawRectangleLinesEx(destRect, 3.0f, boxDrawColor);
         }
 
         private void RenderPaletteWindow(float scale)
@@ -224,6 +306,8 @@ namespace CharacterDataEditor.Screens
 
         private void RenderMoveEditor(float scale)
         {
+            bool anyBoxRenderActive = false;
+
             editorWindowTitle = "Move Editor";
 
             if (moveInEditor == null)
@@ -254,7 +338,8 @@ namespace CharacterDataEditor.Screens
                     if (moveInEditor.SpriteName != allSprites[selectedSpriteIndex].Name)
                     {
                         moveInEditor.SpriteName = allSprites[selectedSpriteIndex].Name;
-                        spriteData = allSprites[selectedSpriteIndex];
+                        var sprite = allSprites[selectedSpriteIndex];
+                        ChangeAnimatedSprite(sprite);
                     }
                 }
                 
@@ -382,14 +467,21 @@ namespace CharacterDataEditor.Screens
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
-                                ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
-                                ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
-                                ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
-                                ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
+                                var wSelect = ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
+                                var hSelect = ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
+                                var xSelect = ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
+                                var ySelect = ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
                                 ImguiDrawingHelper.DrawIntInput("group", ref group);
                                 ImguiDrawingHelper.DrawIntInput("damage", ref damage);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStop", ref attackHitstop);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStun", ref attackHitstun);
+
+                                if (wSelect || hSelect || xSelect || ySelect)
+                                {
+                                    anyBoxRenderActive = true;
+                                    boxRect = new Rectangle(widthOffset, heightOffset, attackWidth, attackHeight);
+                                    boxDrawMode = BoxDrawMode.Hitbox;
+                                }
 
                                 int selectedAttackType = (int)attackType;
                                 ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
@@ -497,10 +589,17 @@ namespace CharacterDataEditor.Screens
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
-                                ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
-                                ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
-                                ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
-                                ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
+                                var wSelect = ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
+                                var hSelect = ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
+                                var xSelect = ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
+                                var ySelect = ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
+
+                                if (wSelect || hSelect || xSelect || ySelect)
+                                {
+                                    anyBoxRenderActive = true;
+                                    boxRect = new Rectangle(widthOffset, heightOffset, attackWidth, attackHeight);
+                                    boxDrawMode = BoxDrawMode.Hurtbox;
+                                }
 
                                 currentHurtbox.Start = start;
                                 currentHurtbox.Lifetime = lifetime;
@@ -514,6 +613,11 @@ namespace CharacterDataEditor.Screens
                         }
                     }
                 }
+            }
+
+            if (!anyBoxRenderActive)
+            {
+                boxDrawMode = BoxDrawMode.None;
             }
         }
 
@@ -636,12 +740,12 @@ namespace CharacterDataEditor.Screens
         {
             var windowSize = new Vector2();
             windowSize.X = 350 * scale;
-            windowSize.Y = 375 * scale;
+            windowSize.Y = 333 * scale;
 
             ImGui.SetNextWindowPos(new Vector2(width / 2 - windowSize.X / 2, 20 * scale));
             ImGui.SetNextWindowSize(windowSize);
 
-            if (ImGui.Begin("Sprite Animation Viewer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground))
+            if (ImGui.Begin("Sprite Animation Viewer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGui.SetWindowFontScale(scale);
 
@@ -656,13 +760,39 @@ namespace CharacterDataEditor.Screens
                     currentAnimationSpeed.ToString();
 
                 ImGui.Text(" ");
-                ImGui.Text($"Current Sprite: {spriteData.Name}");
+
+                var moveInAmount = 35.0f;
+                var curPos = ImGui.GetCursorPos();
+                curPos.X += moveInAmount * scale;
+                ImGui.SetCursorPos(curPos);
+
+                var spriteName = spriteData != null ? spriteData.Name : "No Selected Sprite";
+
+                ImGui.Text($"Current Sprite: {spriteName}");
+
+                curPos = ImGui.GetCursorPos();
+                curPos.X += moveInAmount * scale;
+                ImGui.SetCursorPos(curPos);
+
                 ImGui.Text($"Sprite Animation Speed (fps): { currentAnimationSpeedLabel }");
+
+                curPos = ImGui.GetCursorPos();
+                curPos.X += moveInAmount * scale;
+                ImGui.SetCursorPos(curPos);
+
                 ImGui.Text($"Current Frame: {currentFrame}");
+
+                curPos = ImGui.GetCursorPos();
+                curPos.X += moveInAmount * scale;
+                ImGui.SetCursorPos(curPos);
+
+                var spriteFramesCount = spriteData != null ? spriteData.Frames.Count : 0;
+
+                ImGui.Text($"Total Frames: {spriteFramesCount}");
 
                 var imageButtonSize = new Vector2((advanceOneFrameBackTexture.width / 2) * scale, (advanceOneFrameBackTexture.height / 2) * scale);
 
-                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 3.75f, (310 * scale) - imageButtonSize.Y);
+                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 3.75f, (315 * scale) - imageButtonSize.Y);
 
                 ImGui.SetCursorPos(cursorPos);
 
@@ -736,7 +866,7 @@ namespace CharacterDataEditor.Screens
                     {
                         if (baseSpriteData != null && spriteData != baseSpriteData)
                         {
-                            spriteData = baseSpriteData;
+                            ChangeAnimatedSprite(baseSpriteData);
                         }
                     }
 
@@ -748,7 +878,8 @@ namespace CharacterDataEditor.Screens
                         if (character.BaseSprite != allSprites[selectedBaseSpriteIndex].Name)
                         {
                             character.BaseSprite = allSprites[selectedBaseSpriteIndex].Name;
-                            spriteData = allSprites[selectedBaseSpriteIndex];
+                            var sprite = allSprites[selectedBaseSpriteIndex];
+                            ChangeAnimatedSprite(sprite);
                         }
                     }
 
@@ -780,7 +911,7 @@ namespace CharacterDataEditor.Screens
                         {
                             var selected = character.MoveData[i] == moveInEditor;
                             var moveSpriteIndex = string.IsNullOrWhiteSpace(character.MoveData[i].SpriteName) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == character.MoveData[i].SpriteName));
-                            var playingIndicator = spriteData == allSprites[moveSpriteIndex] ? "*" : "";
+                            var playingIndicator = moveSpriteIndex != -1 && spriteData == allSprites[moveSpriteIndex] ? "*" : "";
 
                             if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                                 {
@@ -790,7 +921,8 @@ namespace CharacterDataEditor.Screens
                                     
                                     if (moveSpriteIndex > -1)
                                     {
-                                        spriteData = allSprites[moveSpriteIndex];
+                                        var sprite = allSprites[moveSpriteIndex];
+                                        ChangeAnimatedSprite(sprite);
                                     }
                                 }, $"{character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase()}{playingIndicator}", selected, i))
                             {
@@ -799,6 +931,12 @@ namespace CharacterDataEditor.Screens
                                 {
                                     moveInEditor = null;
                                     editorMode = EditorMode.None;
+
+                                    //if this sprite is the one playing, remove it
+                                    if (moveSpriteIndex != -1 && spriteData == allSprites[moveSpriteIndex])
+                                    {
+                                        spriteData = null;
+                                    }
                                 }
 
                                 //remove it here

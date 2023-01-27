@@ -10,7 +10,7 @@ namespace CharacterDataEditor.Helpers
 {
     public static class ImguiDrawingHelper
     {
-        public static void DrawIntInput(string label, ref int value)
+        public static bool DrawIntInput(string label, ref int value)
         {
             ImGui.Columns(2);
 
@@ -22,7 +22,11 @@ namespace CharacterDataEditor.Helpers
             //draw the input without a label
             ImGui.InputInt($"##{label}", ref value);
 
+            var itemSelected = ImGui.IsItemFocused();
+
             ImGui.Columns(1);
+
+            return itemSelected;
         }
 
         public static void DrawBoolInput(string label, ref bool value)
