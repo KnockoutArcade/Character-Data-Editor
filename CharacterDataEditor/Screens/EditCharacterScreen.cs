@@ -1,4 +1,4 @@
-using CharacterDataEditor.Constants;
+﻿using CharacterDataEditor.Constants;
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
@@ -306,6 +306,8 @@ namespace CharacterDataEditor.Screens
 
         private void RenderMoveEditor(float scale)
         {
+            bool anyBoxRenderActive = false;
+
             editorWindowTitle = "Move Editor";
 
             if (moveInEditor == null)
@@ -476,6 +478,7 @@ namespace CharacterDataEditor.Screens
 
                                 if (wSelect || hSelect || xSelect || ySelect)
                                 {
+                                    anyBoxRenderActive = true;
                                     boxRect = new Rectangle(widthOffset, heightOffset, attackWidth, attackHeight);
                                     boxDrawMode = BoxDrawMode.Hitbox;
                                 }
@@ -593,6 +596,7 @@ namespace CharacterDataEditor.Screens
 
                                 if (wSelect || hSelect || xSelect || ySelect)
                                 {
+                                    anyBoxRenderActive = true;
                                     boxRect = new Rectangle(widthOffset, heightOffset, attackWidth, attackHeight);
                                     boxDrawMode = BoxDrawMode.Hurtbox;
                                 }
@@ -609,6 +613,11 @@ namespace CharacterDataEditor.Screens
                         }
                     }
                 }
+            }
+
+            if (!anyBoxRenderActive)
+            {
+                boxDrawMode = BoxDrawMode.None;
             }
         }
 
