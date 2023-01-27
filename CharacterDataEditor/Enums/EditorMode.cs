@@ -4,6 +4,7 @@
     {
         None,
         Move,
-        Palette
+        Palette,
+        BasePalette
     }
 }

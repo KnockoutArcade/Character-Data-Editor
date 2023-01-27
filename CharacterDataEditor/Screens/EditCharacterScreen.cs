@@ -32,10 +32,9 @@ namespace CharacterDataEditor.Screens
 
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
-        List<string> moveTypesList = new List<string>();
-        List<string> attackTypesList = new List<string>();
-
-        List<SpriteDataModel> allSprites;
+        private List<string> moveTypesList = new List<string>();
+        private List<string> attackTypesList = new List<string>();
+        private List<SpriteDataModel> allSprites;
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -153,6 +152,7 @@ namespace CharacterDataEditor.Screens
 
         private void RenderPaletteWindow(float scale)
         {
+            //set the window size, scale as necessary
             var windowSize = new Vector2();
             windowSize.X = 320 * scale;
             windowSize.Y = 620 * scale;
@@ -164,26 +164,57 @@ namespace CharacterDataEditor.Screens
             {
                 ImGui.SetWindowFontScale(scale);
 
-                if (ImGui.CollapsingHeader("Base Palette", ImGuiTreeNodeFlags.DefaultOpen))
+                var baseSelected = paletteInEditor == character.BaseColor;
+                if (ImGui.Selectable("Base Palette##base-100", baseSelected))
                 {
+                    if (character.BaseColor == null)
+                    {
+                        character.BaseColor = new PaletteModel();
+                        character.BaseColor.Name = "Base Palette";
+                    }
+
+                    paletteInEditor = character.BaseColor;
+                    moveInEditor = null;
+                    editorMode = EditorMode.BasePalette;
                 }
 
-                if (ImGui.CollapsingHeader("All Palettes", ImGuiTreeNodeFlags.DefaultOpen))
-                {
-                    if (ImGui.Button("Add New Palette"))
-                    {
-                    }
-                    ImGui.Separator();
-                    if (character.Palettes != null && character.Palettes.Count > 0)
-                    {
-                        foreach (var palette in character.Palettes)
-                        {
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
 
-                        }
-                    }
-                    else
+                //load each of the palettes in by name...
+                if (ImGui.CollapsingHeader("Alternate Palettes", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    if (ImGui.Button("New Palette"))
                     {
-                        ImGui.Text("No Palettes...");
+                        var newPalette = new PaletteModel();
+                        character.Palettes.Add(newPalette);
+                        paletteInEditor = newPalette;
+                        moveInEditor = null;
+                        editorMode = EditorMode.Palette;
+                    }
+
+                    ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+
+                    for (int i = 0; i < character.Palettes.Count; i++)
+                    {
+                        var palette = character.Palettes[i];
+
+                        var paletteSelected = paletteInEditor == palette;
+
+                        if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
+                            {
+                                paletteInEditor = palette;
+                                moveInEditor = null;
+                                editorMode = EditorMode.Palette;
+                            }, palette.Name, paletteSelected, i))
+                        {
+                            if (paletteInEditor == palette)
+                            {
+                                paletteInEditor = null;
+                                editorMode = EditorMode.None;
+                            }
+
+                            character.Palettes.RemoveAt(i);
+                        }
                     }
                 }
 
@@ -488,7 +519,81 @@ namespace CharacterDataEditor.Screens
 
         private void RenderPaletteEditor(float scale)
         {
+            var basePalette = editorMode == EditorMode.BasePalette;
+
             editorWindowTitle = "Palette Editor";
+
+            if (paletteInEditor == null)
+            {
+                ImGui.Text("No palette selected...");
+            }
+            else
+            {
+                if (!basePalette)
+                {
+                    var name = paletteInEditor.Name;
+
+                    ImguiDrawingHelper.DrawStringInput("paletteName", ref name);
+
+                    paletteInEditor.Name = name;
+                }
+                else
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Palette Name");
+                    ImGui.NextColumn();
+                    ImGui.Text(paletteInEditor.Name);
+                    ImGui.Columns(1);
+                }
+
+                if (paletteInEditor.ColorPalette == null)
+                {
+                    paletteInEditor.ColorPalette = new List<RGBModel>();
+                }
+
+                //if it's the base palette, this is can be changed... otherwise its the same as the base palette
+                int numberOfReplacableColors = basePalette ? paletteInEditor.NumberOfReplacableColors : character.BaseColor.NumberOfReplacableColors;
+
+                if (basePalette)
+                {
+                    ImguiDrawingHelper.DrawIntInput("numberOfPalettes", ref numberOfReplacableColors);
+                }
+
+                if (numberOfReplacableColors < 0)
+                {
+                    numberOfReplacableColors = 0;
+                }
+
+                if (numberOfReplacableColors < paletteInEditor.NumberOfReplacableColors)
+                {
+                    while (numberOfReplacableColors < paletteInEditor.NumberOfReplacableColors)
+                    {
+                        paletteInEditor.ColorPalette.RemoveAt(paletteInEditor.NumberOfReplacableColors - 1);
+                    }
+                }
+                else
+                {
+                    while (numberOfReplacableColors > paletteInEditor.NumberOfReplacableColors)
+                    {
+                        paletteInEditor.ColorPalette.Add(new RGBModel());
+                    }
+                }
+
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 15.0f);
+
+                if (numberOfReplacableColors == 0)
+                {
+                    ImGui.Text("No replacable colors");
+                }
+                else
+                {
+                    var palettes = paletteInEditor.ColorPalette;
+
+                    ImguiDrawingHelper.DrawPaletteEditor(ref palettes, scale);
+
+                    paletteInEditor.ColorPalette = palettes;
+                }
+            }
         }
 
         private void RenderEditor(float scale)
@@ -514,10 +619,12 @@ namespace CharacterDataEditor.Screens
                         RenderMoveEditor(scale);
                         break;
                     case EditorMode.Palette:
+                    case EditorMode.BasePalette:
                         RenderPaletteEditor(scale);
                         break;
                     case EditorMode.None:
                     default:
+                        editorWindowTitle = "Editor";
                         break;
                 }
 
@@ -606,15 +713,34 @@ namespace CharacterDataEditor.Screens
                 if (ImGui.CollapsingHeader("Character Data", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     var characterName = character.Name ?? string.Empty;
-                    
+
+                    ImGui.BeginTable("characterDataTable", 2);
+                    var tableFlags = ImGuiTableColumnFlags.NoSort;
+                    ImGui.TableSetupColumn("", tableFlags, ImGui.CalcTextSize("Character Name ").X);
+                    ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthStretch);
+
+                    ImGui.TableNextColumn();
+
                     ImGui.Text("Character Name");
-                    ImGui.SameLine();
+                    ImGui.TableNextColumn();
                     ImGui.InputText("##CharacterName", ref characterName, 50);
 
                     character.Name = characterName;
+                    
+                    ImGui.TableNextColumn();
 
-                    ImGui.Text("Base Sprite");
-                    ImGui.SameLine();
+                    var baseSpriteData = allSprites.Where(x => x.Name == character.BaseSprite).FirstOrDefault();
+                    var baseSpritePlaying = spriteData == baseSpriteData ? "*" : "";
+
+                    if (ImGui.Selectable($"Base Sprite{baseSpritePlaying}"))
+                    {
+                        if (baseSpriteData != null && spriteData != baseSpriteData)
+                        {
+                            spriteData = baseSpriteData;
+                        }
+                    }
+
+                    ImGui.TableNextColumn();
                     int selectedBaseSpriteIndex = string.IsNullOrWhiteSpace(character.BaseSprite) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == character.BaseSprite));
                     ImGui.Combo("##BaseSpriteCombo", ref selectedBaseSpriteIndex, allSprites.Select(x => x.Name).ToArray(), allSprites.Count);
                     if (selectedBaseSpriteIndex > -1)
@@ -626,12 +752,18 @@ namespace CharacterDataEditor.Screens
                         }
                     }
 
+                    ImGui.EndTable();
+
                 }
+
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+                
                 if (ImGui.CollapsingHeader("Move Data", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     if (ImGui.Button("Add New Move"))
                     {
                         moveInEditor = new MoveDataModel();
+                        paletteInEditor = null;
                         
                         if (character.MoveData == null)
                         {
@@ -641,21 +773,36 @@ namespace CharacterDataEditor.Screens
                         character.MoveData.Add(moveInEditor);
                         editorMode = EditorMode.Move;
                     }
-                    ImGui.Separator();
+                    ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
                     if (character.MoveData != null && character.MoveData.Count > 0)
                     {
                         for (int i = 0; i < character.MoveData.Count; i++)
                         {
                             var selected = character.MoveData[i] == moveInEditor;
-                            if (ImGui.Selectable($"{character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase()}##{i}", selected))
-                            {
-                                moveInEditor = character.MoveData[i];
-                                editorMode = EditorMode.Move;
-                                var moveSpriteIndex = string.IsNullOrWhiteSpace(moveInEditor.SpriteName) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName));
-                                if (moveSpriteIndex > -1)
+                            var moveSpriteIndex = string.IsNullOrWhiteSpace(character.MoveData[i].SpriteName) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == character.MoveData[i].SpriteName));
+                            var playingIndicator = spriteData == allSprites[moveSpriteIndex] ? "*" : "";
+
+                            if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                                 {
-                                    spriteData = allSprites[moveSpriteIndex];
+                                    moveInEditor = character.MoveData[i];
+                                    paletteInEditor = null;
+                                    editorMode = EditorMode.Move;
+                                    
+                                    if (moveSpriteIndex > -1)
+                                    {
+                                        spriteData = allSprites[moveSpriteIndex];
+                                    }
+                                }, $"{character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase()}{playingIndicator}", selected, i))
+                            {
+                                //if selected, unselect
+                                if (moveInEditor == character.MoveData[i])
+                                {
+                                    moveInEditor = null;
+                                    editorMode = EditorMode.None;
                                 }
+
+                                //remove it here
+                                character.MoveData.RemoveAt(i);
                             }
                         }
                     }
