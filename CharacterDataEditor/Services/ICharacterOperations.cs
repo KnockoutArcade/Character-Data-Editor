@@ -125,7 +125,7 @@ namespace CharacterDataEditor.Services
             _logger.LogInformation($"Saving {fileName} to {path}");
 
             using StreamWriter streamWriter = new StreamWriter(savePath, false);
-            var json = JsonConvert.SerializeObject(character);
+            var json = JsonConvert.SerializeObject(character, Formatting.Indented);
             streamWriter.Write(json);
         }
     }
