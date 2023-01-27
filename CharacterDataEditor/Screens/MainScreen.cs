@@ -33,11 +33,15 @@ namespace CharacterDataEditor.Screens
             spriteDrawer = new SpriteDrawingHelper();
         }
 
-        public void Render(IScreenManager screenManager)
+        public void RenderImGui(IScreenManager screenManager)
         {
             DrawMainMenu(screenManager.ScreenScale);
             DrawOpenProjectWindow(screenManager.ScreenScale, screenManager);
             DrawLogo(screenManager.ScreenScale);
+        }
+
+        public void RenderAfterImGui(IScreenManager screenManager)
+        {
         }
 
         private void DrawOpenProjectWindow(float scale, IScreenManager screenManager)

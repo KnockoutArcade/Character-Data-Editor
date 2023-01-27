@@ -53,11 +53,15 @@ namespace CharacterDataEditor.Screens
             allSprites = _characterOperations.GetAllSprites(projectData.ProjectPathOnly);
         }
 
-        public void Render(IScreenManager screenManager)
+        public void RenderImGui(IScreenManager screenManager)
         {
             DrawMainMenu(screenManager.ScreenScale, screenManager);
             DrawNewCharacterPanel(screenManager.ScreenScale, screenManager);
             DrawExistingCharacterPanel(screenManager.ScreenScale, screenManager);
+        }
+
+        public void RenderAfterImGui(IScreenManager screenManager)
+        {
         }
 
         private void CreateNewCharacter(IScreenManager screenManager)
