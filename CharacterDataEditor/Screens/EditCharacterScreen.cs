@@ -1,4 +1,4 @@
-﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Constants;
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
@@ -757,7 +757,9 @@ namespace CharacterDataEditor.Screens
                 curPos.X += moveInAmount * scale;
                 ImGui.SetCursorPos(curPos);
 
-                ImGui.Text($"Current Sprite: {spriteData.Name}");
+                var spriteName = spriteData != null ? spriteData.Name : "No Selected Sprite";
+
+                ImGui.Text($"Current Sprite: {spriteName}");
 
                 curPos = ImGui.GetCursorPos();
                 curPos.X += moveInAmount * scale;
@@ -775,7 +777,9 @@ namespace CharacterDataEditor.Screens
                 curPos.X += moveInAmount * scale;
                 ImGui.SetCursorPos(curPos);
 
-                ImGui.Text($"Total Frames: {spriteData.Frames.Count}");
+                var spriteFramesCount = spriteData != null ? spriteData.Frames.Count : 0;
+
+                ImGui.Text($"Total Frames: {spriteFramesCount}");
 
                 var imageButtonSize = new Vector2((advanceOneFrameBackTexture.width / 2) * scale, (advanceOneFrameBackTexture.height / 2) * scale);
 
@@ -898,7 +902,7 @@ namespace CharacterDataEditor.Screens
                         {
                             var selected = character.MoveData[i] == moveInEditor;
                             var moveSpriteIndex = string.IsNullOrWhiteSpace(character.MoveData[i].SpriteName) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == character.MoveData[i].SpriteName));
-                            var playingIndicator = spriteData == allSprites[moveSpriteIndex] ? "*" : "";
+                            var playingIndicator = moveSpriteIndex != -1 && spriteData == allSprites[moveSpriteIndex] ? "*" : "";
 
                             if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                                 {
@@ -918,6 +922,12 @@ namespace CharacterDataEditor.Screens
                                 {
                                     moveInEditor = null;
                                     editorMode = EditorMode.None;
+
+                                    //if this sprite is the one playing, remove it
+                                    if (moveSpriteIndex != -1 && spriteData == allSprites[moveSpriteIndex])
+                                    {
+                                        spriteData = null;
+                                    }
                                 }
 
                                 //remove it here

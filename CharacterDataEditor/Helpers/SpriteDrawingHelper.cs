@@ -165,6 +165,8 @@ namespace CharacterDataEditor.Helpers
             if (spriteData == null)
             {
                 spriteTextures = new List<Texture2D> { Raylib.LoadTexture(defaultTexture) };
+                currentAnimationFrame = 0;
+                frameCounter = 0;
             }
             else
             {
