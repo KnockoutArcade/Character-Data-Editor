@@ -10,6 +10,7 @@
     <Nullable>disable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
@@ -26,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="logo.ico" />
     <Content Include="Resources\AdvanceFrame.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
