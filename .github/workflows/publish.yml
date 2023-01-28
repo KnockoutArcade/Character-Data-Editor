@@ -36,23 +36,13 @@ jobs:
         with:
           name: publish_artifacts
           path: ./publish
+      - name: zip publish artifacts
+        uses: vimtor/action-zip@v1
+        with: 
+          files: ./publish
+          dest: Character-Data-Editor-Windows-x64.zip
       - name: create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ env.VTAG }}
-          body_path: ./.github/workflows/ReleaseNotes.md
-          draft: false
-          prerelease: false
-      - name: upload windows artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/Knockout-Arcade-Character-Editor-Windows-x64.exe
-          asset_name: Knockout-Arcade-Character-Editor-Windows-x64.exe
-          asset_content_type: application/octet-stream
+          body_path: .github/workflows/ReleaseNotes.md
+          files: Character-Data-Editor-Windows-x64.zip
