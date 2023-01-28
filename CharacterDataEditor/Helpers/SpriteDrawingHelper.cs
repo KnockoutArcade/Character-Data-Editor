@@ -18,7 +18,7 @@ namespace CharacterDataEditor.Helpers
         private string previousSprite = string.Empty;
         private string currentSprite = string.Empty;
 
-        private List<Texture2D> spriteTextures;
+        private List<LoadedTextureModel> spriteTextures;
 
         private Vector2 ClientWindow
         {
@@ -41,11 +41,11 @@ namespace CharacterDataEditor.Helpers
 
             if (flags.HasFlag(SpriteDrawFlags.NotAnimated))
             {
-                textureToDraw = spriteTextures.FirstOrDefault();
+                textureToDraw = spriteTextures.FirstOrDefault().Texture;
             }
             else
             {
-                textureToDraw = spriteTextures[currentAnimationFrame];
+                textureToDraw = spriteTextures[currentAnimationFrame].Texture;
             }
 
             Rectangle textureSourceRectangle = new Rectangle(0.0f, 0.0f, textureToDraw.width, textureToDraw.height);
@@ -164,9 +164,18 @@ namespace CharacterDataEditor.Helpers
         {
             if (spriteData == null)
             {
-                spriteTextures = new List<Texture2D> { Raylib.LoadTexture(defaultTexture) };
-                currentAnimationFrame = 0;
-                frameCounter = 0;
+                if (spriteTextures == null)
+                {
+                    spriteTextures = new List<LoadedTextureModel>();
+                }
+
+                var textureFullPath = Path.Combine(AppContext.BaseDirectory, defaultTexture);
+                if (!spriteTextures.Any() || textureFullPath != spriteTextures.First().TexturePath)
+                {
+                    spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
+                    currentAnimationFrame = 0;
+                    frameCounter = 0;
+                }
             }
             else
             {
@@ -178,7 +187,7 @@ namespace CharacterDataEditor.Helpers
                     currentAnimationFrame = 0;
                     nextFrameAdvance = (int)spriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)spriteData.Sequence.playbackSpeed;
                     frameCounter = 0;
-                    spriteTextures = new List<Texture2D>();
+                    spriteTextures = new List<LoadedTextureModel>();
 
                     //load all textures now...
 
@@ -201,7 +210,7 @@ namespace CharacterDataEditor.Helpers
                             logger.LogError("unable to open file for frame data");
                         }
 
-                        spriteTextures.Add(Raylib.LoadTexture(spriteImagePath));
+                        spriteTextures.Add(new LoadedTextureModel(spriteImagePath));
                     }
                 }
 

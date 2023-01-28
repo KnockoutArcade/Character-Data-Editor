@@ -29,7 +29,7 @@ namespace CharacterDataEditor.Screens
         {
             screenWidth = screenData?.width ?? 1280.0f;
             screenHeight = screenData?.height ?? 720.0f;
-            _recentProjects = new List<RecentProjectModel>();
+            _recentProjects = _recentFiles.GetRecentProjectFiles();
             spriteDrawer = new SpriteDrawingHelper();
         }
 
@@ -72,11 +72,6 @@ namespace CharacterDataEditor.Screens
 
                 //recently opened projects
                 ImGui.Text("Recently Opened Projects");
-
-                if (_recentProjects == null || _recentProjects.Count < 1)
-                {
-                    _recentProjects = _recentFiles.GetRecentProjectFiles();
-                }
 
                 foreach (var item in _recentProjects)
                 {

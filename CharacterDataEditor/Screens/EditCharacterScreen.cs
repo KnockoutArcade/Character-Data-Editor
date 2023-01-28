@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Raylib_cs;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 
@@ -87,10 +88,10 @@ namespace CharacterDataEditor.Screens
                 ChangeAnimatedSprite(sprite);
             }
 
-            playButtonTexture = Raylib.LoadTexture(ResourceConstants.PlayButtonPath);
-            pauseButtonTexture = Raylib.LoadTexture(ResourceConstants.PauseButtonPath);
-            advanceOneFrameForwardTexture = Raylib.LoadTexture(ResourceConstants.AdvanceOneFrameButtonPath);
-            advanceOneFrameBackTexture = Raylib.LoadTexture(ResourceConstants.AdvanceOneFrameBackButtonPath);
+            playButtonTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.PlayButtonPath));
+            pauseButtonTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.PauseButtonPath));
+            advanceOneFrameForwardTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameButtonPath));
+            advanceOneFrameBackTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameBackButtonPath));
 
             spriteDrawer = new SpriteDrawingHelper();
 
