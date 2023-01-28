@@ -62,7 +62,7 @@ namespace CharacterDataEditor.Services
             {
                 _logger.LogInformation("Loading Recent Files...");
 
-                var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".EditorRecentFiles");
+                var path = Path.Combine(AppContext.BaseDirectory, ".EditorRecentFiles");
 
                 using (StreamReader streamReader = new StreamReader(path))
                 {
@@ -74,13 +74,7 @@ namespace CharacterDataEditor.Services
             else
             {
                 _logger.LogInformation("Recent Files file does not exist... creating it...");
-                //create the file
-                var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".EditorRecentFiles");
-                using (StreamWriter streamWriter = new StreamWriter(path))
-                {
-                    streamWriter.WriteLine();
-                    return new List<RecentProjectModel>();
-                }
+                return new List<RecentProjectModel>();
             }
         }
 
