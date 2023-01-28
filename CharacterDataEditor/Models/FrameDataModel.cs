@@ -2,7 +2,7 @@
 {
     public record FrameDataModel
     {
-        public int Length { get; set; }
-        public int ImageIndex { get; set; }
+        public int Length { get; set; } = 0;
+        public int ImageIndex { get; set; } = 0;
     }
 }

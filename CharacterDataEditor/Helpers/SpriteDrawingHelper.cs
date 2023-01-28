@@ -35,7 +35,7 @@ namespace CharacterDataEditor.Helpers
 
         private Vector2 _client = Vector2.Zero;
 
-        private void DrawSprite(Vector2 drawPosition, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags)
+        private AnimatedSpriteReturnDataModel DrawSprite(Vector2 drawPosition, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags)
         {
             Texture2D textureToDraw;
 
@@ -126,9 +126,17 @@ namespace CharacterDataEditor.Helpers
             // Origin determines where everything is based, passing 0x0y keeps it default
             // Color.White is used to not tint the texture at all
             Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, new Vector2(0, 0), 0.0f, Color.WHITE);
+
+            //return new Vector2(destinationRectangle.x, destinationRectangle.y);
+            return new AnimatedSpriteReturnDataModel
+            {
+                CurrentFrame = currentAnimationFrame,
+                DrawOrigin = new Vector2(destinationRectangle.x, destinationRectangle.y),
+                ScaledDrawSize = new Vector2(destinationRectangle.width, destinationRectangle.height)
+            };
         }
 
-        public int DrawSpecificFrameSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, ILogger logger, Vector2 maxDrawSize, FrameAdvance frameAdvance, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, ILogger logger, Vector2 maxDrawSize, FrameAdvance frameAdvance, SpriteDrawFlags flags = SpriteDrawFlags.None)
         {
             if (frameAdvance == FrameAdvance.Forward)
             {
@@ -149,16 +157,16 @@ namespace CharacterDataEditor.Helpers
                 }
             }
 
-            DrawSprite(drawPosition, scale, maxDrawSize, flags);
-
-            return currentAnimationFrame;
+            return DrawSprite(drawPosition, scale, maxDrawSize, flags);
         }
 
-        public int DrawSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, string defaultTexture, ILogger logger, Vector2 maxDrawSize, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, string defaultTexture, ILogger logger, Vector2 maxDrawSize, SpriteDrawFlags flags = SpriteDrawFlags.None)
         {
             if (spriteData == null)
             {
                 spriteTextures = new List<Texture2D> { Raylib.LoadTexture(defaultTexture) };
+                currentAnimationFrame = 0;
+                frameCounter = 0;
             }
             else
             {
@@ -214,9 +222,7 @@ namespace CharacterDataEditor.Helpers
                 }
             }
 
-            DrawSprite(drawPosition, scale, maxDrawSize, flags);
-
-            return currentAnimationFrame;
+            return DrawSprite(drawPosition, scale, maxDrawSize, flags);
         }
     }
 }
