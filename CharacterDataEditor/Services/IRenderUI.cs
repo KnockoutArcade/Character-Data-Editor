@@ -1,10 +1,11 @@
-﻿using CharacterDataEditor.Helpers;
+﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Screens;
-using Hardware.Info;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
-using System.Threading;
+using System;
+using System.IO;
 
 namespace CharacterDataEditor.Services
 {
@@ -25,7 +26,16 @@ namespace CharacterDataEditor.Services
 
         public int StartUI()
         {
-            var logo = Raylib.LoadImage("Resources/logo.png");
+            //set logging to error only when building for release
+#if DEBUG
+            Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ALL);
+#else
+            Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
+#endif
+
+            var logoPath = Path.Combine(AppContext.BaseDirectory, ResourceConstants.LogoPath);
+            var logo = Raylib.LoadImage(logoPath);
+
             _logger.LogInformation("Icon Loaded");
 
             //get hardware info about screen resolution...
@@ -38,7 +48,6 @@ namespace CharacterDataEditor.Services
             Raylib.InitWindow((int)clientWindow.X, (int)clientWindow.Y, "Knockout Arcade - Character Data Editor");
             Raylib.SetWindowIcon(logo);
             Raylib.SetTargetFPS(60);
-            Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
 
             _logger.LogInformation("Window created with Raylib and sent to video card");
 
