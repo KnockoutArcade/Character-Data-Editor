@@ -22,6 +22,10 @@ uniform vec4 basecolor12;
 uniform vec4 basecolor13;
 uniform vec4 basecolor14;
 uniform vec4 basecolor15;
+uniform vec4 basecolor16;
+uniform vec4 basecolor17;
+uniform vec4 basecolor18;
+uniform vec4 basecolor19;
 
 uniform vec4 swapcolor0;
 uniform vec4 swapcolor1;
@@ -39,6 +43,10 @@ uniform vec4 swapcolor12;
 uniform vec4 swapcolor13;
 uniform vec4 swapcolor14;
 uniform vec4 swapcolor15;
+uniform vec4 swapcolor16;
+uniform vec4 swapcolor17;
+uniform vec4 swapcolor18;
+uniform vec4 swapcolor19;
 
 out vec4 finalColor;
 
@@ -110,6 +118,22 @@ void main()
     else if(abs(texel.r - basecolor15.r) <= range && abs(texel.g - basecolor15.g) <= range && abs(texel.b - basecolor15.b) <= range)
     {
         texel.rgb = swapcolor15.rgb;
+    }
+    else if(abs(texel.r - basecolor16.r) <= range && abs(texel.g - basecolor16.g) <= range && abs(texel.b - basecolor16.b) <= range)
+    {
+        texel.rgb = swapcolor16.rgb;
+    }
+    else if(abs(texel.r - basecolor17.r) <= range && abs(texel.g - basecolor17.g) <= range && abs(texel.b - basecolor17.b) <= range)
+    {
+        texel.rgb = swapcolor17.rgb;
+    }
+    else if(abs(texel.r - basecolor18.r) <= range && abs(texel.g - basecolor18.g) <= range && abs(texel.b - basecolor18.b) <= range)
+    {
+        texel.rgb = swapcolor18.rgb;
+    }
+    else if(abs(texel.r - basecolor19.r) <= range && abs(texel.g - basecolor19.g) <= range && abs(texel.b - basecolor19.b) <= range)
+    {
+        texel.rgb = swapcolor19.rgb;
     }
 
     finalColor = texel;

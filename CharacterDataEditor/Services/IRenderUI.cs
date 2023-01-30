@@ -1,4 +1,4 @@
-﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Constants;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Screens;
 using ImGuiNET;
@@ -68,6 +68,17 @@ namespace CharacterDataEditor.Services
             _screenManager.NavigateTo(typeof(MainScreen), new { height = clientWindow.Y, width = clientWindow.X });
             _logger.LogInformation("Setting initial screen to MainScreen");
 
+            //var fragShader = System.Text.Encoding.Default.GetString(Shaders.PaletteSwapFragment);
+            var fragShader = string.Empty;
+
+            using (System.IO.StreamReader sr = new StreamReader("./Shaders/PaletteSwap.fsh"))
+            {
+                fragShader = sr.ReadToEnd();
+            }
+
+            ShaderHelper.InitShader(null, fragShader);
+            _logger.LogInformation("Initializing shaders... ignore any warnings about missing shader variables");
+
             //enter the program loop
             while (!Raylib.WindowShouldClose())
             {
@@ -88,6 +99,9 @@ namespace CharacterDataEditor.Services
 
                 Raylib.EndDrawing();
             }
+
+            ShaderHelper.DeInitShader();
+            _logger.LogInformation("Cleaning up shaders...");
             
             _logger.LogInformation("Render loop exited... shutting down...");
 

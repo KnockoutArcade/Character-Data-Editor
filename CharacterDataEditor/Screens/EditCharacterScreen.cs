@@ -40,6 +40,7 @@ namespace CharacterDataEditor.Screens
         private string spriteToDraw;
         private string prevSpriteToDraw;
         private SpriteDataModel spriteData;
+        private PaletteModel paletteData;
         private SpriteDrawingHelper spriteDrawer;
         private Vector2 spriteDrawPosition;
 
@@ -149,11 +150,18 @@ namespace CharacterDataEditor.Screens
             spriteData = sprite;
         }
 
+        private void ChangeRenderedPalette(PaletteModel palette)
+        {
+            paletteData = palette;
+        }
+
         private void RenderAnimatedSprite(float scale)
         {
             var maxSpriteSize = new Vector2(200, 200);
 
             var animationFlags = SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.ShowSpriteOutline;
+
+            var useShader = character.BaseColor != null && paletteData != null;
 
             if (animationPaused)
             {
@@ -164,9 +172,18 @@ namespace CharacterDataEditor.Screens
                 animationFlags &= ~SpriteDrawFlags.Pause;
             }
 
+            if (useShader)
+            {
+                animationFlags |= SpriteDrawFlags.PaletteSwapActive;
+            }
+            else
+            {
+                animationFlags &= ~SpriteDrawFlags.PaletteSwapActive;
+            }
+
             if (frameAdvance != FrameAdvance.None)
             {
-                var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(spriteData, spriteDrawPosition, scale, _logger, maxSpriteSize, frameAdvance, animationFlags);
+                var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(spriteData, character.BaseColor, paletteData, spriteDrawPosition, scale, _logger, maxSpriteSize, frameAdvance, animationFlags);
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
@@ -175,7 +192,7 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                var frameData = spriteDrawer.DrawSpriteToScreen(spriteData, spriteDrawPosition, scale, ResourceConstants.LogoPath, _logger, maxSpriteSize, animationFlags);
+                var frameData = spriteDrawer.DrawSpriteToScreen(spriteData, character.BaseColor, paletteData, spriteDrawPosition, scale, ResourceConstants.LogoPath, _logger, maxSpriteSize, animationFlags);
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
@@ -259,6 +276,7 @@ namespace CharacterDataEditor.Screens
                     paletteInEditor = character.BaseColor;
                     moveInEditor = null;
                     editorMode = EditorMode.BasePalette;
+                    ChangeRenderedPalette(null);
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -273,6 +291,7 @@ namespace CharacterDataEditor.Screens
                         paletteInEditor = newPalette;
                         moveInEditor = null;
                         editorMode = EditorMode.Palette;
+                        ChangeRenderedPalette(newPalette);
                     }
 
                     ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -288,12 +307,14 @@ namespace CharacterDataEditor.Screens
                                 paletteInEditor = palette;
                                 moveInEditor = null;
                                 editorMode = EditorMode.Palette;
+                                ChangeRenderedPalette(palette);
                             }, palette.Name, paletteSelected, i))
                         {
                             if (paletteInEditor == palette)
                             {
                                 paletteInEditor = null;
                                 editorMode = EditorMode.None;
+                                ChangeRenderedPalette(null);
                             }
 
                             character.Palettes.RemoveAt(i);
@@ -661,7 +682,7 @@ namespace CharacterDataEditor.Screens
 
                 if (basePalette)
                 {
-                    ImguiDrawingHelper.DrawIntInput("numberOfPalettes", ref numberOfReplacableColors);
+                    ImguiDrawingHelper.DrawIntInput("numberOfPalettes", ref numberOfReplacableColors, 0, 20);
                 }
 
                 if (numberOfReplacableColors < 0)

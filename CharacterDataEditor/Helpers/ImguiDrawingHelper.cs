@@ -10,7 +10,7 @@ namespace CharacterDataEditor.Helpers
 {
     public static class ImguiDrawingHelper
     {
-        public static bool DrawIntInput(string label, ref int value)
+        public static bool DrawIntInput(string label, ref int value, int minValue = 0, int? maxValue = null)
         {
             ImGui.Columns(2);
 
@@ -21,6 +21,16 @@ namespace CharacterDataEditor.Helpers
 
             //draw the input without a label
             ImGui.InputInt($"##{label}", ref value);
+
+            if (maxValue != null && value > maxValue.Value)
+            {
+                value = maxValue.Value;
+            }
+
+            if (value < minValue)
+            {
+                value = minValue;
+            }
 
             var itemSelected = ImGui.IsItemFocused();
 
