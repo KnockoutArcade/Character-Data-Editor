@@ -78,12 +78,6 @@ namespace CharacterDataEditor.Services
             //enter the program loop
             while (!Raylib.WindowShouldClose())
             {
-                if (Raylib.IsWindowResized())
-                {
-                    _screenManager.ScreenScale = Raylib.GetScreenHeight() / 650.0f;
-                    _logger.LogInformation($"Window resized... Scale changed to: {_screenManager.ScreenScale}");
-                }
-
                 controller.NewFrame();
                 controller.ProcessEvent();
                 ImGui.NewFrame();
