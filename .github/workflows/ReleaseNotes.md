@@ -1,8 +1,10 @@
 ## What's Changed
-* First Release!
-* Ability to open Gamemaker Studio project file
-* Can create and edit a character from JSON
-* Add/Remove/Modify move sets
-* Add/Remove/Modify character palettes
+* Moved to Beta
+* Palette Swap Shader support added
+* Added program icon
 ## Known Bugs
-* None! Report an issue in the Trello board or open a [Github Issue](https://github.com/KnockoutArcade/Character-Data-Editor/issues/new)!
+* Hit and Hurt boxes disappear when adjusting values
+* Animation can run slow on computers without dedicated graphics
+
+### Any other issues?
+Report an issue in the Trello board or open a [Github Issue](https://github.com/KnockoutArcade/Character-Data-Editor/issues/new)!
