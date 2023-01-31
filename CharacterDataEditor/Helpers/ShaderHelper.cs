@@ -14,7 +14,7 @@ namespace CharacterDataEditor.Helpers
         public static void SetValue<T>(string variableName, T value, ShaderUniformDataType dataType) where T: unmanaged
         {
             var loc = Raylib.GetShaderLocation(shader, variableName);
-            Raylib.SetShaderValue<T>(shader, loc, value, dataType);
+            Raylib.SetShaderValue(shader, loc, value, dataType);
         }
 
         public static void SetValue<T>(string variableName, T[] values, ShaderUniformDataType dataType) where T: unmanaged
