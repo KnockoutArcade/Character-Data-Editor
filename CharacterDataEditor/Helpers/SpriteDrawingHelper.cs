@@ -1,4 +1,5 @@
-﻿using CharacterDataEditor.Enums;
+﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,7 @@ namespace CharacterDataEditor.Helpers
         private string currentSprite = string.Empty;
 
         private List<LoadedTextureModel> spriteTextures;
+        private Texture2D bullseye;
 
         private Vector2 ClientWindow
         {
@@ -36,7 +38,12 @@ namespace CharacterDataEditor.Helpers
 
         private Vector2 _client = Vector2.Zero;
 
-        private AnimatedSpriteReturnDataModel DrawSprite(Vector2 drawPosition, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags, PaletteModel baseColor = null, PaletteModel swapColor = null)
+        public SpriteDrawingHelper()
+        {
+            bullseye = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.BullseyePath));
+        }
+
+        private AnimatedSpriteReturnDataModel DrawSprite(Vector2 drawPosition, Vector2 origin, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags, PaletteModel baseColor = null, PaletteModel swapColor = null)
         {
             Texture2D textureToDraw;
 
@@ -140,11 +147,29 @@ namespace CharacterDataEditor.Helpers
 
             // Origin determines where everything is based, passing 0x0y keeps it default
             // Color.White is used to not tint the texture at all
-            Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, new Vector2(0, 0), 0.0f, Color.WHITE);
+            Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, Vector2.Zero, 0.0f, Color.WHITE);
 
             if (flags.HasFlag(SpriteDrawFlags.PaletteSwapActive))
             {
                 ShaderHelper.ShaderEndRender();
+            }
+
+            if (flags.HasFlag(SpriteDrawFlags.DrawOrigin))
+            {
+                var srcRect = new Rectangle(0.0f, 0.0f, bullseye.width, bullseye.height);
+                // x and y will be the destination rect for the main sprite's X and Y, then adjust for the
+                // origin, then adjust by 1/2 the destination drawing size...
+
+                var destRect = new Rectangle(destinationRectangle.x, destinationRectangle.y, bullseye.width * scale, bullseye.height * scale);
+
+                // determine actual scale of sprite to original
+                var spriteScale = destinationRectangle.width / textureSourceRectangle.width;
+
+                // adjust the draw x and y to reflect the "origin" set by GMS2
+                destRect.x += ((origin.X * spriteScale) - (destRect.width / 2.0f));
+                destRect.y += ((origin.Y * spriteScale) - (destRect.height / 2.0f));
+
+                Raylib.DrawTexturePro(bullseye, srcRect, destRect, Vector2.Zero, 0.0f, Color.WHITE);
             }
             
 
@@ -159,6 +184,9 @@ namespace CharacterDataEditor.Helpers
 
         public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDataModel spriteData, PaletteModel basePalette, PaletteModel paletteData, Vector2 drawPosition, float scale, ILogger logger, Vector2 maxDrawSize, FrameAdvance frameAdvance, SpriteDrawFlags flags = SpriteDrawFlags.None)
         {
+            var origin = spriteData != null ? new Vector2(spriteData.Sequence.xorigin, spriteData.Sequence.yorigin) : Vector2.Zero;
+
+
             if (frameAdvance == FrameAdvance.Forward)
             {
                 currentAnimationFrame++;
@@ -178,11 +206,13 @@ namespace CharacterDataEditor.Helpers
                 }
             }
 
-            return DrawSprite(drawPosition, scale, maxDrawSize, flags, basePalette, paletteData);
+            return DrawSprite(drawPosition, origin, scale, maxDrawSize, flags, basePalette, paletteData);
         }
 
         public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDataModel spriteData, PaletteModel basePalette, PaletteModel paletteData, Vector2 drawPosition, float scale, string defaultTexture, ILogger logger, Vector2 maxDrawSize, SpriteDrawFlags flags = SpriteDrawFlags.None)
         {
+            var origin = spriteData != null ? new Vector2(spriteData.Sequence.xorigin, spriteData.Sequence.yorigin) : Vector2.Zero;
+
             if (spriteData == null)
             {
                 if (spriteTextures == null)
@@ -252,7 +282,7 @@ namespace CharacterDataEditor.Helpers
                 }
             }
 
-            return DrawSprite(drawPosition, scale, maxDrawSize, flags, basePalette, paletteData);
+            return DrawSprite(drawPosition, origin, scale, maxDrawSize, flags, basePalette, paletteData);
         }
     }
 }
