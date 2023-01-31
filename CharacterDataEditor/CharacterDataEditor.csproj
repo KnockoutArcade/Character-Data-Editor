@@ -24,7 +24,6 @@
     <None Remove="Resources\logo.png" />
     <None Remove="Resources\Pause.png" />
     <None Remove="Resources\Play.png" />
-    <None Remove="Shaders\PaletteSwap.fsh" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,9 +45,6 @@
     </Content>
 	<Content Include="Resources\Pause.png">
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</Content>
-	<Content Include="Shaders\PaletteSwap.fsh">
-	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	</Content>
   </ItemGroup>
 
@@ -80,6 +76,12 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Shaders.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Shaders\PaletteSwap.fsh">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
