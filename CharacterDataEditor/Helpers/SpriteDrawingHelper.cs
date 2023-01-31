@@ -1,4 +1,5 @@
 ﻿using CharacterDataEditor.Enums;
+using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
@@ -35,7 +36,7 @@ namespace CharacterDataEditor.Helpers
 
         private Vector2 _client = Vector2.Zero;
 
-        private AnimatedSpriteReturnDataModel DrawSprite(Vector2 drawPosition, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags)
+        private AnimatedSpriteReturnDataModel DrawSprite(Vector2 drawPosition, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags, PaletteModel baseColor = null, PaletteModel swapColor = null)
         {
             Texture2D textureToDraw;
 
@@ -123,9 +124,29 @@ namespace CharacterDataEditor.Helpers
                 Raylib.DrawRectangle((int)destinationRectangle.x, (int)destinationRectangle.y, (int)destinationRectangle.width, (int)destinationRectangle.height, Color.BLACK);
             }
 
+            if (flags.HasFlag(SpriteDrawFlags.PaletteSwapActive))
+            {
+                ShaderHelper.ShaderStartRender();
+
+                var baseColorArray = baseColor.ToShaderVec4Array();
+                var swapColorArray = swapColor.ToShaderVec4Array();
+
+                for (int i = 0; i < baseColorArray.Length; i++)
+                {
+                    ShaderHelper.SetValue($"basecolor{i}", baseColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                    ShaderHelper.SetValue($"swapcolor{i}", swapColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                }
+            }
+
             // Origin determines where everything is based, passing 0x0y keeps it default
             // Color.White is used to not tint the texture at all
             Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, new Vector2(0, 0), 0.0f, Color.WHITE);
+
+            if (flags.HasFlag(SpriteDrawFlags.PaletteSwapActive))
+            {
+                ShaderHelper.ShaderEndRender();
+            }
+            
 
             //return new Vector2(destinationRectangle.x, destinationRectangle.y);
             return new AnimatedSpriteReturnDataModel
@@ -136,7 +157,7 @@ namespace CharacterDataEditor.Helpers
             };
         }
 
-        public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, ILogger logger, Vector2 maxDrawSize, FrameAdvance frameAdvance, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDataModel spriteData, PaletteModel basePalette, PaletteModel paletteData, Vector2 drawPosition, float scale, ILogger logger, Vector2 maxDrawSize, FrameAdvance frameAdvance, SpriteDrawFlags flags = SpriteDrawFlags.None)
         {
             if (frameAdvance == FrameAdvance.Forward)
             {
@@ -157,10 +178,10 @@ namespace CharacterDataEditor.Helpers
                 }
             }
 
-            return DrawSprite(drawPosition, scale, maxDrawSize, flags);
+            return DrawSprite(drawPosition, scale, maxDrawSize, flags, basePalette, paletteData);
         }
 
-        public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDataModel spriteData, Vector2 drawPosition, float scale, string defaultTexture, ILogger logger, Vector2 maxDrawSize, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDataModel spriteData, PaletteModel basePalette, PaletteModel paletteData, Vector2 drawPosition, float scale, string defaultTexture, ILogger logger, Vector2 maxDrawSize, SpriteDrawFlags flags = SpriteDrawFlags.None)
         {
             if (spriteData == null)
             {
@@ -231,7 +252,7 @@ namespace CharacterDataEditor.Helpers
                 }
             }
 
-            return DrawSprite(drawPosition, scale, maxDrawSize, flags);
+            return DrawSprite(drawPosition, scale, maxDrawSize, flags, basePalette, paletteData);
         }
     }
 }
