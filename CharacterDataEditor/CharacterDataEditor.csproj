@@ -21,6 +21,7 @@
     <None Remove="Resources\AdvanceFrame.png" />
     <None Remove="Resources\AdvanceFrameBack.png" />
     <None Remove="Resources\blank.png" />
+    <None Remove="Resources\bullseye.png" />
     <None Remove="Resources\logo.png" />
     <None Remove="Resources\Pause.png" />
     <None Remove="Resources\Play.png" />
@@ -35,6 +36,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\blank.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\bullseye.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\logo.png">
