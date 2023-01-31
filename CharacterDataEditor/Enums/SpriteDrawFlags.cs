@@ -11,6 +11,7 @@ namespace CharacterDataEditor.Models
         ShowSpriteOutline = 0x04,
         NotAnimated = 0x08,
         Pause = 0x10,
-        PaletteSwapActive = 0x20
+        PaletteSwapActive = 0x20,
+        DrawOrigin = 0x40
     }
 }

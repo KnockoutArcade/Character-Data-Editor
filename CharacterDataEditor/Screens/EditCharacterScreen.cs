@@ -159,7 +159,7 @@ namespace CharacterDataEditor.Screens
         {
             var maxSpriteSize = new Vector2(200, 200);
 
-            var animationFlags = SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.ShowSpriteOutline;
+            var animationFlags = SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.ShowSpriteOutline | SpriteDrawFlags.DrawOrigin;
 
             var useShader = character.BaseColor != null && paletteData != null;
 
