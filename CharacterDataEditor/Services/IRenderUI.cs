@@ -1,5 +1,6 @@
 ﻿using CharacterDataEditor.Constants;
 using CharacterDataEditor.Helpers;
+using CharacterDataEditor.Resources;
 using CharacterDataEditor.Screens;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
@@ -45,13 +46,14 @@ namespace CharacterDataEditor.Services
             _logger.LogInformation($"Default client area determined based on resolution of {monitorSize.X} by {monitorSize.Y}");
 
             //initialize the graphics lib
+            Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
             Raylib.InitWindow((int)clientWindow.X, (int)clientWindow.Y, "Knockout Arcade - Character Data Editor");
             Raylib.SetWindowIcon(logo);
             Raylib.SetTargetFPS(60);
 
             _logger.LogInformation("Window created with Raylib and sent to video card");
 
-            _screenManager.ScreenScale = monitorSize.Y / 720.0f;
+            _screenManager.ScreenScale = clientWindow.Y / 650.0f;
 
             _logger.LogInformation($"GUI Scaling calculated to be: {_screenManager.ScreenScale}");
 
@@ -68,9 +70,20 @@ namespace CharacterDataEditor.Services
             _screenManager.NavigateTo(typeof(MainScreen), new { height = clientWindow.Y, width = clientWindow.X });
             _logger.LogInformation("Setting initial screen to MainScreen");
 
+            var fragShader = System.Text.Encoding.Default.GetString(Shaders.PaletteSwapFragment);
+
+            ShaderHelper.InitShader(null, fragShader);
+            _logger.LogInformation("Initializing shaders... ignore any warnings about missing shader variables...");
+
             //enter the program loop
             while (!Raylib.WindowShouldClose())
             {
+                if (Raylib.IsWindowResized())
+                {
+                    _screenManager.ScreenScale = Raylib.GetScreenHeight() / 650.0f;
+                    _logger.LogInformation($"Window resized... Scale changed to: {_screenManager.ScreenScale}");
+                }
+
                 controller.NewFrame();
                 controller.ProcessEvent();
                 ImGui.NewFrame();
@@ -88,6 +101,9 @@ namespace CharacterDataEditor.Services
 
                 Raylib.EndDrawing();
             }
+
+            ShaderHelper.DeInitShader();
+            _logger.LogInformation("Cleaning up shaders...");
             
             _logger.LogInformation("Render loop exited... shutting down...");
 

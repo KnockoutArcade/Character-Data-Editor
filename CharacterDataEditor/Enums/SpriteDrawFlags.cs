@@ -10,6 +10,7 @@ namespace CharacterDataEditor.Models
         CenterHorizontal = 0x02,
         ShowSpriteOutline = 0x04,
         NotAnimated = 0x08,
-        Pause = 0x10
+        Pause = 0x10,
+        PaletteSwapActive = 0x20
     }
 }

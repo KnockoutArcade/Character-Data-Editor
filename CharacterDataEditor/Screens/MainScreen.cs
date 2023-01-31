@@ -97,6 +97,8 @@ namespace CharacterDataEditor.Screens
         {
             spriteDrawer.DrawSpriteToScreen(
                 null,
+                null,
+                null,
                 new Vector2(0, 0),
                 scale,
                 ResourceConstants.LogoPath,

@@ -109,7 +109,16 @@ namespace CharacterDataEditor.Screens
                 Y = (height / 2) / scale
             };
 
-            spriteDrawer.DrawSpriteToScreen(spriteData, drawPos, scale, ResourceConstants.LogoPath, _logger, Vector2.Zero, SpriteDrawFlags.CenterVertical);
+            spriteDrawer.DrawSpriteToScreen(
+                spriteData,
+                null,
+                null,
+                drawPos, 
+                scale, 
+                ResourceConstants.LogoPath, 
+                _logger, 
+                Vector2.Zero, 
+                SpriteDrawFlags.CenterVertical);
         }
 
         private void DrawNewCharacterPanel(float scale, IScreenManager screenManager)
