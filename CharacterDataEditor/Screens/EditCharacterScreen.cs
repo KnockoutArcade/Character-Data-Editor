@@ -23,6 +23,7 @@ namespace CharacterDataEditor.Screens
         private float width;
         private float height;
         private CharacterDataModel character;
+        private CharacterDataModel originalCharacter;
         private RecentProjectModel projectData;
         private string action;
 
@@ -55,9 +56,16 @@ namespace CharacterDataEditor.Screens
         private int currentFrame;
         private AnimatedSpriteReturnDataModel spriteDrawData;
 
+        private int frameCounter;
+        private bool unsaved;
+        private bool exiting;
+
         private const int buttonSpacing = 8;
 
         private string editorWindowTitle;
+
+        private delegate void AfterConfirmAction(int keyCode);
+        private AfterConfirmAction exitConfirmAction;
 
         public EditCharacterScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations)
         {
@@ -67,6 +75,8 @@ namespace CharacterDataEditor.Screens
 
         public void Init(dynamic screenData)
         {
+            Raylib.SetWindowTitle(TitleConstants.EditCharacterTitle);
+
             spriteToDraw = string.Empty;
             prevSpriteToDraw = string.Empty;
             spriteData = null;
@@ -74,12 +84,15 @@ namespace CharacterDataEditor.Screens
 
             moveInEditor = null;
             paletteInEditor = null;
+            unsaved = false;
 
             width = screenData?.width ?? 1280;
             height = screenData?.height ?? 720;
             projectData = screenData?.projectData ?? new RecentProjectModel();
             action = screenData?.action ?? "new";
             character = action == "edit" ? screenData.character : new CharacterDataModel();
+            //copies the data from character into original character
+            originalCharacter = character.Clone();
 
             allSprites = _characterOperations.GetAllSprites(projectData.ProjectPathOnly);
 
@@ -95,6 +108,7 @@ namespace CharacterDataEditor.Screens
             advanceOneFrameBackTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameBackButtonPath));
 
             spriteDrawer = new SpriteDrawingHelper();
+            frameCounter = 0;
 
             var moveTypes = Enum.GetValues(typeof(MoveType));
             moveTypesList = new List<string>();
@@ -133,6 +147,7 @@ namespace CharacterDataEditor.Screens
             RenderSpriteDisplayArea(screenManager.ScreenScale, screenManager);
             RenderEditor(screenManager.ScreenScale);
             RenderPaletteWindow(screenManager.ScreenScale);
+            CheckForUnsavedWork();
         }
 
         public void RenderAfterImGui(IScreenManager screenManager)
@@ -140,6 +155,57 @@ namespace CharacterDataEditor.Screens
             RenderAnimatedSprite(screenManager.ScreenScale);
 
             RenderHitHurtBox(screenManager.ScreenScale);
+
+            if (exiting)
+            {
+                var pressedKey = Raylib.GetKeyPressed();
+                if (pressedKey == 83 || pressedKey == 88 || pressedKey == 67)
+                {
+                    if (exitConfirmAction != null)
+                    {
+                        exitConfirmAction(pressedKey);
+                    }
+                }
+                //TODO: Fix the parameters so this looks good...
+
+                var messageRect = new Rectangle();
+                messageRect.x = 0.0f;
+                messageRect.height = (200.0f * screenManager.ScreenScale);
+                messageRect.width = width;
+                messageRect.y = (height / 2.0f) - messageRect.height / 2.0f;
+
+                Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.BLACK);
+
+                var fontSize = (int)(24.0f * screenManager.ScreenScale);
+
+                var messageWidth = Raylib.MeasureText(MessageConstants.UnsavedMessage, fontSize);
+
+                var messageXCoord = (int)((width / 2.0f) - (messageWidth / 2.0f));
+                var messageYCoord = (int)((height / 2.0f) - (fontSize / 2.0f));
+
+                Raylib.DrawText(MessageConstants.UnsavedMessage,
+                    messageXCoord, messageYCoord, fontSize, Color.WHITE);
+            }
+        }
+
+        private void CheckForUnsavedWork()
+        {
+            //check if the current frame is greater than or equal to 30 (every half second ish)
+            //then increment it
+            if (frameCounter++ >= 30)
+            {
+                frameCounter = 0;
+                if (!character.Equals(originalCharacter))
+                {
+                    Raylib.SetWindowTitle($"{TitleConstants.EditCharacterTitle}{TitleConstants.UnsavedIndicator}");
+                    unsaved = true;
+                }
+                else
+                {
+                    Raylib.SetWindowTitle(TitleConstants.EditCharacterTitle);
+                    unsaved = false;
+                }
+            }
         }
 
         private void ChangeAnimatedSprite(SpriteDataModel sprite)
@@ -1018,15 +1084,63 @@ namespace CharacterDataEditor.Screens
                 if (ImGui.MenuItem("Close Character"))
                 {
                     _logger.LogInformation("Project closed");
-                    screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height = height, width = width, projectData = projectData });
+                    if (unsaved)
+                    {
+                        exitConfirmAction = (keycode) =>
+                        {
+                            if (keycode == (int)KeyboardKey.KEY_S)
+                            {
+                                _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                                screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
+                            }
+                            else if (keycode == (int)KeyboardKey.KEY_X)
+                            {
+                                screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
+                            }
+                            else if (keycode == (int)KeyboardKey.KEY_C)
+                            {
+                                exiting = false;
+                            }
+                        };
+
+                        exiting = true;
+                    }
+                    else
+                    {
+                        screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
+                    }
                 }
 
                 ImGui.Separator();
 
                 if (ImGui.MenuItem("Close Project"))
                 {
-                    _logger.LogInformation("Project closed");
-                    screenManager.NavigateTo(typeof(MainScreen), new { height = height, width = width });
+                    _logger.LogInformation("Close Project button clicked");
+                    if (unsaved)
+                    {
+                        exitConfirmAction = (keycode) =>
+                        {
+                            if (keycode == (int)KeyboardKey.KEY_S)
+                            {
+                                _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                                screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                            }
+                            else if (keycode == (int)KeyboardKey.KEY_X)
+                            {
+                                screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                            }
+                            else if (keycode == (int)KeyboardKey.KEY_C)
+                            {
+                                exiting = false;
+                            }
+                        };
+
+                        exiting = true;
+                    }
+                    else
+                    {
+                        screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                    }
                 }
 
                 ImGui.Separator();
@@ -1034,18 +1148,69 @@ namespace CharacterDataEditor.Screens
                 if (ImGui.MenuItem("Exit"))
                 {
                     _logger.LogInformation("Exit Menu Item Clicked");
-                    Environment.Exit(0);
+
+                    if (unsaved)
+                    {
+                        exitConfirmAction = (keycode) =>
+                        {
+                            if (keycode == (int)KeyboardKey.KEY_S)
+                            {
+                                _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                                screenManager.ExitWindow = true;
+                            }
+                            else if (keycode == (int)KeyboardKey.KEY_X)
+                            {
+                                screenManager.ExitWindow = true;
+                            }
+                            else if (keycode == (int)KeyboardKey.KEY_C)
+                            {
+                                exiting = false;
+                            }
+                        };
+
+                        exiting = true;
+                    }
+                    else
+                    {
+                        screenManager.ExitWindow = true;
+                    }
                 }
 
                 ImGui.End();
             }
 
-            if (ImGui.BeginMenu("Edit"))
-            {
-                ImGui.End();
-            }
-
             ImGui.EndMainMenuBar();
+        }
+
+        public void CheckForExit(IScreenManager screenManager)
+        {
+            bool shouldClose = Raylib.WindowShouldClose();
+
+            if (shouldClose && unsaved)
+            {
+                exitConfirmAction = (keycode) =>
+                {
+                    if (keycode == (int)KeyboardKey.KEY_S)
+                    {
+                        _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                        screenManager.ExitWindow = true;
+                    }
+                    else if (keycode == (int)KeyboardKey.KEY_X)
+                    {
+                        screenManager.ExitWindow = true;
+                    }
+                    else if (keycode == (int)KeyboardKey.KEY_C)
+                    {
+                        exiting = false;
+                    }
+                };
+
+                exiting = true;
+            }
+            else if (shouldClose)
+            {
+                screenManager.ExitWindow = true;
+            }
         }
     }
 }

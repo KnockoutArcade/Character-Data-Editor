@@ -131,7 +131,7 @@ namespace CharacterDataEditor.Helpers
                 Raylib.DrawRectangle((int)destinationRectangle.x, (int)destinationRectangle.y, (int)destinationRectangle.width, (int)destinationRectangle.height, Color.BLACK);
             }
 
-            if (flags.HasFlag(SpriteDrawFlags.PaletteSwapActive))
+            if (flags.HasFlag(SpriteDrawFlags.PaletteSwapActive) && baseColor?.ColorPalette?.Count > 0 && swapColor?.ColorPalette?.Count > 0)
             {
                 ShaderHelper.ShaderStartRender();
 

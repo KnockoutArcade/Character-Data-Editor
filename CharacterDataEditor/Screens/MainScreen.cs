@@ -25,6 +25,14 @@ namespace CharacterDataEditor.Screens
             _recentFiles = recentFiles;
         }
 
+        public void CheckForExit(IScreenManager screenManager)
+        {
+            if (Raylib.WindowShouldClose())
+            {
+                screenManager.ExitWindow = true;
+            }
+        }
+
         public void Init(dynamic screenData)
         {
             screenWidth = screenData?.width ?? 1280.0f;
