@@ -26,14 +26,38 @@ namespace CharacterDataEditor.Helpers
             {
                 value = maxValue.Value;
             }
-
-            if (value < minValue)
+            else if (value < minValue)
             {
                 value = minValue;
             }
 
             var itemSelected = ImGui.IsItemFocused();
 
+            ImGui.Columns(1);
+
+            return itemSelected;
+        }
+
+        public static bool DrawDecimalInput(string label, ref float value, float step = 0.1f, float minValue = float.MinValue, float? maxValue = null)
+        {
+            ImGui.Columns(2);
+
+            ImGui.Text(label.UpperCaseFirstLetter().AddSpacesToCamelCase());
+
+            ImGui.NextColumn();
+
+            ImGui.InputFloat($"##{label}", ref value, step);
+
+            if (maxValue != null && value > maxValue.Value)
+            {
+                value = maxValue.Value;
+            }
+            else if (value < minValue)
+            {
+                value = minValue;
+            }
+
+            var itemSelected = ImGui.IsItemFocused();
             ImGui.Columns(1);
 
             return itemSelected;

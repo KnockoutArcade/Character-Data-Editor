@@ -538,14 +538,14 @@ namespace CharacterDataEditor.Screens
                                 int attackHitstop = attackDataItem.AttackHitStop;
                                 int attackHitstun = attackDataItem.AttackHitStun;
                                 AttackType attackType = attackDataItem.AttackType;
-                                int blockStun = attackDataItem.BlockStun;
-                                int knockBack = attackDataItem.KnockBack;
-                                int airKnockbackH = attackDataItem.AirKnockbackHorizontal;
-                                int airKnockbackV = attackDataItem.AirKnockbackVertical;
+                                float blockStun = attackDataItem.BlockStun;
+                                float knockBack = attackDataItem.KnockBack;
+                                float airKnockbackH = attackDataItem.AirKnockbackHorizontal;
+                                float airKnockbackV = attackDataItem.AirKnockbackVertical;
                                 bool launches = attackDataItem.Launches;
-                                int launchKnockbackV = attackDataItem.LaunchKnockbackVertical;
-                                int launchKnockbackH = attackDataItem.LaunchKnockbackHorizontal;
-                                int pushback = attackDataItem.Pushback;
+                                float launchKnockbackV = attackDataItem.LaunchKnockbackVertical;
+                                float launchKnockbackH = attackDataItem.LaunchKnockbackHorizontal;
+                                float pushback = attackDataItem.Pushback;
                                 int particleOffsetX = attackDataItem.ParticleXOffset;
                                 int particleOffsetY = attackDataItem.ParticleYOffset;
                                 string particleEffect = attackDataItem.ParticleEffect;
@@ -574,14 +574,14 @@ namespace CharacterDataEditor.Screens
                                 int selectedAttackType = (int)attackType;
                                 ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
 
-                                ImguiDrawingHelper.DrawIntInput("blockStun", ref blockStun);
-                                ImguiDrawingHelper.DrawIntInput("knockback", ref knockBack);
-                                ImguiDrawingHelper.DrawIntInput("airKnockbackVertical", ref airKnockbackV);
-                                ImguiDrawingHelper.DrawIntInput("airKnockbackHorizontal", ref airKnockbackH);
+                                ImguiDrawingHelper.DrawDecimalInput("blockStun", ref blockStun);
+                                ImguiDrawingHelper.DrawDecimalInput("knockback", ref knockBack);
+                                ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
+                                ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
                                 ImguiDrawingHelper.DrawBoolInput("launches", ref launches);
-                                ImguiDrawingHelper.DrawIntInput("launchKnockbackVertical", ref launchKnockbackV);
-                                ImguiDrawingHelper.DrawIntInput("launchKnockbackHorizontal", ref launchKnockbackH);
-                                ImguiDrawingHelper.DrawIntInput("pushback", ref pushback);
+                                ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref launchKnockbackV);
+                                ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref launchKnockbackH);
+                                ImguiDrawingHelper.DrawDecimalInput("pushback", ref pushback);
                                 ImguiDrawingHelper.DrawIntInput("particleOffsetX", ref particleOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("particleOffsetY", ref particleOffsetY);
 
