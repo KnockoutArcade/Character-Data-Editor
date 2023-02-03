@@ -4,6 +4,7 @@ using CharacterDataEditor.Models;
 using CharacterDataEditor.Services;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
+using Raylib_cs;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,8 +34,18 @@ namespace CharacterDataEditor.Screens
             _characterOperations = characterOperations;
         }
 
+        public void CheckForExit(IScreenManager screenManager)
+        {
+            if (Raylib.WindowShouldClose())
+            {
+                screenManager.ExitWindow = true;
+            }
+        }
+
         public void Init(dynamic screenData)
         {
+            Raylib.SetWindowTitle(TitleConstants.ProjectHomeTitle);
+
             width = screenData?.width ?? 1280.0f;
             height = screenData?.height ?? 720.0f;
             projectData = screenData.projectData;

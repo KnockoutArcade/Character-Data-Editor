@@ -1,4 +1,4 @@
-﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Constants;
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
@@ -67,6 +67,8 @@ namespace CharacterDataEditor.Screens
 
         public void Init(dynamic screenData)
         {
+            Raylib.SetWindowTitle(TitleConstants.EditCharacterTitle);
+
             spriteToDraw = string.Empty;
             prevSpriteToDraw = string.Empty;
             spriteData = null;
