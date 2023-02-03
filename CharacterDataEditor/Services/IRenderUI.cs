@@ -46,8 +46,8 @@ namespace CharacterDataEditor.Services
             _logger.LogInformation($"Default client area determined based on resolution of {monitorSize.X} by {monitorSize.Y}");
 
             //initialize the graphics lib
-            Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
-            Raylib.InitWindow((int)clientWindow.X, (int)clientWindow.Y, "Knockout Arcade - Character Data Editor");
+            Raylib.InitWindow((int)clientWindow.X, (int)clientWindow.Y, TitleConstants.Title);
+            Raylib.SetExitKey(KeyboardKey.KEY_NULL); //disable escape to close
             Raylib.SetWindowIcon(logo);
             Raylib.SetTargetFPS(60);
 
@@ -76,8 +76,10 @@ namespace CharacterDataEditor.Services
             _logger.LogInformation("Initializing shaders... ignore any warnings about missing shader variables...");
 
             //enter the program loop
-            while (!Raylib.WindowShouldClose())
+            while (!_screenManager.ExitWindow)
             {
+                _screenManager.CurrentScreen.CheckForExit(_screenManager);
+
                 controller.NewFrame();
                 controller.ProcessEvent();
                 ImGui.NewFrame();
