@@ -10,7 +10,7 @@ namespace CharacterDataEditor.Helpers
 {
     public static class ImguiDrawingHelper
     {
-        public static bool DrawIntInput(string label, ref int value, int minValue = 0, int? maxValue = null)
+        public static bool DrawIntInput(string label, ref int value, int minValue = int.MinValue, int? maxValue = null)
         {
             ImGui.Columns(2);
 
