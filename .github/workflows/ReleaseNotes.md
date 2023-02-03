@@ -1,7 +1,5 @@
 ## What's Changed
-* Moved to Beta
-* Palette Swap Shader support added
-* Added program icon
+* Changed velocity type values to allow decimals (float) instead of whole numbers (int)
 ## Known Bugs
 * Hit and Hurt boxes disappear when adjusting values
 * Animation can run slow on computers without dedicated graphics
