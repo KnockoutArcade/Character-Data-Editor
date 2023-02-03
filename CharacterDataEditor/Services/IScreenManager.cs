@@ -10,6 +10,7 @@ namespace CharacterDataEditor.Services
     {
         public IScreen CurrentScreen { get; }
         public float ScreenScale { get; set; }
+        public bool ExitWindow { get; set; }
         public void NavigateTo(string screenName);
         public void NavigateTo(Type screenType);
         public void NavigateTo(string screenName, dynamic screenData);
@@ -25,12 +26,13 @@ namespace CharacterDataEditor.Services
         {
             _screens = screens.ToList();
             _logger = logger;
+            ExitWindow = false;
         }
 
         private IScreen _currentScreen;
         public IScreen CurrentScreen { get { return _currentScreen; } }
-
         public float ScreenScale { get; set; }
+        public bool ExitWindow { get; set; }
 
         public void NavigateTo(string screenName)
         {

@@ -5,6 +5,7 @@
         public const string LoggerAttachedMessage = "Logger attached. Startup complete. Running...";
         public const string CompletedMessage = "Operation Completed";
         public const string FolderMissingOrInvalid = "Missing or Invalid Folder: {path}";
+        public const string UnsavedMessage = "Unsaved data detected. Do you want to [S]ave, E[x]it, or [C]ancel?";
 
         //exception messages
         public const string ExceptionHeaderMessage = "An unhandeled exception occurred details below:";

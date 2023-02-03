@@ -1,4 +1,5 @@
 ﻿using Raylib_cs;
+using System.Linq;
 
 namespace CharacterDataEditor.Helpers
 {
@@ -14,13 +15,13 @@ namespace CharacterDataEditor.Helpers
         public static void SetValue<T>(string variableName, T value, ShaderUniformDataType dataType) where T: unmanaged
         {
             var loc = Raylib.GetShaderLocation(shader, variableName);
-            Raylib.SetShaderValue<T>(shader, loc, value, dataType);
+            Raylib.SetShaderValue(shader, loc, value, dataType);
         }
 
         public static void SetValue<T>(string variableName, T[] values, ShaderUniformDataType dataType) where T: unmanaged
         {
             var loc = Raylib.GetShaderLocation(shader, variableName);
-            Raylib.SetShaderValue(shader, loc, values, dataType);
+            Raylib.SetShaderValueV(shader, loc, values, dataType, values.Length);
         }
 
         public static void SetValueTexture(string variableName, Texture2D texture)
