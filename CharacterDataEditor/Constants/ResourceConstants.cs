@@ -10,6 +10,6 @@
         public const string BlankPath = "Resources/blank.png";
         public const string BullseyePath = "Resources/bullseye.png";
 
-        public const string CharacterDataPathStub = "characterdata";
+        public const string CharacterDataPathStub = "datafiles/characterdata";
     }
 }
