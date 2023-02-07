@@ -57,9 +57,9 @@ namespace CharacterDataEditor.Models
                                 {
                                     if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
                                     {
-                                        if (objAsMoveData.OpponentPositionData == OpponentPositionData)
+                                        if (objAsMoveData.OpponentPositionData.Equals(OpponentPositionData))
                                         {
-                                            if (objAsMoveData.RehitData == RehitData)
+                                            if (objAsMoveData.RehitData.Equals(RehitData))
                                             {
                                                 return true;
                                             }
