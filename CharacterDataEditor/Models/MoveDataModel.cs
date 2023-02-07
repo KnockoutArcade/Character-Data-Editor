@@ -16,7 +16,7 @@ namespace CharacterDataEditor.Models
         public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
         public List<AttackDataModel> AttackData { get; set; } = new List<AttackDataModel>();
         public bool IsThrow { get; set; } = false;
-        public List<OpponentPositionDataModel> OpponentPositionData { get; set; } = new List<OpponentPositionDataModel>();
+        public OpponentPositionDataModel OpponentPositionData { get; set; } = new OpponentPositionDataModel();
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
         public List<HurtboxDataModel> HurtboxData { get; set; } = new List<HurtboxDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
@@ -57,7 +57,7 @@ namespace CharacterDataEditor.Models
                                 {
                                     if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
                                     {
-                                        if (objAsMoveData.OpponentPositionData.SequenceEqual(OpponentPositionData))
+                                        if (objAsMoveData.OpponentPositionData == OpponentPositionData)
                                         {
                                             if (objAsMoveData.RehitData == RehitData)
                                             {
