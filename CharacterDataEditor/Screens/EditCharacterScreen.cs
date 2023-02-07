@@ -36,6 +36,7 @@ namespace CharacterDataEditor.Screens
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
         private List<string> attackTypesList = new List<string>();
+        private List<string> spriteTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
 
         private string spriteToDraw;
@@ -128,6 +129,16 @@ namespace CharacterDataEditor.Screens
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
                 attackTypesList.Add(itemAsString);
+            }
+
+            var spriteTypes = Enum.GetValues(typeof(SpriteType));
+            spriteTypesList = new List<string>();
+
+            foreach (SpriteType item in spriteTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                spriteTypesList.Add(itemAsString);
             }
 
             //init spritedrawposition
@@ -405,22 +416,13 @@ namespace CharacterDataEditor.Screens
             else
             {
                 int selectedMoveType = (int)moveInEditor.MoveType;
-
-                ImGui.Text("Move Type");
-                ImGui.SameLine();
-
-                ImGui.Combo("##MoveType", ref selectedMoveType, moveTypesList.ToArray(), moveTypesList.Count);
-
+                ImguiDrawingHelper.DrawComboInput("moveType", moveTypesList.ToArray(), ref selectedMoveType);
                 moveInEditor.MoveType = (MoveType)selectedMoveType;
-                //file open for sprite... or should we enumerate them and display a list...?
-                ImGui.Text("Sprite ID");
-                ImGui.SameLine();
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
-                //var allSprites = _characterOperations.GetAllSprites(projectData.ProjectPathOnly);
-
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
-                ImGui.Combo("##SpriteSelection", ref selectedSpriteIndex, allSprites.Select(x => x.Name).ToArray(), allSprites.Count);
+                ImguiDrawingHelper.DrawComboInput("spriteID", allSprites.Select(x => x.Name).ToArray(), ref selectedSpriteIndex);
+                
                 if (selectedSpriteIndex > -1)
                 {
                     if (moveInEditor.SpriteName != allSprites[selectedSpriteIndex].Name)
@@ -430,7 +432,11 @@ namespace CharacterDataEditor.Screens
                         ChangeAnimatedSprite(sprite);
                     }
                 }
-                
+
+                bool isThrow = moveInEditor.IsThrow;
+                ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
+                moveInEditor.IsThrow = isThrow;
+
                 if (ImGui.CollapsingHeader("Windows"))
                 {
                     int windowCount = moveInEditor.NumberOfFrames;
@@ -624,11 +630,131 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                bool isThrow = moveInEditor.IsThrow;
-                ImGui.Text("Is move a throw?");
-                ImGui.SameLine();
-                ImGui.Checkbox("##isThrow", ref isThrow);
-                moveInEditor.IsThrow = isThrow;
+                if (ImGui.CollapsingHeader("Rehit Data"))
+                {
+                    int rehitHitbox = moveInEditor.RehitData.HitBox;
+                    int numberOfRepeats = moveInEditor.RehitData.NumberOfHits;
+
+                    ImguiDrawingHelper.DrawIntInput("hitboxToRepeat", ref rehitHitbox, 0);
+                    ImguiDrawingHelper.DrawIntInput("numberOfRepeats", ref numberOfRepeats, 0);
+
+                    if (numberOfRepeats < 0)
+                    {
+                        numberOfRepeats = 0;
+                    }
+
+                    if (numberOfRepeats < moveInEditor.RehitData.NumberOfHits)
+                    {
+                        while (numberOfRepeats < moveInEditor.RehitData.NumberOfHits)
+                        {
+                            moveInEditor.RehitData.HitOnFrames.RemoveAt(moveInEditor.RehitData.NumberOfHits - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (numberOfRepeats > moveInEditor.RehitData.NumberOfHits)
+                        {
+                            moveInEditor.RehitData.HitOnFrames.Add(0);
+                        }
+                    }
+
+                    if (numberOfRepeats == 0)
+                    {
+                        ImGui.Text("No Repeat Frame Information");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < numberOfRepeats; i++)
+                        {
+                            var currentFrame = moveInEditor.RehitData.HitOnFrames[i];
+
+                            if (ImGui.TreeNode($"Hit On Frame [{i}]"))
+                            {
+                                ImguiDrawingHelper.DrawIntInput("repeatFrameIndex", ref currentFrame);
+
+                                ImGui.TreePop();
+                            }
+
+                            moveInEditor.RehitData.HitOnFrames[i] = currentFrame;
+                        }
+                    }
+
+                    moveInEditor.RehitData.HitBox = rehitHitbox;
+                }
+
+                if (isThrow && ImGui.CollapsingHeader("Opponent Position Data"))
+                {
+                    float distanceFromWall = moveInEditor.OpponentPositionData.DistanceFromWall;
+                    int numberOfFrames = moveInEditor.OpponentPositionData.NumberOfFrames;
+
+                    ImguiDrawingHelper.DrawDecimalInput("distanceFromWall", ref distanceFromWall);
+                    ImguiDrawingHelper.DrawIntInput("numberOfFrames", ref numberOfFrames);
+
+                    moveInEditor.OpponentPositionData.DistanceFromWall = distanceFromWall;
+
+                    if (numberOfFrames < 0)
+                    {
+                        numberOfFrames = 0;
+                    }
+
+                    if (numberOfFrames < moveInEditor.OpponentPositionData.NumberOfFrames)
+                    {
+                        while (numberOfFrames < moveInEditor.OpponentPositionData.NumberOfFrames)
+                        {
+                            moveInEditor.OpponentPositionData.Frames.RemoveAt(moveInEditor.OpponentPositionData.NumberOfFrames - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (numberOfFrames > moveInEditor.OpponentPositionData.NumberOfFrames)
+                        {
+                            moveInEditor.OpponentPositionData.Frames.Add(new OpponentPositionFrameModel());
+                        }
+                    }
+
+                    if (numberOfFrames == 0)
+                    {
+                        ImGui.Text("No Frame Data");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < numberOfFrames; i++)
+                        {
+                            var currentFrame = moveInEditor.OpponentPositionData.Frames[i];
+
+                            if (ImGui.TreeNode($"Frame [{i}]"))
+                            {
+                                int frameNumber = currentFrame.Frame;
+                                int relativeXPos = currentFrame.RelativeX;
+                                int relativeYPos = currentFrame.RelativeY;
+                                int frameIndex = currentFrame.Index;
+                                int rotation = currentFrame.Rotation;
+                                int xScale = currentFrame.XScale;
+                                int spriteToUse = (int)currentFrame.Sprite;
+
+                                ImguiDrawingHelper.DrawIntInput("frame", ref frameNumber);
+                                ImguiDrawingHelper.DrawIntInput("relativeXPosition", ref relativeXPos);
+                                ImguiDrawingHelper.DrawIntInput("relativeYPosition", ref relativeYPos);
+                                ImguiDrawingHelper.DrawComboInput("spriteToUse", spriteTypesList.ToArray(), ref spriteToUse);
+                                ImguiDrawingHelper.DrawIntInput("index", ref frameIndex);
+                                ImguiDrawingHelper.DrawIntInput("rotation", ref rotation);
+                                ImguiDrawingHelper.DrawIntInput("xScale", ref xScale);
+
+                                currentFrame.Frame = frameNumber;
+                                currentFrame.RelativeY = relativeYPos;
+                                currentFrame.RelativeX = relativeXPos;
+                                currentFrame.Index = frameIndex;
+                                currentFrame.Rotation = rotation;
+                                currentFrame.XScale = xScale;
+                                currentFrame.Sprite = (SpriteType)spriteToUse;
+
+                                ImGui.TreePop();
+                            }
+
+                            moveInEditor.OpponentPositionData.Frames[i] = currentFrame;
+                        }
+                    }
+                }
 
                 if (ImGui.CollapsingHeader("Hurtboxes"))
                 {
@@ -1053,7 +1179,7 @@ namespace CharacterDataEditor.Screens
                 if (ImGui.MenuItem("Save"))
                 {
                     //exports json to the characterdata folder in the game
-                    _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                    SaveCharacter();
                 }
 
                 if (ImGui.MenuItem("Export..."))
@@ -1090,7 +1216,7 @@ namespace CharacterDataEditor.Screens
                         {
                             if (keycode == (int)KeyboardKey.KEY_S)
                             {
-                                _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                                SaveCharacter();
                                 screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
                             }
                             else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1122,7 +1248,7 @@ namespace CharacterDataEditor.Screens
                         {
                             if (keycode == (int)KeyboardKey.KEY_S)
                             {
-                                _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                                SaveCharacter();
                                 screenManager.NavigateTo(typeof(MainScreen), new { height, width });
                             }
                             else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1155,7 +1281,7 @@ namespace CharacterDataEditor.Screens
                         {
                             if (keycode == (int)KeyboardKey.KEY_S)
                             {
-                                _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                                SaveCharacter();
                                 screenManager.ExitWindow = true;
                             }
                             else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1192,7 +1318,7 @@ namespace CharacterDataEditor.Screens
                 {
                     if (keycode == (int)KeyboardKey.KEY_S)
                     {
-                        _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+                        SaveCharacter();
                         screenManager.ExitWindow = true;
                     }
                     else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1211,6 +1337,12 @@ namespace CharacterDataEditor.Screens
             {
                 screenManager.ExitWindow = true;
             }
+        }
+
+        private void SaveCharacter()
+        {
+            _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
+            originalCharacter = character.Clone();
         }
     }
 }
