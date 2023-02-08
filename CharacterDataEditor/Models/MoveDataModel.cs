@@ -20,11 +20,13 @@ namespace CharacterDataEditor.Models
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
         public List<HurtboxDataModel> HurtboxData { get; set; } = new List<HurtboxDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
+        public int NumberOfMovementData { get { return MovementData?.Count ?? 0; } }
+        public List<MovementDataModel> MovementData { get; set; } = new List<MovementDataModel>();
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
-            hash = HashCode.Combine(hash, OpponentPositionData);
+            hash = HashCode.Combine(hash, OpponentPositionData, MovementData);
 
             return hash;
         }
@@ -61,7 +63,10 @@ namespace CharacterDataEditor.Models
                                         {
                                             if (objAsMoveData.RehitData.Equals(RehitData))
                                             {
-                                                return true;
+                                                if (objAsMoveData.MovementData.SequenceEqual(MovementData))
+                                                {
+                                                    return true;
+                                                }
                                             }
                                         }
                                     }
