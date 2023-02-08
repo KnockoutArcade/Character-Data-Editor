@@ -1,5 +1,9 @@
 ## What's Changed
-* Changed velocity type values to allow decimals (float) instead of whole numbers (int)
+* Added data structure for Rehit Data
+* Added data structure for Opponent Position Data
+* Added data structure for Movement Data
+* Added values for Meter Gain and Combo Scaling to Attack Data
+* Fixed bug that kept unsaved indicator active after saving
 ## Known Bugs
 * Hit and Hurt boxes disappear when adjusting values
 * Animation can run slow on computers without dedicated graphics

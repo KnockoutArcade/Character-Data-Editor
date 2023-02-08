@@ -16,12 +16,19 @@ namespace CharacterDataEditor.Models
         public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
         public List<AttackDataModel> AttackData { get; set; } = new List<AttackDataModel>();
         public bool IsThrow { get; set; } = false;
+        public OpponentPositionDataModel OpponentPositionData { get; set; } = new OpponentPositionDataModel();
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
         public List<HurtboxDataModel> HurtboxData { get; set; } = new List<HurtboxDataModel>();
+        public RehitDataModel RehitData { get; set; } = new RehitDataModel();
+        public int NumberOfMovementData { get { return MovementData?.Count ?? 0; } }
+        public List<MovementDataModel> MovementData { get; set; } = new List<MovementDataModel>();
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData);
+            var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
+            hash = HashCode.Combine(hash, OpponentPositionData, MovementData);
+
+            return hash;
         }
 
         public override bool Equals(object obj)
@@ -52,7 +59,16 @@ namespace CharacterDataEditor.Models
                                 {
                                     if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
                                     {
-                                        return true;
+                                        if (objAsMoveData.OpponentPositionData.Equals(OpponentPositionData))
+                                        {
+                                            if (objAsMoveData.RehitData.Equals(RehitData))
+                                            {
+                                                if (objAsMoveData.MovementData.SequenceEqual(MovementData))
+                                                {
+                                                    return true;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
