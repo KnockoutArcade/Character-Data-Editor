@@ -1,6 +1,7 @@
 ## What's Changed
 * Added data structure for Rehit Data
 * Added data structure for Opponent Position Data
+* Added data structure for Movement Data
 * Fixed bug that kept unsaved indicator active after saving
 ## Known Bugs
 * Hit and Hurt boxes disappear when adjusting values

@@ -421,7 +421,7 @@ namespace CharacterDataEditor.Screens
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
-                ImguiDrawingHelper.DrawComboInput("spriteID", allSprites.Select(x => x.Name).ToArray(), ref selectedSpriteIndex);
+                ImguiDrawingHelper.DrawComboInput("sprite", allSprites.Select(x => x.Name).ToArray(), ref selectedSpriteIndex);
                 
                 if (selectedSpriteIndex > -1)
                 {
@@ -824,6 +824,60 @@ namespace CharacterDataEditor.Screens
 
                                 ImGui.TreePop();
                             }
+                        }
+                    }
+                }
+
+                if (ImGui.CollapsingHeader("Movement Data Frames"))
+                {
+                    int movementDataCount = moveInEditor.NumberOfMovementData;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
+
+                    if (movementDataCount < 0)
+                    {
+                        movementDataCount = 0;
+                    }
+
+                    if (movementDataCount < moveInEditor.NumberOfMovementData)
+                    {
+                        while (movementDataCount < moveInEditor.NumberOfMovementData)
+                        {
+                            moveInEditor.MovementData.RemoveAt(moveInEditor.NumberOfMovementData - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (movementDataCount > moveInEditor.NumberOfMovementData)
+                        {
+                            moveInEditor.MovementData.Add(new MovementDataModel());
+                        }
+                    }
+
+                    if (movementDataCount == 0)
+                    {
+                        ImGui.Text("No movement data frames");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.NumberOfMovementData; i++)
+                        {
+                            var currentMovementData = moveInEditor.MovementData[i];
+
+                            int startFrame = currentMovementData.StartingFrame;
+                            float horizontalSpeed = currentMovementData.HorizontalSpeed;
+                            float verticalSpeed = currentMovementData.VerticalSpeed;
+                            bool overwriteSpeed = currentMovementData.OverwriteSpeed;
+
+                            ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
+                            ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                            ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                            ImguiDrawingHelper.DrawBoolInput("overwriteSpeed", ref overwriteSpeed);
+
+                            currentMovementData.StartingFrame = startFrame;
+                            currentMovementData.HorizontalSpeed = horizontalSpeed;
+                            currentMovementData.VerticalSpeed = verticalSpeed;
+                            currentMovementData.OverwriteSpeed = overwriteSpeed;
                         }
                     }
                 }
