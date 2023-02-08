@@ -30,13 +30,15 @@ namespace CharacterDataEditor.Models
         public int ParticleDuration { get; set; } = 0;
         public int HoldXOffset { get; set; } = 0;
         public int HoldYOffset { get; set; } = 0;
+        public float MeterGain { get; set; } = 0.0f;
+        public float ComboScaling { get; set; } = 0.0f;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Start, Lifetime, AttackWidth, AttackHeight, WidthOffset, HeightOffset, Group, Damage);
             hash = HashCode.Combine(hash, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack, AirKnockbackHorizontal, AirKnockbackVertical);
             hash = HashCode.Combine(hash, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, Pushback, ParticleXOffset, ParticleYOffset, ParticleEffect);
-            hash = HashCode.Combine(hash, ParticleDuration, HoldXOffset, HoldYOffset);
+            hash = HashCode.Combine(hash, ParticleDuration, HoldXOffset, HoldYOffset, MeterGain, ComboScaling);
 
             return hash;
         }
@@ -103,7 +105,13 @@ namespace CharacterDataEditor.Models
                                                                                                     {
                                                                                                         if (objAsAttackData.HoldYOffset == HoldYOffset)
                                                                                                         {
-                                                                                                            return true;
+                                                                                                            if (objAsAttackData.MeterGain == MeterGain)
+                                                                                                            {
+                                                                                                                if (objAsAttackData.ComboScaling == ComboScaling)
+                                                                                                                {
+                                                                                                                    return true;
+                                                                                                                }
+                                                                                                            }
                                                                                                         }
                                                                                                     }
                                                                                                 }

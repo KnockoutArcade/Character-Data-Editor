@@ -558,6 +558,8 @@ namespace CharacterDataEditor.Screens
                                 int particleDuration = attackDataItem.ParticleDuration;
                                 int holdOffsetX = attackDataItem.HoldXOffset;
                                 int holdOffsetY = attackDataItem.HoldYOffset;
+                                float comboScaling = attackDataItem.ComboScaling;
+                                float meterGain = attackDataItem.MeterGain;
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
@@ -567,6 +569,8 @@ namespace CharacterDataEditor.Screens
                                 var ySelect = ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
                                 ImguiDrawingHelper.DrawIntInput("group", ref group);
                                 ImguiDrawingHelper.DrawIntInput("damage", ref damage);
+                                ImguiDrawingHelper.DrawDecimalInput("meterGain", ref meterGain);
+                                ImguiDrawingHelper.DrawDecimalInput("comboScaling", ref comboScaling);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStop", ref attackHitstop);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStun", ref attackHitstun);
 
@@ -623,6 +627,8 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.ParticleDuration = particleDuration;
                                 attackDataItem.HoldXOffset = holdOffsetX;
                                 attackDataItem.HoldYOffset = holdOffsetY;
+                                attackDataItem.ComboScaling = comboScaling;
+                                attackDataItem.MeterGain = meterGain;
 
                                 ImGui.TreePop();
                             }
