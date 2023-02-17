@@ -7,11 +7,12 @@ namespace CharacterDataEditor.Models
         public int StartingFrame { get; set; } = 0;
         public float HorizontalSpeed { get; set; } = 0.0f;
         public float VerticalSpeed { get; set; } = 0.0f;
-        public bool OverwriteSpeed { get; set; } = false;
+        public bool OverwriteVerticalSpeed { get; set; } = false;
+        public bool OverwriteHorizontalSpeed { get; set; } = false;
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(StartingFrame, HorizontalSpeed, VerticalSpeed, OverwriteSpeed);
+            return HashCode.Combine(StartingFrame, HorizontalSpeed, VerticalSpeed, OverwriteVerticalSpeed, OverwriteHorizontalSpeed);
         }
 
         public override bool Equals(object obj)
@@ -34,9 +35,12 @@ namespace CharacterDataEditor.Models
                 {
                     if (objAsMovementData.VerticalSpeed == VerticalSpeed)
                     {
-                        if (objAsMovementData.OverwriteSpeed == OverwriteSpeed)
+                        if (objAsMovementData.OverwriteVerticalSpeed == OverwriteVerticalSpeed)
                         {
-                            return true;
+                            if (objAsMovementData.OverwriteHorizontalSpeed == OverwriteHorizontalSpeed)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
