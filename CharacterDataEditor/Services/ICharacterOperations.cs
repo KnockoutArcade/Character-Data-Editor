@@ -1,9 +1,12 @@
 ﻿using CharacterDataEditor.Constants;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
+using Original = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System;
 
 namespace CharacterDataEditor.Services
 {
@@ -11,6 +14,7 @@ namespace CharacterDataEditor.Services
     {
         public void SaveCharacter(CharacterDataModel character, string projectPath, string path = "");
         public List<CharacterDataModel> GetCharactersFromProject(string projectPath);
+        public List<Original.CharacterDataModel> GetOriginalCharactersForUpgrade(string projectPath);
         public SpriteDataModel GetSpriteData(string spriteFilePath);
         public List<SpriteDataModel> GetAllSprites(string projectPath);
     }
@@ -75,6 +79,54 @@ namespace CharacterDataEditor.Services
 
                 if (character != null)
                 {
+                    if (character.Version != VersionConstants.CurrentVersion)
+                    {
+                        continue;
+                    }
+
+                    allCharacters.Add(character);
+                }
+            }
+
+            return allCharacters;
+        }
+
+        public List<Original.CharacterDataModel> GetOriginalCharactersForUpgrade(string projectPath)
+        {
+            if (!Directory.Exists(projectPath))
+            {
+                _logger.LogError($"Path {projectPath} does not exist or is not accessable.");
+                return null;
+            }
+
+            var characterDataPath = Path.Combine(projectPath, ResourceConstants.CharacterDataPathStub);
+
+            if (!Directory.Exists(characterDataPath))
+            {
+                _logger.LogInformation("Character Data path did not exist... creating...");
+                Directory.CreateDirectory(characterDataPath);
+                return new List<Original.CharacterDataModel>();
+            }
+
+            //get all the json files
+            var files = Directory.GetFiles(characterDataPath, "*.json");
+
+            var allCharacters = new List<Original.CharacterDataModel>();
+
+            foreach (var file in files)
+            {
+                using StreamReader streamReader = new StreamReader(file);
+                var jsonData = streamReader.ReadToEnd();
+
+                var character = JsonConvert.DeserializeObject<Original.CharacterDataModel>(jsonData);
+
+                if (character != null)
+                {
+                    if (character.Version != VersionConstants.CurrentVersion)
+                    {
+                        continue;
+                    }
+
                     allCharacters.Add(character);
                 }
             }
@@ -102,6 +154,9 @@ namespace CharacterDataEditor.Services
 
         public void SaveCharacter(CharacterDataModel character, string projectPath, string savePath = "")
         {
+            character.LastModified = DateTime.Now;
+            character.LastModifiedBy = Environment.UserName;
+
             var fileName = $"{character.Name}.json";
             string path;
 

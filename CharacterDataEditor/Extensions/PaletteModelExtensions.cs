@@ -1,4 +1,4 @@
-﻿using CharacterDataEditor.Models;
+﻿using CharacterDataEditor.Models.CharacterData;
 using System.Numerics;
 
 namespace CharacterDataEditor.Extensions

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using CharacterDataEditor.Enums;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models.CharacterData
 {
     public class MoveDataModel
     {
@@ -64,11 +64,14 @@ namespace CharacterDataEditor.Models
                                         {
                                             if (objAsMoveData.RehitData.Equals(RehitData))
                                             {
-                                                if (objAsMoveData.MovementData.SequenceEqual(MovementData))
+                                                if (objAsMoveData.GroundMovementData.Equals(GroundMovementData))
                                                 {
-                                                    if (objAsMoveData.CounterData.SequenceEqual(CounterData))
+                                                    if (objAsMoveData.AirMovementData.Equals(AirMovementData))
                                                     {
-                                                        return true;
+                                                        if (objAsMoveData.CounterData.SequenceEqual(CounterData))
+                                                        {
+                                                            return true;
+                                                        }
                                                     }
                                                 }
                                             }

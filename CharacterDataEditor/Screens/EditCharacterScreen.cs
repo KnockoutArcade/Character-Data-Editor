@@ -3,6 +3,7 @@ using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
 using CharacterDataEditor.Services;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;

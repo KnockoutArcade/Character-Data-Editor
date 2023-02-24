@@ -15,5 +15,8 @@
         public const string ExceptionInnerExceptionMessageMessage = "Inner Exception Message: {innerMessage}";
         public const string ExceptionSourceMessage = "Exception Source: {exceptionSource}";
         public const string ExceptionStackTraceMessage = "Exception Stack Trace: {stackTrace}";
+
+        //upgrade messages
+        public const string OriginalTo094UpgradeMessage = "";
     }
 }
