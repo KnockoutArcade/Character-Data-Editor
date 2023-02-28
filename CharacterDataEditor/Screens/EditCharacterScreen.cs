@@ -835,9 +835,17 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                if (ImGui.CollapsingHeader("Movement Data Frames"))
+                if (ImGui.CollapsingHeader("Air Movement Data"))
                 {
-                    int movementDataCount = moveInEditor.NumberOfMovementData;
+                    int movementDataCount = moveInEditor.AirMovementData.NumberOfWindows;
+                    float gravityScale = moveInEditor.AirMovementData.GravityScale;
+                    float fallScale = moveInEditor.AirMovementData.FallScale;
+
+                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
+                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
+
+                    moveInEditor.AirMovementData.FallScale = fallScale;
+                    moveInEditor.AirMovementData.GravityScale = gravityScale;
 
                     ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
 
@@ -846,45 +854,123 @@ namespace CharacterDataEditor.Screens
                         movementDataCount = 0;
                     }
 
-                    if (movementDataCount < moveInEditor.NumberOfMovementData)
+                    if (movementDataCount < moveInEditor.AirMovementData.NumberOfWindows)
                     {
-                        while (movementDataCount < moveInEditor.NumberOfMovementData)
+                        while (movementDataCount < moveInEditor.AirMovementData.NumberOfWindows)
                         {
-                            moveInEditor.MovementData.RemoveAt(moveInEditor.NumberOfMovementData - 1);
+                            moveInEditor.AirMovementData.Windows.RemoveAt(moveInEditor.AirMovementData.NumberOfWindows - 1);
                         }
                     }
                     else
                     {
-                        while (movementDataCount > moveInEditor.NumberOfMovementData)
+                        while (movementDataCount > moveInEditor.AirMovementData.NumberOfWindows)
                         {
-                            moveInEditor.MovementData.Add(new MovementDataModel());
+                            moveInEditor.AirMovementData.Windows.Add(new MovementDataModel());
                         }
                     }
 
                     if (movementDataCount == 0)
                     {
-                        ImGui.Text("No movement data frames");
+                        ImGui.Text("No air movement data frames");
                     }
                     else
                     {
-                        for (int i = 0; i < moveInEditor.NumberOfMovementData; i++)
+                        for (int i = 0; i < moveInEditor.AirMovementData.NumberOfWindows; i++)
                         {
-                            var currentMovementData = moveInEditor.MovementData[i];
+                            if (ImGui.TreeNode($"Air Move Window [{i}]"))
+                            {
+                                var currentMovementData = moveInEditor.AirMovementData.Windows[i];
 
-                            int startFrame = currentMovementData.StartingFrame;
-                            float horizontalSpeed = currentMovementData.HorizontalSpeed;
-                            float verticalSpeed = currentMovementData.VerticalSpeed;
-                            bool overwriteSpeed = currentMovementData.OverwriteSpeed;
+                                int startFrame = currentMovementData.StartingFrame;
+                                float horizontalSpeed = currentMovementData.HorizontalSpeed;
+                                float verticalSpeed = currentMovementData.VerticalSpeed;
+                                bool overwriteVSpeed = currentMovementData.OverwriteVerticalSpeed;
+                                bool overwriteHSpeed = currentMovementData.OverwriteHorizontalSpeed;
 
-                            ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
-                            ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
-                            ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
-                            ImguiDrawingHelper.DrawBoolInput("overwriteSpeed", ref overwriteSpeed);
+                                ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
+                                ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                                ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                                ImguiDrawingHelper.DrawBoolInput("overwriteHorizontalSpeed", ref overwriteHSpeed);
+                                ImguiDrawingHelper.DrawBoolInput("overwriteVerticalSpeed", ref overwriteVSpeed);
 
-                            currentMovementData.StartingFrame = startFrame;
-                            currentMovementData.HorizontalSpeed = horizontalSpeed;
-                            currentMovementData.VerticalSpeed = verticalSpeed;
-                            currentMovementData.OverwriteSpeed = overwriteSpeed;
+                                currentMovementData.StartingFrame = startFrame;
+                                currentMovementData.HorizontalSpeed = horizontalSpeed;
+                                currentMovementData.VerticalSpeed = verticalSpeed;
+                                currentMovementData.OverwriteVerticalSpeed = overwriteVSpeed;
+                                currentMovementData.OverwriteHorizontalSpeed = overwriteHSpeed;
+
+                                ImGui.TreePop();
+                            }
+                        }
+                    }
+                }
+
+                if (ImGui.CollapsingHeader("Ground Movement Data"))
+                {
+                    int movementDataCount = moveInEditor.GroundMovementData.NumberOfWindows;
+                    float gravityScale = moveInEditor.GroundMovementData.GravityScale;
+                    float fallScale = moveInEditor.GroundMovementData.FallScale;
+
+                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
+                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
+
+                    moveInEditor.GroundMovementData.FallScale = fallScale;
+                    moveInEditor.GroundMovementData.GravityScale = gravityScale;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
+
+                    if (movementDataCount < 0)
+                    {
+                        movementDataCount = 0;
+                    }
+
+                    if (movementDataCount < moveInEditor.GroundMovementData.NumberOfWindows)
+                    {
+                        while (movementDataCount < moveInEditor.GroundMovementData.NumberOfWindows)
+                        {
+                            moveInEditor.GroundMovementData.Windows.RemoveAt(moveInEditor.GroundMovementData.NumberOfWindows - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (movementDataCount > moveInEditor.GroundMovementData.NumberOfWindows)
+                        {
+                            moveInEditor.GroundMovementData.Windows.Add(new MovementDataModel());
+                        }
+                    }
+
+                    if (movementDataCount == 0)
+                    {
+                        ImGui.Text("No ground movement data frames");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.GroundMovementData.NumberOfWindows; i++)
+                        {
+                            if (ImGui.TreeNode($"Ground Move Window [{i}]"))
+                            {
+                                var currentMovementData = moveInEditor.GroundMovementData.Windows[i];
+
+                                int startFrame = currentMovementData.StartingFrame;
+                                float horizontalSpeed = currentMovementData.HorizontalSpeed;
+                                float verticalSpeed = currentMovementData.VerticalSpeed;
+                                bool overwriteVSpeed = currentMovementData.OverwriteVerticalSpeed;
+                                bool overwriteHSpeed = currentMovementData.OverwriteHorizontalSpeed;
+
+                                ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
+                                ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                                ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                                ImguiDrawingHelper.DrawBoolInput("overwriteHorizontalSpeed", ref overwriteHSpeed);
+                                ImguiDrawingHelper.DrawBoolInput("overwriteVerticalSpeed", ref overwriteVSpeed);
+
+                                currentMovementData.StartingFrame = startFrame;
+                                currentMovementData.HorizontalSpeed = horizontalSpeed;
+                                currentMovementData.VerticalSpeed = verticalSpeed;
+                                currentMovementData.OverwriteVerticalSpeed = overwriteVSpeed;
+                                currentMovementData.OverwriteHorizontalSpeed = overwriteHSpeed;
+
+                                ImGui.TreePop();
+                            }
                         }
                     }
                 }

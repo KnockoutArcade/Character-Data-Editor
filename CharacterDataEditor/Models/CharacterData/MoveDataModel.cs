@@ -21,8 +21,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
         public List<HurtboxDataModel> HurtboxData { get; set; } = new List<HurtboxDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
-        public SupplimentaryMovementDataModel GroundMovementData { get; set; }
-        public SupplimentaryMovementDataModel AirMovementData { get; set; }
+        public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
+        public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
 
         public override int GetHashCode()
         {
