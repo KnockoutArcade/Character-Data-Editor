@@ -1,6 +1,9 @@
 ﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
+using OriginalVersion = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
 using CharacterDataEditor.Services;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
@@ -28,6 +31,12 @@ namespace CharacterDataEditor.Screens
 
         private bool[] itemSelected;
 
+        private bool upgradeMessageShown;
+        private string upgradeMessageText;
+
+        private delegate void AfterConfirmAction(int keyCode, IScreenManager screenManager);
+        private AfterConfirmAction afterConfirmAction;
+
         public ProjectHomeScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations)
         {
             _logger = logger;
@@ -52,11 +61,69 @@ namespace CharacterDataEditor.Screens
             spriteDrawer = new SpriteDrawingHelper();
             spriteData = null;
 
-            characters = _characterOperations.GetCharactersFromProject(projectData.ProjectPathOnly);
+            // initially attempt to get characters with the current version of the project data structure
+            characters = _characterOperations.GetCharactersFromProject<CharacterDataModel>(projectData.ProjectPathOnly);
             if (characters == null)
             {
                 _logger.LogCritical("Unable to load characters, path may be inaccessable. Throwing Exception");
                 throw new FileNotFoundException("Unable to load characters, path may be inaccessable.", projectData.FullPath);
+            }
+
+            // if any of the characters need an upgrade, generate an error message and display with options for the user
+            var charactersNeedingUpgrade = characters.Where(x => x.UpgradeNeeded).ToList();
+
+            // remove the characters that need an upgrade from the open list until they're upgraded
+            charactersNeedingUpgrade.ForEach(x => characters.Remove(x));
+            
+            if (charactersNeedingUpgrade.Any())
+            {
+                string fullErrorMessage = string.Empty;
+                List<CharacterDataModel> upgradedCharacters = new List<CharacterDataModel>();
+
+                foreach (var characterNeedingUpgrade in charactersNeedingUpgrade)
+                {
+                    // for now I'll hard code this to the original version, but operations should be placed here to
+                    // determine which previous version to open...
+
+                    var oldCharacter = _characterOperations.GetCharacterByFilename<OriginalVersion.CharacterDataModel>(characterNeedingUpgrade.FileName);
+
+                    var upgradeResults = oldCharacter.Upgrade();
+                    if (upgradeResults.IsDataLossSuspected)
+                    {
+                        fullErrorMessage += $"\nCharacter {characterNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{upgradeResults.Message}";
+                    }
+
+                    // add the upgraded character to the list
+                    upgradedCharacters.Add(upgradeResults.UpgradedCharacterData);
+                }
+
+                if (fullErrorMessage != string.Empty)
+                {
+                    upgradeMessageText = fullErrorMessage;
+                    upgradeMessageShown = true;
+
+                    afterConfirmAction = (keycode, screenManager) =>
+                    {
+                        if (keycode == (int)KeyboardKey.KEY_C)
+                        {
+                            screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                        }
+                        else if (keycode == (int)KeyboardKey.KEY_U)
+                        {
+                            // add characters to the list
+                            characters.AddRange(upgradedCharacters);
+
+                            // save the updated characters
+                            upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
+
+                            // resize the flags for selection
+                            itemSelected = new bool[characters.Count];
+
+                            // disable the message
+                            upgradeMessageShown = false;
+                        }
+                    };
+                }
             }
 
             itemSelected = new bool[characters.Count];
@@ -73,6 +140,39 @@ namespace CharacterDataEditor.Screens
 
         public void RenderAfterImGui(IScreenManager screenManager)
         {
+            if (upgradeMessageShown)
+            {
+                var pressedKey = Raylib.GetKeyPressed();
+                if(pressedKey == (int)KeyboardKey.KEY_U || pressedKey == (int)KeyboardKey.KEY_C)
+                {
+                    if (afterConfirmAction != null)
+                    {
+                        afterConfirmAction(pressedKey, screenManager);
+                    }
+                }
+
+                var fontSize = (int)(24.0f * screenManager.ScreenScale);
+
+                var completeMessage = $"{MessageConstants.UpgradeNeededMessage}\nMessages from upgrade process follow:\n\n{upgradeMessageText}";
+
+                var defaultFont = Raylib.GetFontDefault();
+                //var messageWidth = Raylib.MeasureText(completeMessage, fontSize);
+                var messageSize = Raylib.MeasureTextEx(defaultFont, completeMessage, fontSize, 4.0f);
+
+                var messageXCoord = (int)((width / 2.0f) - (messageSize.X / 2.0f));
+                var messageYCoord = (int)((height / 2.0f) - (messageSize.Y / 2.0f));
+
+                var messageRect = new Rectangle();
+                messageRect.x = 0.0f;
+                messageRect.height = messageSize.Y + (20.0f * screenManager.ScreenScale);
+                messageRect.width = width;
+                messageRect.y = (height / 2.0f) - messageRect.height / 2.0f;
+
+                Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.BLACK);
+
+                Raylib.DrawTextEx(defaultFont, completeMessage,
+                    new Vector2(messageXCoord, messageYCoord), fontSize, 4.0f, Color.WHITE);
+            }
         }
 
         private void CreateNewCharacter(IScreenManager screenManager)

@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models.CharacterData
 {
-    public class CharacterDataModel
+    public class CharacterDataModel : BaseCharacter
     {
         public string Name { get; set; } = string.Empty;
         public string BaseSprite { get; set; } = string.Empty;

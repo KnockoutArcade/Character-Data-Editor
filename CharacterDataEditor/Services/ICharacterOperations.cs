@@ -1,16 +1,20 @@
 ﻿using CharacterDataEditor.Constants;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
+using Original = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System;
 
 namespace CharacterDataEditor.Services
 {
     public interface ICharacterOperations
     {
         public void SaveCharacter(CharacterDataModel character, string projectPath, string path = "");
-        public List<CharacterDataModel> GetCharactersFromProject(string projectPath);
+        public List<T> GetCharactersFromProject<T>(string projectPath) where T : BaseCharacter;
+        public T GetCharacterByFilename<T>(string filePath) where T : BaseCharacter;
         public SpriteDataModel GetSpriteData(string spriteFilePath);
         public List<SpriteDataModel> GetAllSprites(string projectPath);
     }
@@ -44,7 +48,28 @@ namespace CharacterDataEditor.Services
             return null;
         }
 
-        public List<CharacterDataModel> GetCharactersFromProject(string projectPath)
+        public T GetCharacterByFilename<T>(string filePath) where T : BaseCharacter
+        {
+            if (!File.Exists(filePath))
+            {
+                _logger.LogError($"File {filePath} does not exist or is not accessable.");
+                return null;
+            }
+
+            using StreamReader streamReader = new StreamReader(filePath);
+            var jsonContents = streamReader.ReadToEnd();
+
+            var convertedCharacter = JsonConvert.DeserializeObject<T>(jsonContents);
+
+            if (convertedCharacter == null)
+            {
+                _logger.LogError($"Unable to read data in file: {filePath}");
+            }
+
+            return convertedCharacter;
+        }
+        
+        public List<T> GetCharactersFromProject<T>(string projectPath) where T : BaseCharacter
         {
             if (!Directory.Exists(projectPath))
             {
@@ -58,23 +83,30 @@ namespace CharacterDataEditor.Services
             {
                 _logger.LogInformation("Character Data path did not exist... creating...");
                 Directory.CreateDirectory(characterDataPath);
-                return new List<CharacterDataModel>();
+                return new List<T>();
             }
 
             //get all the json files
             var files = Directory.GetFiles(characterDataPath, "*.json");
 
-            var allCharacters = new List<CharacterDataModel>();
+            var allCharacters = new List<T>();
 
             foreach (var file in files)
             {
                 using StreamReader streamReader = new StreamReader(file);
                 var jsonData = streamReader.ReadToEnd();
 
-                var character = JsonConvert.DeserializeObject<CharacterDataModel>(jsonData);
+                var character = JsonConvert.DeserializeObject<T>(jsonData);
 
                 if (character != null)
                 {
+                    if (character.Version != VersionConstants.CurrentVersion)
+                    {
+                        character.UpgradeNeeded = true;
+                    }
+
+                    character.FileName = file;
+
                     allCharacters.Add(character);
                 }
             }
@@ -102,6 +134,9 @@ namespace CharacterDataEditor.Services
 
         public void SaveCharacter(CharacterDataModel character, string projectPath, string savePath = "")
         {
+            character.LastModified = DateTime.Now;
+            character.LastModifiedBy = Environment.UserName;
+
             var fileName = $"{character.Name}.json";
             string path;
 

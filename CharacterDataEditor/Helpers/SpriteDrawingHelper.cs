@@ -2,6 +2,7 @@
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
 using System;
