@@ -1,5 +1,5 @@
 ﻿using CharacterDataEditor.Extensions;
-using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;

@@ -1,9 +1,8 @@
-﻿using CharacterDataEditor.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models.CharacterData
 {
     public class OpponentPositionDataModel
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using CharacterDataEditor.Enums;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models.CharacterData
 {
     public class MoveDataModel
     {
@@ -15,18 +15,19 @@ namespace CharacterDataEditor.Models
         public List<FrameDataModel> FrameData { get; set; } = new List<FrameDataModel>();
         public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
         public List<AttackDataModel> AttackData { get; set; } = new List<AttackDataModel>();
+        public List<CounterHitDataModel> CounterData { get; set; } = new List<CounterHitDataModel>();
         public bool IsThrow { get; set; } = false;
         public OpponentPositionDataModel OpponentPositionData { get; set; } = new OpponentPositionDataModel();
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
         public List<HurtboxDataModel> HurtboxData { get; set; } = new List<HurtboxDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
-        public int NumberOfMovementData { get { return MovementData?.Count ?? 0; } }
-        public List<MovementDataModel> MovementData { get; set; } = new List<MovementDataModel>();
+        public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
+        public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
-            hash = HashCode.Combine(hash, OpponentPositionData, MovementData);
+            hash = HashCode.Combine(hash, OpponentPositionData, CounterData);
 
             return hash;
         }
@@ -63,9 +64,15 @@ namespace CharacterDataEditor.Models
                                         {
                                             if (objAsMoveData.RehitData.Equals(RehitData))
                                             {
-                                                if (objAsMoveData.MovementData.SequenceEqual(MovementData))
+                                                if (objAsMoveData.GroundMovementData.Equals(GroundMovementData))
                                                 {
-                                                    return true;
+                                                    if (objAsMoveData.AirMovementData.Equals(AirMovementData))
+                                                    {
+                                                        if (objAsMoveData.CounterData.SequenceEqual(CounterData))
+                                                        {
+                                                            return true;
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
