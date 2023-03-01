@@ -178,8 +178,7 @@ namespace CharacterDataEditor.Screens
                         exitConfirmAction(pressedKey);
                     }
                 }
-                //TODO: Fix the parameters so this looks good...
-
+                
                 var messageRect = new Rectangle();
                 messageRect.x = 0.0f;
                 messageRect.height = (200.0f * screenManager.ScreenScale);

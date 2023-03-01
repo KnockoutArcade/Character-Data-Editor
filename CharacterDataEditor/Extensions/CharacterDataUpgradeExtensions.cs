@@ -8,8 +8,18 @@ namespace CharacterDataEditor.Extensions
 {
     public static class CharacterDataUpgradeExtensions
     {
+        public static UpgradeResults Upgrade<T>(this T originalCharacter) where T : BaseCharacter
+        {
+            switch (originalCharacter.Version)
+            {
+                case VersionConstants.Original:
+                default:
+                    return (originalCharacter as OriginalVersion.CharacterDataModel).Upgrade();
+            }
+        }
+
         //original to 0.9.4 upgrade
-        public static UpgradeResults Upgrade(this OriginalVersion.CharacterDataModel previous)
+        private static UpgradeResults Upgrade(this OriginalVersion.CharacterDataModel previous)
         {
             // convert to json string
             var characterAsJson = JsonConvert.SerializeObject(previous, Formatting.Indented);
@@ -21,7 +31,7 @@ namespace CharacterDataEditor.Extensions
 
             return new UpgradeResults
             {
-                UpgradedCharacterData= newCharacter,
+                UpgradedCharacterData = newCharacter,
                 IsDataLossSuspected = true,
                 Message = MessageConstants.OriginalTo094UpgradeMessage,
                 Success = true
