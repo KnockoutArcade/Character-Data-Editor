@@ -1,11 +1,12 @@
 ## What's Changed
-* Added data structure for Rehit Data
-* Added data structure for Opponent Position Data
-* Added data structure for Movement Data
-* Added values for Meter Gain and Combo Scaling to Attack Data
-* Fixed bug that kept unsaved indicator active after saving
+* Added data structure for Counter Hits
+* Added supplimentary script support to moves
+* Added wall bounce modifier to attack and counter data
+* Under the hood improvments
+* Upgraded file format to 0.9.5
 ## Known Bugs
 * Hit and Hurt boxes disappear when adjusting values
+* Occasionally character data will continuously say it needs to be saved
 * Animation can run slow on computers without dedicated graphics
 
 ### Any other issues?
