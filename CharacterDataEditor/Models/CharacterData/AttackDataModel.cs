@@ -32,13 +32,14 @@ namespace CharacterDataEditor.Models.CharacterData
         public int HoldYOffset { get; set; } = 0;
         public float MeterGain { get; set; } = 0.0f;
         public float ComboScaling { get; set; } = 0.0f;
+        public bool CausesWallbounce { get; set; } = false;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Start, Lifetime, AttackWidth, AttackHeight, WidthOffset, HeightOffset, Group, Damage);
             hash = HashCode.Combine(hash, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack, AirKnockbackHorizontal, AirKnockbackVertical);
             hash = HashCode.Combine(hash, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, Pushback, ParticleXOffset, ParticleYOffset, ParticleEffect);
-            hash = HashCode.Combine(hash, ParticleDuration, HoldXOffset, HoldYOffset, MeterGain, ComboScaling);
+            hash = HashCode.Combine(hash, ParticleDuration, HoldXOffset, HoldYOffset, MeterGain, ComboScaling, CausesWallbounce);
 
             return hash;
         }
@@ -109,7 +110,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                             {
                                                                                                                 if (objAsAttackData.ComboScaling == ComboScaling)
                                                                                                                 {
-                                                                                                                    return true;
+                                                                                                                    if (objAsAttackData.CausesWallbounce == CausesWallbounce)
+                                                                                                                    {
+                                                                                                                        return true;
+                                                                                                                    }
                                                                                                                 }
                                                                                                             }
                                                                                                         }
