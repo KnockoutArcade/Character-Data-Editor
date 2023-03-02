@@ -11,6 +11,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public string UID { get; set; } = Guid.NewGuid().ToString();
         public MoveType MoveType { get; set; } = MoveType.BackwardThrow;
         public string SpriteName { get; set; } = string.Empty;
+        public int Duration { get; set; } = 0;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
         public List<FrameDataModel> FrameData { get; set; } = new List<FrameDataModel>();
         public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
@@ -23,11 +24,12 @@ namespace CharacterDataEditor.Models.CharacterData
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
         public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
+        public string SupplimentaryScript { get; set; } = string.Empty;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
-            hash = HashCode.Combine(hash, OpponentPositionData, CounterData);
+            hash = HashCode.Combine(hash, OpponentPositionData, CounterData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration);
 
             return hash;
         }
@@ -70,7 +72,13 @@ namespace CharacterDataEditor.Models.CharacterData
                                                     {
                                                         if (objAsMoveData.CounterData.SequenceEqual(CounterData))
                                                         {
-                                                            return true;
+                                                            if (objAsMoveData.Duration.Equals(Duration))
+                                                            {
+                                                                if (objAsMoveData.SupplimentaryScript.Equals(SupplimentaryScript))
+                                                                {
+                                                                    return true;
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }

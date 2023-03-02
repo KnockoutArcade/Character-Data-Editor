@@ -39,6 +39,7 @@ namespace CharacterDataEditor.Screens
         private List<string> attackTypesList = new List<string>();
         private List<string> spriteTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
+        private List<ScriptDataModel> allScripts;
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -96,7 +97,8 @@ namespace CharacterDataEditor.Screens
             //copies the data from character into original character
             originalCharacter = character.Clone();
 
-            allSprites = _characterOperations.GetAllSprites(projectData.ProjectPathOnly);
+            allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
+            allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.BaseSprite))
             {
@@ -422,6 +424,11 @@ namespace CharacterDataEditor.Screens
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
                 ImguiDrawingHelper.DrawComboInput("sprite", allSprites.Select(x => x.Name).ToArray(), ref selectedSpriteIndex);
+
+                var scriptId = moveInEditor.SupplimentaryScript ?? string.Empty;
+                var selectedScriptIndex = scriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplimentaryScript)) : -1;
+                ImguiDrawingHelper.DrawComboInput("supplimentaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
+                moveInEditor.SupplimentaryScript = selectedScriptIndex != -1 ? allScripts[selectedScriptIndex].Name : string.Empty;
                 
                 if (selectedSpriteIndex > -1)
                 {
@@ -432,6 +439,10 @@ namespace CharacterDataEditor.Screens
                         ChangeAnimatedSprite(sprite);
                     }
                 }
+
+                int moveDuration = moveInEditor.Duration;
+                ImguiDrawingHelper.DrawIntInput("moveDuration", ref moveDuration, 0);
+                moveInEditor.Duration = moveDuration;
 
                 bool isThrow = moveInEditor.IsThrow;
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
@@ -511,6 +522,7 @@ namespace CharacterDataEditor.Screens
                         while (hitboxCount < moveInEditor.NumberOfHitboxes)
                         {
                             moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            moveInEditor.CounterData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                         }
                     }
                     else
@@ -518,6 +530,7 @@ namespace CharacterDataEditor.Screens
                         while (hitboxCount > moveInEditor.NumberOfHitboxes)
                         {
                             moveInEditor.AttackData.Add(new AttackDataModel());
+                            moveInEditor.CounterData.Add(new CounterHitDataModel());
                         }
                     }
 
@@ -560,9 +573,11 @@ namespace CharacterDataEditor.Screens
                                 int holdOffsetY = attackDataItem.HoldYOffset;
                                 float comboScaling = attackDataItem.ComboScaling;
                                 float meterGain = attackDataItem.MeterGain;
+                                bool causesWallbounce = attackDataItem.CausesWallbounce;
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
+                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
                                 var wSelect = ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
                                 var hSelect = ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
                                 var xSelect = ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
@@ -629,9 +644,98 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.HoldYOffset = holdOffsetY;
                                 attackDataItem.ComboScaling = comboScaling;
                                 attackDataItem.MeterGain = meterGain;
+                                attackDataItem.CausesWallbounce = causesWallbounce;
 
                                 ImGui.TreePop();
                             }
+                        }
+                    }
+                }
+
+                if (ImGui.CollapsingHeader("Counter Hit Data"))
+                {
+                    if (moveInEditor.NumberOfHitboxes == 0)
+                    {
+                        ImGui.Text("No properties");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
+                        {
+                            var currentCounterData = moveInEditor.CounterData[i];
+
+                            if (ImGui.TreeNode($"Counter Data [{i}]"))
+                            {
+                                int CounterHitLevel = currentCounterData.CounterHitLevel;
+                                int Group = currentCounterData.Group;
+                                int Damage = currentCounterData.Damage;
+                                float MeterGain = currentCounterData.MeterGain;
+                                int AttackHitStop = currentCounterData.AttackHitStop;
+                                int AttackHitStun = currentCounterData.AttackHitStun;
+                                float KnockBack = currentCounterData.KnockBack;
+                                float AirKnockbackVertical = currentCounterData.AirKnockbackVertical;
+                                float AirKnockbackHorizontal = currentCounterData.AirKnockbackHorizontal;
+                                float Pushback = currentCounterData.Pushback;
+                                int ParticleXOffset = currentCounterData.ParticleXOffset;
+                                int ParticleYOffset = currentCounterData.ParticleYOffset;
+                                string ParticleEffect = currentCounterData.ParticleEffect;
+                                int ParticleDuration = currentCounterData.ParticleDuration;
+                                bool Launches = currentCounterData.Launches;
+                                float LaunchKnockbackVertical = currentCounterData.LaunchKnockbackVertical;
+                                float LaunchKnockbackHorizontal = currentCounterData.LaunchKnockbackHorizontal;
+                                float ComboScaling = currentCounterData.ComboScaling;
+                                bool CausesWallbounce = currentCounterData.CausesWallbounce;
+
+                                ImguiDrawingHelper.DrawIntInput("counterHitLevel", ref CounterHitLevel);
+                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
+                                ImguiDrawingHelper.DrawIntInput("group", ref Group);
+                                ImguiDrawingHelper.DrawIntInput("damage", ref Damage);
+                                ImguiDrawingHelper.DrawDecimalInput("meterGain", ref MeterGain);
+                                ImguiDrawingHelper.DrawDecimalInput("comboScaling", ref ComboScaling);
+                                ImguiDrawingHelper.DrawIntInput("attackHitStop", ref AttackHitStop);
+                                ImguiDrawingHelper.DrawIntInput("attackHitStun", ref AttackHitStun);
+                                ImguiDrawingHelper.DrawDecimalInput("knockBack", ref KnockBack);
+                                ImguiDrawingHelper.DrawDecimalInput("pushback", ref Pushback);
+                                ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref AirKnockbackVertical);
+                                ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref AirKnockbackHorizontal);
+                                ImguiDrawingHelper.DrawBoolInput("launches", ref Launches);
+                                if (Launches)
+                                {
+                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref LaunchKnockbackVertical);
+                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref LaunchKnockbackHorizontal);
+                                }
+                                ImguiDrawingHelper.DrawIntInput("particleOffset X", ref ParticleXOffset);
+                                ImguiDrawingHelper.DrawIntInput("particleOffset Y", ref ParticleYOffset);
+
+                                int selectedParticleEffect = string.IsNullOrWhiteSpace(ParticleEffect) ? 0 : allSprites.IndexOf(allSprites.Where(x => x.Name == ParticleEffect).First());
+                                ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
+
+                                ImguiDrawingHelper.DrawIntInput("particleDuration", ref ParticleDuration);
+
+                                currentCounterData.CounterHitLevel = CounterHitLevel;
+                                currentCounterData.Group = Group;
+                                currentCounterData.Damage = Damage;
+                                currentCounterData.MeterGain = MeterGain;
+                                currentCounterData.AttackHitStop = AttackHitStop;
+                                currentCounterData.AttackHitStun = AttackHitStun;
+                                currentCounterData.KnockBack = KnockBack;
+                                currentCounterData.AirKnockbackVertical = AirKnockbackVertical;
+                                currentCounterData.AirKnockbackHorizontal = AirKnockbackHorizontal;
+                                currentCounterData.Pushback = Pushback;
+                                currentCounterData.ParticleXOffset = ParticleXOffset;
+                                currentCounterData.ParticleYOffset = ParticleYOffset;
+                                currentCounterData.ParticleEffect = allSprites[selectedParticleEffect].Name;
+                                currentCounterData.ParticleDuration = ParticleDuration;
+                                currentCounterData.Launches = Launches;
+                                currentCounterData.ComboScaling = ComboScaling;
+                                currentCounterData.LaunchKnockbackVertical = LaunchKnockbackVertical;
+                                currentCounterData.LaunchKnockbackHorizontal= LaunchKnockbackHorizontal;
+                                currentCounterData.CausesWallbounce = CausesWallbounce;
+
+                                ImGui.TreePop();
+                            }
+
+                            moveInEditor.CounterData[i] = currentCounterData;
                         }
                     }
                 }
