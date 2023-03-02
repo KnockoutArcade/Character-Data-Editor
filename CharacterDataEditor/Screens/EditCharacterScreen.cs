@@ -1,4 +1,4 @@
-﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Constants;
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
@@ -39,6 +39,7 @@ namespace CharacterDataEditor.Screens
         private List<string> attackTypesList = new List<string>();
         private List<string> spriteTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
+        private List<ScriptDataModel> allScripts;
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -96,7 +97,8 @@ namespace CharacterDataEditor.Screens
             //copies the data from character into original character
             originalCharacter = character.Clone();
 
-            allSprites = _characterOperations.GetAllSprites(projectData.ProjectPathOnly);
+            allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
+            allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.BaseSprite))
             {
@@ -422,6 +424,11 @@ namespace CharacterDataEditor.Screens
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
                 ImguiDrawingHelper.DrawComboInput("sprite", allSprites.Select(x => x.Name).ToArray(), ref selectedSpriteIndex);
+
+                var scriptId = moveInEditor.SupplimentaryScript ?? string.Empty;
+                var selectedScriptIndex = scriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplimentaryScript)) : -1;
+                ImguiDrawingHelper.DrawComboInput("supplimentaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
+                moveInEditor.SupplimentaryScript = selectedScriptIndex != -1 ? allScripts[selectedScriptIndex].Name : string.Empty;
                 
                 if (selectedSpriteIndex > -1)
                 {

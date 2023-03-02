@@ -15,8 +15,8 @@ namespace CharacterDataEditor.Services
         public void SaveCharacter(CharacterDataModel character, string projectPath, string path = "");
         public List<T> GetCharactersFromProject<T>(string projectPath) where T : BaseCharacter;
         public T GetCharacterByFilename<T>(string filePath) where T : BaseCharacter;
-        public SpriteDataModel GetSpriteData(string spriteFilePath);
-        public List<SpriteDataModel> GetAllSprites(string projectPath);
+        public List<T> GetAllGameData<T>(string projectPath) where T : IBaseGameDataModel;
+        public T GetGameData<T>(string dataFilePath) where T : IBaseGameDataModel;
     }
 
     public class CharacterOperations : ICharacterOperations
@@ -28,24 +28,42 @@ namespace CharacterDataEditor.Services
             _logger = logger;
         }
 
-        public List<SpriteDataModel> GetAllSprites(string projectPath)
+        public List<T> GetAllGameData<T>(string projectPath) where T : IBaseGameDataModel
         {
-            var allSprites = new List<SpriteDataModel>();
+            var allItems = new List<T>();
 
             if (Directory.Exists(projectPath))
             {
-                var spritePath = Path.Combine(projectPath, "sprites");
-                var spriteFiles = Directory.GetFiles(spritePath, "*.yy", SearchOption.AllDirectories);
+                var itemPath = Path.Combine(projectPath, T.GetAssetFolder());
+                var itemFiles = Directory.GetFiles(itemPath, "*.yy", SearchOption.AllDirectories);
 
-                foreach (var spriteFile in spriteFiles)
+                foreach (var itemFile in itemFiles)
                 {
-                    allSprites.Add(GetSpriteData(spriteFile));
+                    allItems.Add(GetGameData<T>(itemFile));
                 }
 
-                return allSprites;
+                return allItems;
             }
 
             return null;
+        }
+
+        public T GetGameData<T>(string dataFilePath) where T : IBaseGameDataModel
+        {
+            if (!File.Exists(dataFilePath))
+            {
+                return default;
+            }
+
+            using StreamReader streamReader = new StreamReader(dataFilePath);
+            var jsonData = streamReader.ReadToEnd();
+
+            var itemData = JsonConvert.DeserializeObject<T>(jsonData);
+
+            // set the filepath to make it easy to reference this item again
+            itemData.FilePath = dataFilePath;
+
+            return itemData;
         }
 
         public T GetCharacterByFilename<T>(string filePath) where T : BaseCharacter
@@ -112,24 +130,6 @@ namespace CharacterDataEditor.Services
             }
 
             return allCharacters;
-        }
-
-        public SpriteDataModel GetSpriteData(string spriteFilePath)
-        {
-            if (!File.Exists(spriteFilePath))
-            {
-                return null;
-            }
-            
-            using StreamReader streamReader = new StreamReader(spriteFilePath);
-            var jsonData = streamReader.ReadToEnd();
-
-            var spriteData = JsonConvert.DeserializeObject<SpriteDataModel>(jsonData);
-
-            // modify the sprite data so everything is in order by default... just in case it isn't already
-            spriteData.SpriteFilePath = spriteFilePath;
-
-            return spriteData;
         }
 
         public void SaveCharacter(CharacterDataModel character, string projectPath, string savePath = "")

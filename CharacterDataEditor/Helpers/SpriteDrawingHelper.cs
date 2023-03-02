@@ -243,11 +243,11 @@ namespace CharacterDataEditor.Helpers
 
                     //load all textures now...
 
-                    var spriteDataPathFragments = spriteData.SpriteFilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
+                    var spriteDataPathFragments = spriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (var sequenceItem in spriteData.Sequence.tracks[0].keyframes.Frames)
                     {
-                        var spriteImagePath = spriteData.SpriteFilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
+                        var spriteImagePath = spriteData.FilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
                         var frameData = spriteData.Frames.Where(x => x.name == sequenceItem.Channels._0.Id.name).FirstOrDefault();
 
                         if (frameData == null)
