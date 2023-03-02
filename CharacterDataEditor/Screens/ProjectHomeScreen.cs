@@ -85,16 +85,26 @@ namespace CharacterDataEditor.Screens
                     // for now I'll hard code this to the original version, but operations should be placed here to
                     // determine which previous version to open...
 
-                    var oldCharacter = _characterOperations.GetCharacterByFilename<OriginalVersion.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                    UpgradeResults results;
 
-                    var upgradeResults = oldCharacter.Upgrade();
-                    if (upgradeResults.IsDataLossSuspected)
+                    if (characterNeedingUpgrade.Version == VersionConstants.Original) // first version with breaking changes on upgrade
                     {
-                        fullErrorMessage += $"\nCharacter {characterNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{upgradeResults.Message}";
+                        var oldCharacter = _characterOperations.GetCharacterByFilename<OriginalVersion.CharacterDataModel>(characterNeedingUpgrade.FileName);
+
+                        results = oldCharacter.Upgrade();
+                    }
+                    else
+                    {
+                        results = characterNeedingUpgrade.Upgrade();
+                    }
+
+                    if (results.IsDataLossSuspected)
+                    {
+                        fullErrorMessage += $"\nCharacter {characterNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{results.Message}";
                     }
 
                     // add the upgraded character to the list
-                    upgradedCharacters.Add(upgradeResults.UpgradedCharacterData);
+                    upgradedCharacters.Add(results.UpgradedCharacterData);
                 }
 
                 if (fullErrorMessage != string.Empty)
@@ -124,11 +134,22 @@ namespace CharacterDataEditor.Screens
                         }
                     };
                 }
+                else if(upgradedCharacters.Count > 0)
+                {
+                    // add characters to the list
+                    characters.AddRange(upgradedCharacters);
+
+                    // save the updated characters
+                    upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
+
+                    // resize the flags for selection
+                    itemSelected = new bool[characters.Count];
+                }
             }
 
             itemSelected = new bool[characters.Count];
 
-            allSprites = _characterOperations.GetAllSprites(projectData.ProjectPathOnly);
+            allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
         }
 
         public void RenderImGui(IScreenManager screenManager)
