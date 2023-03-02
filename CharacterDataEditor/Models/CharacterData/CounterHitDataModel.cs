@@ -18,11 +18,17 @@ namespace CharacterDataEditor.Models.CharacterData
         public int ParticleYOffset { get; set; } = 0;
         public string ParticleEffect { get; set; } = string.Empty;
         public int ParticleDuration { get; set; } = 0;
+        public bool Launches { get; set; } = false;
+        public float LaunchKnockbackVertical { get; set; } = 0.0f;
+        public float LaunchKnockbackHorizontal { get; set; } = 0.0f;
+        public float ComboScaling { get; set; } = 0.0f;
+        public bool CausesWallbounce { get; set; } = false;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(CounterHitLevel, Group, Damage, MeterGain, AttackHitStop, AttackHitStun, KnockBack, AirKnockbackVertical);
-            hash = HashCode.Combine(hash, AirKnockbackHorizontal, Pushback, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration);
+            hash = HashCode.Combine(hash, AirKnockbackHorizontal, Pushback, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, Launches);
+            hash = HashCode.Combine(hash, LaunchKnockbackVertical, LaunchKnockbackHorizontal, ComboScaling, CausesWallbounce);
 
             return hash;
         }
@@ -69,7 +75,22 @@ namespace CharacterDataEditor.Models.CharacterData
                                                             {
                                                                 if (ParticleDuration == objAsCounterHitData.ParticleDuration)
                                                                 {
-                                                                    return true;
+                                                                    if (Launches == objAsCounterHitData.Launches)
+                                                                    {
+                                                                        if (LaunchKnockbackVertical == objAsCounterHitData.LaunchKnockbackVertical)
+                                                                        {
+                                                                            if (LaunchKnockbackHorizontal == objAsCounterHitData.LaunchKnockbackHorizontal)
+                                                                            {
+                                                                                if (ComboScaling == objAsCounterHitData.ComboScaling)
+                                                                                {
+                                                                                    if (CausesWallbounce == objAsCounterHitData.CausesWallbounce)
+                                                                                    {
+                                                                                        return true;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
                                                                 }
                                                             }
                                                         }

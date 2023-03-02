@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace CharacterDataEditor.Models
 {
-    public class SpriteDataModel
+    public class SpriteDataModel : IBaseGameDataModel
     {
         [JsonProperty(PropertyName = "width")]
         public int Width { get; set; }
@@ -19,7 +19,12 @@ namespace CharacterDataEditor.Models
         public string Name { get; set; }
 
         [JsonIgnore]
-        public string SpriteFilePath { get; set; }
+        public string FilePath { get; set; }
+
+        public static string GetAssetFolder()
+        {
+            return "sprites";
+        }
     }
 
     public class Sequence
