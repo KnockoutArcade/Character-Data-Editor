@@ -100,7 +100,7 @@ namespace CharacterDataEditor.Screens
 
                     if (results.IsDataLossSuspected)
                     {
-                        fullErrorMessage += $"\nCharacter {characterNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{results.Message}";
+                        fullErrorMessage += $"\nCharacter {characterNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{results.Message}\n";
                     }
 
                     // add the upgraded character to the list
@@ -172,13 +172,14 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                var fontSize = (int)(24.0f * screenManager.ScreenScale);
+                var fontSize = (int)(18.0f * screenManager.ScreenScale);
+                var fontSpacing = 5.5f;
 
-                var completeMessage = $"{MessageConstants.UpgradeNeededMessage}\nMessages from upgrade process follow:\n\n{upgradeMessageText}";
+                var completeMessage = $"{MessageConstants.UpgradeNeededMessage}Messages from upgrade process follow:\n{upgradeMessageText}";
 
                 var defaultFont = Raylib.GetFontDefault();
                 //var messageWidth = Raylib.MeasureText(completeMessage, fontSize);
-                var messageSize = Raylib.MeasureTextEx(defaultFont, completeMessage, fontSize, 4.0f);
+                var messageSize = Raylib.MeasureTextEx(defaultFont, completeMessage, fontSize, fontSpacing);
 
                 var messageXCoord = (int)((width / 2.0f) - (messageSize.X / 2.0f));
                 var messageYCoord = (int)((height / 2.0f) - (messageSize.Y / 2.0f));
@@ -192,7 +193,7 @@ namespace CharacterDataEditor.Screens
                 Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.BLACK);
 
                 Raylib.DrawTextEx(defaultFont, completeMessage,
-                    new Vector2(messageXCoord, messageYCoord), fontSize, 4.0f, Color.WHITE);
+                    new Vector2(messageXCoord, messageYCoord), fontSize, fontSpacing, Color.WHITE);
             }
         }
 
