@@ -1,9 +1,11 @@
-﻿using CharacterDataEditor.Extensions;
+﻿using CharacterDataEditor.Enums;
+using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models.CharacterData;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection.Emit;
 using static System.Formats.Asn1.AsnWriter;
 
 namespace CharacterDataEditor.Helpers
@@ -36,6 +38,57 @@ namespace CharacterDataEditor.Helpers
             ImGui.Columns(1);
 
             return itemSelected;
+        }
+
+        public static void DrawFlagsInput<T>(string label, ref T value, bool drawZeroValue = false) where T : Enum
+        {
+            var flagValues = Enum.GetValues(typeof(T));
+            List<(string key, bool value, int flagValue)> flagValuesList = new List<(string key, bool value, int flagValue)>();
+
+            foreach (T item in flagValues)
+            {
+                if (!drawZeroValue && (int)(object)item == 0)
+                {
+                    continue;
+                }
+
+                var valueStatus = ((int)(object)value & (int)(object)item) == (int)(object)item;
+                flagValuesList.Add((item.ToString().AddSpacesToCamelCase(), valueStatus, (int)(object)item));
+            }
+
+            ImGui.Columns(2);
+
+            for(int i = 0; i < flagValuesList.Count; i++)
+            {
+                var item = flagValuesList[i];
+
+                bool status = item.value;
+                ImGui.Text($"{item.key}");
+
+                ImGui.NextColumn();
+
+                ImGui.Checkbox($"##{i}#{label}", ref status);
+
+                ImGui.NextColumn();
+
+                item.value = status;
+
+                flagValuesList[i] = item;
+            }
+
+            int refOutValue = 0;
+
+            foreach (var item in flagValuesList)
+            {
+                if (item.value)
+                {
+                    refOutValue += item.flagValue;
+                }
+            }
+
+            value = (T)(object)refOutValue;
+
+            ImGui.Columns(1);
         }
 
         public static bool DrawDecimalInput(string label, ref float value, float step = 0.1f, float minValue = float.MinValue, float? maxValue = null)
@@ -83,6 +136,27 @@ namespace CharacterDataEditor.Helpers
             ImGui.Combo($"##{label}", ref value, comboItems, comboItems.Length);
 
             ImGui.Columns(1);
+        }
+
+        public static void DrawSelectableComboInput(string label, string[] comboItems, ref int value, Action<int> selectAction, Action<int> changeAction)
+        {
+            int initalValue = value;
+
+            ImGui.Columns(2);
+            if (ImGui.Selectable(label.UpperCaseFirstLetter().AddSpacesToCamelCase()))
+            {
+                selectAction(value);
+            }
+
+            ImGui.NextColumn();
+            ImGui.Combo($"##{label}", ref value, comboItems, comboItems.Length);
+
+            ImGui.Columns(1);
+
+            if (initalValue != value)
+            {
+                changeAction(value);
+            }
         }
 
         public static void DrawStringInput(string label, ref string value, uint maxLength = 255)

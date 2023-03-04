@@ -12,6 +12,14 @@ namespace CharacterDataEditor.Extensions
         {
             switch (originalCharacter.Version)
             {
+                case VersionConstants.CurrentVersion:
+                    return new UpgradeResults 
+                    { 
+                        IsDataLossSuspected = false,
+                        Message = "No new version",
+                        Success = false,
+                        UpgradedCharacterData = (originalCharacter as CharacterDataModel)
+                    };
                 case VersionConstants.Ver094:
                     return (originalCharacter as CharacterDataModel).Upgrade094to095();
                 case VersionConstants.Original:
