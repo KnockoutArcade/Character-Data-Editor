@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using static System.Collections.Specialized.BitVector32;
 
 namespace CharacterDataEditor.Screens
 {
@@ -100,9 +101,9 @@ namespace CharacterDataEditor.Screens
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
 
-            if (action == "edit" && !string.IsNullOrWhiteSpace(character.BaseSprite))
+            if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
-                var sprite = allSprites.FirstOrDefault(x => x.Name == character.BaseSprite);
+                var sprite = allSprites.FirstOrDefault(x => x.Name == character.CharacterSprites.Idle);
                 ChangeAnimatedSprite(sprite);
             }
 
@@ -1322,33 +1323,155 @@ namespace CharacterDataEditor.Screens
                     character.Name = characterName;
                     
                     ImGui.TableNextColumn();
-
-                    var baseSpriteData = allSprites.Where(x => x.Name == character.BaseSprite).FirstOrDefault();
-                    var baseSpritePlaying = spriteData == baseSpriteData ? "*" : "";
-
-                    if (ImGui.Selectable($"Base Sprite{baseSpritePlaying}"))
-                    {
-                        if (baseSpriteData != null && spriteData != baseSpriteData)
-                        {
-                            ChangeAnimatedSprite(baseSpriteData);
-                        }
-                    }
-
-                    ImGui.TableNextColumn();
-                    int selectedBaseSpriteIndex = string.IsNullOrWhiteSpace(character.BaseSprite) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == character.BaseSprite));
-                    ImGui.Combo("##BaseSpriteCombo", ref selectedBaseSpriteIndex, allSprites.Select(x => x.Name).ToArray(), allSprites.Count);
-                    if (selectedBaseSpriteIndex > -1)
-                    {
-                        if (character.BaseSprite != allSprites[selectedBaseSpriteIndex].Name)
-                        {
-                            character.BaseSprite = allSprites[selectedBaseSpriteIndex].Name;
-                            var sprite = allSprites[selectedBaseSpriteIndex];
-                            ChangeAnimatedSprite(sprite);
-                        }
-                    }
-
                     ImGui.EndTable();
 
+                    var horizontalSpeed = character.HorizontalSpeed;
+                    var verticalSpeed = character.VerticalSpeed;
+                    var envDisplacement = character.EnvironmentalDisplacement;
+                    var walkSpeed = character.WalkSpeed;
+                    var runSpeed = character.RunSpeed;
+                    var traction = character.Traction;
+                    var jumpSpeed = character.JumpSpeed;
+                    var fallSpeed = character.FallSpeed;
+                    var backDashDuration = character.BackDashDuration;
+                    var backDashInvincibility = character.BackDashInvincibility;
+                    var backDashSpeed = character.BackDashSpeed;
+                    var backDashStartup = character.BackDashStartup;
+                    var fastFallSpeed = character.FastFallSpeed;
+                    var jumpType = character.JumpType;
+                    var jumpHorizontalSpeed = character.JumpHorizontalSpeed;
+                    var superMeterBuildRate = character.SuperMeterBuildRate;
+                    var spriteCollection = character.CharacterSprites;
+
+                    ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                    ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
+                    ImguiDrawingHelper.DrawDecimalInput("walkSpeed", ref walkSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("runSpeed", ref runSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("traction", ref traction);
+                    ImguiDrawingHelper.DrawDecimalInput("jumpSpeed", ref jumpSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("fallSpeed", ref fallSpeed);
+                    ImguiDrawingHelper.DrawIntInput("backDashDuration", ref backDashDuration);
+                    ImguiDrawingHelper.DrawIntInput("backDashInvincibility", ref backDashInvincibility);
+                    ImguiDrawingHelper.DrawDecimalInput("backDashSpeed", ref backDashSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("backDashStartup", ref backDashStartup);
+                    ImguiDrawingHelper.DrawDecimalInput("fastFallSpeed", ref fastFallSpeed);
+
+                    ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
+
+                    ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
+
+                    character.HorizontalSpeed = horizontalSpeed;
+                    character.VerticalSpeed = verticalSpeed;
+                    character.EnvironmentalDisplacement = envDisplacement;
+                    character.WalkSpeed = walkSpeed;
+                    character.RunSpeed = runSpeed;
+                    character.Traction = traction;
+                    character.JumpSpeed = jumpSpeed;
+                    character.FallSpeed = fallSpeed;
+                    character.BackDashDuration = backDashDuration;
+                    character.BackDashInvincibility = backDashInvincibility;
+                    character.BackDashSpeed = backDashSpeed;
+                    character.BackDashStartup = backDashStartup;
+                    character.FastFallSpeed = fastFallSpeed;
+                    character.JumpType = jumpType;
+                    character.JumpHorizontalSpeed = jumpHorizontalSpeed;
+                    character.SuperMeterBuildRate = superMeterBuildRate;
+                    character.CharacterSprites = spriteCollection;
+                }
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+
+                if (ImGui.CollapsingHeader("Sprite Data", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    var Idle = character.CharacterSprites.Idle;
+                    var Crouch = character.CharacterSprites.Crouch;
+                    var StandBlock = character.CharacterSprites.StandBlock;
+                    var CrouchBlock = character.CharacterSprites.CrouchBlock;
+                    var WalkForward = character.CharacterSprites.WalkForward;
+                    var WalkBackward = character.CharacterSprites.WalkBackward;
+                    var RunForward = character.CharacterSprites.RunForward;
+                    var RunBackward = character.CharacterSprites.RunBackward;
+                    var JumpSquat = character.CharacterSprites.JumpSquat;
+                    var Jump = character.CharacterSprites.Jump;
+                    var Hurt = character.CharacterSprites.Hurt;
+                    var Grab = character.CharacterSprites.Grab;
+                    var Hold = character.CharacterSprites.Hold;
+                    var Launched = character.CharacterSprites.Launched;
+                    var Knockdown = character.CharacterSprites.Knockdown;
+                    var GetUp = character.CharacterSprites.GetUp;
+
+                    int idleSelected = string.IsNullOrWhiteSpace(Idle) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Idle));
+                    int crouchSelected = string.IsNullOrWhiteSpace(Crouch) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Crouch));
+                    int standBlockSelected = string.IsNullOrWhiteSpace(StandBlock) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == StandBlock));
+                    int crouchBlockSelected = string.IsNullOrWhiteSpace(CrouchBlock) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == CrouchBlock));
+                    int walkForwardSelected = string.IsNullOrWhiteSpace(WalkForward) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == WalkForward));
+                    int walkBackwardSelected = string.IsNullOrWhiteSpace(WalkBackward) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == WalkBackward));
+                    int runForwardSelected = string.IsNullOrWhiteSpace(RunForward) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == RunForward));
+                    int runBackwardSelected = string.IsNullOrWhiteSpace(RunBackward) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == RunBackward));
+                    int jumpSquatSelected = string.IsNullOrWhiteSpace(JumpSquat) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == JumpSquat));
+                    int jumpSelected = string.IsNullOrWhiteSpace(Jump) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Jump));
+                    int hurtSelected = string.IsNullOrWhiteSpace(Hurt) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Hurt));
+                    int grabSelected = string.IsNullOrWhiteSpace(Grab) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Grab));
+                    int holdSelected = string.IsNullOrWhiteSpace(Hold) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Hold));
+                    int launchedSelected = string.IsNullOrWhiteSpace(Launched) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Launched));
+                    int knockdownSelected = string.IsNullOrWhiteSpace(Knockdown) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Knockdown));
+                    int getUpSelected = string.IsNullOrWhiteSpace(GetUp) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == GetUp));
+
+                    var selectionAction = (int selectedIndex) =>
+                    {
+                        if (selectedIndex > -1)
+                        {
+                            var sprite = allSprites[selectedIndex];
+                            ChangeAnimatedSprite(sprite);
+                        }
+                    };
+
+                    var changeAction = (int selectedIndex) =>
+                    {
+                        if (selectedIndex > -1 && spriteData != allSprites[selectedIndex])
+                        {
+                            var sprite = allSprites[selectedIndex];
+                            ChangeAnimatedSprite(sprite);
+                        }
+                    };
+
+                    string isPlaying(int index) =>
+                        index != -1 && spriteData == allSprites[index] ? "*" : "";
+
+                    ImguiDrawingHelper.DrawSelectableComboInput($"idle{isPlaying(idleSelected)}", allSprites.Select(x => x.Name).ToArray(), ref idleSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"crouch{isPlaying(crouchSelected)}", allSprites.Select(x => x.Name).ToArray(), ref crouchSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"standBlock{isPlaying(standBlockSelected)}", allSprites.Select(x => x.Name).ToArray(), ref standBlockSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"crouchBlock{isPlaying(crouchBlockSelected)}", allSprites.Select(x => x.Name).ToArray(), ref crouchBlockSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"walkForward{isPlaying(walkForwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref walkForwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"walkBackward{isPlaying(walkBackwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref walkBackwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"runForward{isPlaying(runForwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref runForwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"runBackward{isPlaying(runBackwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref runBackwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"jumpSquat{isPlaying(jumpSquatSelected)}", allSprites.Select(x => x.Name).ToArray(), ref jumpSquatSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"jump{isPlaying(jumpSelected)}", allSprites.Select(x => x.Name).ToArray(), ref jumpSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"hurt{isPlaying(hurtSelected)}", allSprites.Select(x => x.Name).ToArray(), ref hurtSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"grab{isPlaying(grabSelected)}", allSprites.Select(x => x.Name).ToArray(), ref grabSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"hold{isPlaying(holdSelected)}", allSprites.Select(x => x.Name).ToArray(), ref holdSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"launched{isPlaying(launchedSelected)}", allSprites.Select(x => x.Name).ToArray(), ref launchedSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"knockDown{isPlaying(knockdownSelected)}", allSprites.Select(x => x.Name).ToArray(), ref knockdownSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"getUp{isPlaying(getUpSelected)}", allSprites.Select(x => x.Name).ToArray(), ref getUpSelected, selectionAction, changeAction);
+
+                    character.CharacterSprites.Idle = idleSelected != -1 ? allSprites[idleSelected].Name : string.Empty;
+                    character.CharacterSprites.Crouch = crouchSelected != -1 ? allSprites[crouchSelected].Name : string.Empty;
+                    character.CharacterSprites.StandBlock = standBlockSelected != -1 ? allSprites[standBlockSelected].Name : string.Empty;
+                    character.CharacterSprites.CrouchBlock = crouchBlockSelected != -1 ? allSprites[crouchBlockSelected].Name : string.Empty;
+                    character.CharacterSprites.WalkForward = walkForwardSelected != -1 ? allSprites[walkForwardSelected].Name : string.Empty;
+                    character.CharacterSprites.WalkBackward = walkBackwardSelected != -1 ? allSprites[walkBackwardSelected].Name : string.Empty;
+                    character.CharacterSprites.RunForward = runForwardSelected != -1 ? allSprites[runForwardSelected].Name : string.Empty;
+                    character.CharacterSprites.RunBackward = runBackwardSelected != -1 ? allSprites[runBackwardSelected].Name : string.Empty;
+                    character.CharacterSprites.JumpSquat = jumpSquatSelected != -1 ? allSprites[jumpSquatSelected].Name : string.Empty;
+                    character.CharacterSprites.Jump = jumpSelected != -1 ? allSprites[jumpSelected].Name : string.Empty;
+                    character.CharacterSprites.Hurt = hurtSelected != -1 ? allSprites[hurtSelected].Name : string.Empty;
+                    character.CharacterSprites.Grab = grabSelected != -1 ? allSprites[grabSelected].Name : string.Empty;
+                    character.CharacterSprites.Hold = holdSelected != -1 ? allSprites[holdSelected].Name : string.Empty;
+                    character.CharacterSprites.Launched = launchedSelected != -1 ? allSprites[launchedSelected].Name : string.Empty;
+                    character.CharacterSprites.Knockdown = knockdownSelected != -1 ? allSprites[knockdownSelected].Name : string.Empty;
+                    character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);

@@ -221,7 +221,7 @@ namespace CharacterDataEditor.Screens
                     {
                         if (ImGui.Selectable(character.Name, itemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
                         {
-                            var sprite = allSprites.Where(x => x.Name == character.BaseSprite).FirstOrDefault();
+                            var sprite = allSprites.Where(x => x.Name == character.CharacterSprites?.Idle).FirstOrDefault();
                             spriteData = sprite;
 
                             SetItemAsSelected(characters.IndexOf(character));
