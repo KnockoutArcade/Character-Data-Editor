@@ -48,6 +48,11 @@ namespace CharacterDataEditor.Helpers
         {
             Texture2D textureToDraw;
 
+            if (currentAnimationFrame > spriteTextures.Count - 1)
+            {
+                currentAnimationFrame = 0;
+            }
+
             if (flags.HasFlag(SpriteDrawFlags.NotAnimated))
             {
                 textureToDraw = spriteTextures.FirstOrDefault().Texture;
