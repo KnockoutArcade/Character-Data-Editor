@@ -6,13 +6,14 @@ namespace CharacterDataEditor.Models.CharacterData
 {
     public class OpponentPositionDataModel
     {
-        public int NumberOfFrames { get { return Frames?.Count ?? 0; } }
         public float DistanceFromWall { get; set; } = 0.0f;
+        public int ThrowOffset { get; set; } = 0;
+        public int NumberOfFrames { get { return Frames?.Count ?? 0; } }
         public List<OpponentPositionFrameModel> Frames { get; set; } = new List<OpponentPositionFrameModel>();
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(DistanceFromWall, Frames);
+            return HashCode.Combine(DistanceFromWall, Frames, ThrowOffset);
         }
 
         public override bool Equals(object obj)
@@ -33,7 +34,10 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsOpponentPositionData.Frames.SequenceEqual(Frames))
                 {
-                    return true;
+                    if (objAsOpponentPositionData.ThrowOffset == ThrowOffset)
+                    {
+                        return true;
+                    }
                 }
             }
 
