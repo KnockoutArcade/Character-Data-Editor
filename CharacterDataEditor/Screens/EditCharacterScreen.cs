@@ -797,11 +797,14 @@ namespace CharacterDataEditor.Screens
                 {
                     float distanceFromWall = moveInEditor.OpponentPositionData.DistanceFromWall;
                     int numberOfFrames = moveInEditor.OpponentPositionData.NumberOfFrames;
+                    int throwOffset = moveInEditor.OpponentPositionData.ThrowOffset;
 
                     ImguiDrawingHelper.DrawDecimalInput("distanceFromWall", ref distanceFromWall);
+                    ImguiDrawingHelper.DrawIntInput("throwOffset", ref throwOffset);
                     ImguiDrawingHelper.DrawIntInput("numberOfFrames", ref numberOfFrames);
 
                     moveInEditor.OpponentPositionData.DistanceFromWall = distanceFromWall;
+                    moveInEditor.OpponentPositionData.ThrowOffset = throwOffset;
 
                     if (numberOfFrames < 0)
                     {
