@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using static System.Collections.Specialized.BitVector32;
 
 namespace CharacterDataEditor.Screens
 {
