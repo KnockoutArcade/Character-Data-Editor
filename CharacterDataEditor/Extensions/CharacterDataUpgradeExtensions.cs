@@ -21,6 +21,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver096:
+                    return (originalCharacter as CharacterDataModel).Upgrade096to100();
                 case VersionConstants.Ver095:
                     return (originalCharacter as Ver095.CharacterDataModel).Upgrade095to096();
                 case VersionConstants.Ver094:
@@ -85,6 +87,25 @@ namespace CharacterDataEditor.Extensions
             return new UpgradeResults
             {
                 UpgradedCharacterData = newCharacter,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            };
+        }
+
+        private static UpgradeResults Upgrade096to100(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            foreach (var move in previous.MoveData)
+            {
+                if (move.IsThrow && move.OpponentPositionData != null)
+                {
+                    move.OpponentPositionData.ThrowOffset = 0;
+                }
+            }
+
+            return new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
