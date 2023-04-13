@@ -41,6 +41,7 @@ namespace CharacterDataEditor.Screens
         private List<string> spriteTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
+        private List<ObjectDataModel> allProjectiles;
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -100,6 +101,7 @@ namespace CharacterDataEditor.Screens
 
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
+            allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
@@ -866,6 +868,67 @@ namespace CharacterDataEditor.Screens
                             }
 
                             moveInEditor.OpponentPositionData.Frames[i] = currentFrame;
+                        }
+                    }
+                }
+
+                if (!isThrow && ImGui.CollapsingHeader("Projectile Data"))
+                {
+                    int projectileCount = moveInEditor.NumberOfProjectiles;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfProjectiles", ref projectileCount);
+
+                    if (projectileCount < 0)
+                    {
+                        projectileCount = 0;
+                    }
+
+                    if (projectileCount < moveInEditor.NumberOfProjectiles)
+                    {
+                        while (projectileCount < moveInEditor.NumberOfProjectiles)
+                        {
+                            moveInEditor.ProjectileData.RemoveAt(moveInEditor.NumberOfProjectiles - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (projectileCount > moveInEditor.NumberOfProjectiles)
+                        {
+                            moveInEditor.ProjectileData.Add(new ProjectileDataModel());
+                        }
+                    }
+
+                    if (projectileCount == 0)
+                    {
+                        ImGui.Text("No projectiles");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.NumberOfProjectiles; i++)
+                        {
+                            var currentProjectile = moveInEditor.ProjectileData[i];
+
+                            if (ImGui.TreeNode($"Projectile [{i}]"))
+                            {
+                                int spawnX = currentProjectile.SpawnXOffset;
+                                int spawnY = currentProjectile.SpawnYOffset;
+                                int spawnFrame = currentProjectile.SpawnFrame;
+
+                                var objId = currentProjectile.ProjectileObject ?? string.Empty;
+                                var selectedObjectIndex = objId != string.Empty ? allProjectiles.IndexOf(allProjectiles.First(x => x.Name == objId)) : -1;
+                                ImguiDrawingHelper.DrawComboInput("projectileObject", allProjectiles.Select(x => x.Name).ToArray(), ref selectedObjectIndex);
+                                currentProjectile.ProjectileObject = selectedObjectIndex != -1 ? allProjectiles[selectedObjectIndex].Name : string.Empty;
+
+                                ImguiDrawingHelper.DrawIntInput("spawnFrame", ref spawnFrame, 0);
+                                ImguiDrawingHelper.DrawIntInput("spawnOffsetX", ref spawnX);
+                                ImguiDrawingHelper.DrawIntInput("spawnOffsetY", ref spawnY);
+
+                                currentProjectile.SpawnXOffset = spawnX;
+                                currentProjectile.SpawnYOffset = spawnY;
+                                currentProjectile.SpawnFrame = spawnFrame;
+
+                                ImGui.TreePop();
+                            }
                         }
                     }
                 }
