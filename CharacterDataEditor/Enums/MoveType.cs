@@ -19,6 +19,7 @@
         JumpingMedium = 14,
         JumpingHeavy = 15,
         UpSpecial = 16,
-        DownSpecial = 17
+        DownSpecial = 17,
+        CommandGrab = 18
     }
 }
