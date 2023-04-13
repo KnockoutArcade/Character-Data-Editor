@@ -1,4 +1,4 @@
-﻿using CharacterDataEditor.Constants;
+using CharacterDataEditor.Constants;
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
@@ -41,6 +41,7 @@ namespace CharacterDataEditor.Screens
         private List<string> spriteTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
+        private List<ObjectDataModel> allProjectiles;
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -100,6 +101,7 @@ namespace CharacterDataEditor.Screens
 
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
+            allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
