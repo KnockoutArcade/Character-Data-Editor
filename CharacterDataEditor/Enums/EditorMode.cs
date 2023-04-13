@@ -2,9 +2,9 @@
 {
     public enum EditorMode
     {
-        None,
-        Move,
-        Palette,
-        BasePalette
+        None = 0,
+        Move = 1,
+        Palette = 2,
+        BasePalette = 3
     }
 }

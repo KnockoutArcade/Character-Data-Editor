@@ -4,6 +4,7 @@ using OriginalVersion = CharacterDataEditor.Models.CharacterData.PreviousVersion
 using Ver095 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095;
 using CharacterDataEditor.Constants;
 using CharacterDataEditor.Models;
+using System.Collections.Generic;
 
 namespace CharacterDataEditor.Extensions
 {
@@ -21,6 +22,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver1:
+                    return (originalCharacter as CharacterDataModel).Upgrade100to101();
                 case VersionConstants.Ver096:
                     return (originalCharacter as CharacterDataModel).Upgrade096to100();
                 case VersionConstants.Ver095:
@@ -69,6 +72,17 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver095;
 
+            if (previousOperationResults == null)
+            {
+                previousOperationResults = new UpgradeResults
+                {
+                    UpgradedCharacterData = null,
+                    IsDataLossSuspected = false,
+                    Message = string.Empty,
+                    Success = true
+                };
+            }
+
             return previous.Upgrade095to096(previousOperationResults);
         }
 
@@ -84,13 +98,13 @@ namespace CharacterDataEditor.Extensions
             newCharacter.CharacterSprites.Idle = previous.BaseSprite;
             newCharacter.Version = VersionConstants.Ver096;
 
-            return new UpgradeResults
+            return newCharacter.Upgrade096to100(new UpgradeResults
             {
                 UpgradedCharacterData = newCharacter,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
 
         private static UpgradeResults Upgrade096to100(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
@@ -102,6 +116,26 @@ namespace CharacterDataEditor.Extensions
                     move.OpponentPositionData.ThrowOffset = 0;
                 }
             }
+
+            previous.Version = VersionConstants.Ver1;
+
+            return previous.Upgrade100to101(new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade100to101(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            foreach (var move in previous.MoveData)
+            {
+                move.ProjectileData = new List<ProjectileDataModel>();
+            }
+
+            previous.Version = VersionConstants.Ver101;
 
             return new UpgradeResults
             {

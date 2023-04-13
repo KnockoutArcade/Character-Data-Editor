@@ -21,6 +21,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public OpponentPositionDataModel OpponentPositionData { get; set; } = new OpponentPositionDataModel();
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
         public List<HurtboxDataModel> HurtboxData { get; set; } = new List<HurtboxDataModel>();
+        public int NumberOfProjectiles { get { return ProjectileData?.Count ?? 0; } }
+        public List<ProjectileDataModel> ProjectileData { get; set; } = new List<ProjectileDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
         public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
@@ -29,7 +31,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
-            hash = HashCode.Combine(hash, OpponentPositionData, CounterData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration);
+            hash = HashCode.Combine(hash, OpponentPositionData, CounterData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData);
 
             return hash;
         }
@@ -76,7 +78,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                             {
                                                                 if (objAsMoveData.SupplimentaryScript.Equals(SupplimentaryScript))
                                                                 {
-                                                                    return true;
+                                                                    if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
+                                                                    {
+                                                                        return true;
+                                                                    }
                                                                 }
                                                             }
                                                         }
