@@ -3,7 +3,7 @@
     public enum BoxDrawMode
     {
         None = 0,
-        Hurtbox,
-        Hitbox
+        Hurtbox = 1,
+        Hitbox = 2
     }
 }

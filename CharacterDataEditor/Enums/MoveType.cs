@@ -2,21 +2,23 @@
 {
     public enum MoveType
     {
-        BackwardThrow,
-        ForwardThrow,
-        Grab,
-        SideSpecial,
-        NeutralSpecial,
-        StandingLight,
-        StandingLight2,
-        StandingLight3,
-        StandingMedium,
-        StandingHeavy,
-        CrouchingLight,
-        CrouchingMedium,
-        CrouchingHeavy,
-        JumpingLight,
-        JumpingMedium,
-        JumpingHeavy
+        BackwardThrow = 0,
+        ForwardThrow = 1,
+        Grab = 2,
+        SideSpecial = 3,
+        NeutralSpecial = 4,
+        StandingLight = 5,
+        StandingLight2 = 6,
+        StandingLight3 = 7,
+        StandingMedium = 8,
+        StandingHeavy = 9,
+        CrouchingLight = 10,
+        CrouchingMedium = 11,
+        CrouchingHeavy = 12,
+        JumpingLight = 13,
+        JumpingMedium = 14,
+        JumpingHeavy = 15,
+        UpSpecial = 16,
+        DownSpecial = 17
     }
 }
