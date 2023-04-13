@@ -2,8 +2,8 @@
 {
     public enum FrameAdvance
     {
-        None,
-        Forward,
-        Backward
+        None = 0,
+        Forward = 1,
+        Backward = 2
     }
 }
