@@ -1,7 +1,7 @@
 ## What's Changed?
 
-* Added missing field "Throw Offset" to Opponent Position Data
-* Upgraded file format to 1.0
+* Added new special moves
+* Added projectile data to moves
 
 ## Known Bugs
 
