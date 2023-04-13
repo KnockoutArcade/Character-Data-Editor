@@ -1,7 +1,6 @@
 ## What's Changed?
 
-* Added new special moves
-* Added projectile data to moves
+* Added command grab move
 
 ## Known Bugs
 
