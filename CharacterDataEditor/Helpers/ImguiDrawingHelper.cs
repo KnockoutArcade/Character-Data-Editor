@@ -211,7 +211,7 @@ namespace CharacterDataEditor.Helpers
             ImGui.SetCursorPos(cursorPos);
         }
 
-        public static bool DrawSelectableWithRemove(Action selectAction, string label, bool selected, int id = -1)
+        public static bool DrawSelectableWithRemove(Action selectAction, Action duplicateAction, string label, bool selected, int id = -1)
         {
             ImGui.BeginTable($"selectable##{label}${id}", 2, ImGuiTableFlags.NoBordersInBody);
             
@@ -226,6 +226,16 @@ namespace CharacterDataEditor.Helpers
             if (ImGui.Selectable($"{label}##{id}", selected))
             {
                 selectAction();
+            }
+            if (ImGui.BeginPopupContextItem())
+            {
+                selectAction();
+                if (ImGui.Button("Create Duplicate"))
+                {
+                    duplicateAction();
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndPopup();
             }
 
             ImGui.TableNextColumn();

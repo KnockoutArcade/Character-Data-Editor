@@ -11,6 +11,16 @@ namespace CharacterDataEditor.Models.CharacterData
         public int NumberOfReplacableColors { get { return ColorPalette?.Count ?? 0; } }
         public List<RGBModel> ColorPalette { get; set; } = new List<RGBModel>();
 
+        public PaletteModel GetDuplicate()
+        {
+            return new PaletteModel
+            {
+                UID = Guid.NewGuid().ToString(),
+                Name = Name,
+                ColorPalette = ColorPalette
+            };
+        }
+
         public override int GetHashCode()
         {
             return HashCode.Combine(Name, UID, ColorPalette);
