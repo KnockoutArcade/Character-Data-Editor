@@ -390,6 +390,9 @@ namespace CharacterDataEditor.Screens
                                 moveInEditor = null;
                                 editorMode = EditorMode.Palette;
                                 ChangeRenderedPalette(palette);
+                            }, () =>
+                            {
+                                character.Palettes.Add(palette.GetDuplicate());
                             }, palette.Name, paletteSelected, i))
                         {
                             if (paletteInEditor == palette)
@@ -1577,6 +1580,9 @@ namespace CharacterDataEditor.Screens
                                         var sprite = allSprites[moveSpriteIndex];
                                         ChangeAnimatedSprite(sprite);
                                     }
+                                }, () =>
+                                {
+                                    character.MoveData.Add(character.MoveData[i].GetDuplicate());
                                 }, $"{character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase()}{playingIndicator}", selected, i))
                             {
                                 //if selected, unselect
