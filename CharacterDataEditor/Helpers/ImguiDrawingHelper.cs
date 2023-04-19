@@ -184,11 +184,11 @@ namespace CharacterDataEditor.Helpers
                 //for shortness, grab the item we're manipulating
                 var rgbPalette = palettes[i];
 
-                //convert the values currently stored in 0-255 back to 0.0-1.0 range
+                //Put colors into a vector 3 for the imgui control
                 var selectedColors = new Vector3(
-                    rgbPalette.Red / 255f,
-                    rgbPalette.Green / 255f,
-                    rgbPalette.Blue / 255f);
+                    rgbPalette.Red,
+                    rgbPalette.Green,
+                    rgbPalette.Blue);
 
                 //draw the actual control
                 ImGui.Text($"Color {i}");
@@ -197,7 +197,7 @@ namespace CharacterDataEditor.Helpers
 
                 ImGui.ColorEdit3($"##Color{i}", ref selectedColors);
 
-                //convert the values back from 0.0-1.0 to 0-255
+                //store values back into palette
                 palettes[i] = new RGBModel(selectedColors.X, selectedColors.Y, selectedColors.Z);
             }
 

@@ -22,6 +22,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver101:
+                    return (originalCharacter as CharacterDataModel).Upgrade101to102();
                 case VersionConstants.Ver1:
                     return (originalCharacter as CharacterDataModel).Upgrade100to101();
                 case VersionConstants.Ver096:
@@ -136,6 +138,37 @@ namespace CharacterDataEditor.Extensions
             }
 
             previous.Version = VersionConstants.Ver101;
+
+            return previous.Upgrade101to102(new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade101to102(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            //convert the rgb 255 values to rgb 1 values
+            foreach (var color in previous.BaseColor.ColorPalette)
+            {
+                color.Red = color.Red / 255f;
+                color.Green = color.Green / 255f;
+                color.Blue = color.Blue / 255f;
+            }
+
+            foreach (var palette in previous.Palettes)
+            {
+                foreach (var color in palette.ColorPalette)
+                {
+                    color.Red = color.Red / 255f;
+                    color.Green = color.Green / 255f;
+                    color.Blue = color.Blue / 255f;
+                }
+            }
+
+            previous.Version = VersionConstants.Ver102;
 
             return new UpgradeResults
             {
