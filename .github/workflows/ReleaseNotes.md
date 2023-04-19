@@ -1,6 +1,6 @@
 ## What's Changed?
 
-* Added command grab move
+* Changed RGB to save as RGB10 instead of RGB255
 
 ## Known Bugs
 
