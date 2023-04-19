@@ -28,6 +28,28 @@ namespace CharacterDataEditor.Models.CharacterData
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public string SupplimentaryScript { get; set; } = string.Empty;
 
+        public MoveDataModel GetDuplicate()
+        {
+            return new MoveDataModel
+            {
+                UID = Guid.NewGuid().ToString(),
+                MoveType = MoveType,
+                SpriteName = SpriteName,
+                FrameData = FrameData,
+                AttackData = AttackData,
+                IsThrow = IsThrow,
+                HurtboxData = HurtboxData,
+                RehitData = RehitData,
+                OpponentPositionData = OpponentPositionData,
+                CounterData = CounterData,
+                GroundMovementData = GroundMovementData,
+                AirMovementData = AirMovementData,
+                SupplimentaryScript = SupplimentaryScript,
+                Duration = Duration,
+                ProjectileData = ProjectileData
+            };
+        }
+
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);

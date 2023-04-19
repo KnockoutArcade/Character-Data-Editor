@@ -1,6 +1,7 @@
 ## What's Changed?
 
-* Added command grab move
+* Changed RGB to save as RGB10 instead of RGB255
+* Added context menu with "duplicate" option to make a duplicate of moves and palettes
 
 ## Known Bugs
 
