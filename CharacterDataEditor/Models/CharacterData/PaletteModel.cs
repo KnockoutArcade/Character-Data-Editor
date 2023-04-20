@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,12 +14,11 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public PaletteModel GetDuplicate()
         {
-            return new PaletteModel
-            {
-                UID = Guid.NewGuid().ToString(),
-                Name = Name,
-                ColorPalette = ColorPalette
-            };
+            var tempSerializedPaletteData = JsonConvert.SerializeObject(this);
+            var deserializedPaletteData = JsonConvert.DeserializeObject<PaletteModel>(tempSerializedPaletteData);
+
+            deserializedPaletteData.UID = Guid.NewGuid().ToString();
+            return deserializedPaletteData;
         }
 
         public override int GetHashCode()

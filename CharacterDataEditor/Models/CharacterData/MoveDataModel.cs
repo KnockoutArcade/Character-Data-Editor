@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using CharacterDataEditor.Enums;
+using Newtonsoft.Json;
 
 namespace CharacterDataEditor.Models.CharacterData
 {
@@ -30,24 +31,11 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public MoveDataModel GetDuplicate()
         {
-            return new MoveDataModel
-            {
-                UID = Guid.NewGuid().ToString(),
-                MoveType = MoveType,
-                SpriteName = SpriteName,
-                FrameData = FrameData,
-                AttackData = AttackData,
-                IsThrow = IsThrow,
-                HurtboxData = HurtboxData,
-                RehitData = RehitData,
-                OpponentPositionData = OpponentPositionData,
-                CounterData = CounterData,
-                GroundMovementData = GroundMovementData,
-                AirMovementData = AirMovementData,
-                SupplimentaryScript = SupplimentaryScript,
-                Duration = Duration,
-                ProjectileData = ProjectileData
-            };
+            var tempSerializedMoveData = JsonConvert.SerializeObject(this);
+            var deserializedMoveData = JsonConvert.DeserializeObject<MoveDataModel>(tempSerializedMoveData);
+
+            deserializedMoveData.UID = Guid.NewGuid().ToString();
+            return deserializedMoveData;
         }
 
         public override int GetHashCode()
