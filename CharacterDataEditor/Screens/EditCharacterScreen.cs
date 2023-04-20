@@ -68,6 +68,8 @@ namespace CharacterDataEditor.Screens
 
         private string editorWindowTitle;
 
+        private bool isMoveAnimationRender;
+
         private delegate void AfterConfirmAction(int keyCode);
         private AfterConfirmAction exitConfirmAction;
 
@@ -223,10 +225,12 @@ namespace CharacterDataEditor.Screens
             }
         }
 
-        private void ChangeAnimatedSprite(SpriteDataModel sprite)
+        private void ChangeAnimatedSprite(SpriteDataModel sprite, bool useFrameData = false)
         {
             //disable box drawing when the change first happens
             boxDrawMode = BoxDrawMode.None;
+
+            isMoveAnimationRender = useFrameData;
 
             spriteData = sprite;
         }
@@ -294,7 +298,9 @@ namespace CharacterDataEditor.Screens
                     Logger = _logger,
                     MaxDrawSize = maxSpriteSize,
                     DefaultTexture = ResourceConstants.LogoPath,
-                    Flags = animationFlags
+                    Flags = animationFlags,
+                    EnableFrameDataDraw = isMoveAnimationRender,
+                    FrameDrawData = (isMoveAnimationRender) ? moveInEditor.FrameData : null
                 });
 
                 currentFrame = frameData.CurrentFrame;
@@ -1311,7 +1317,7 @@ namespace CharacterDataEditor.Screens
                 ImGui.SetCursorPos(cursorPos);
 
                 var currentAnimationSpeedLabel =
-                    currentAnimationSpeed == 0 ? "10 (default)" :
+                    currentAnimationSpeed == 0 ? (isMoveAnimationRender) ? "Set By Data" : "10 (default)" :
                     currentAnimationSpeed.ToString();
 
                 ImGui.Text(" ");
@@ -1599,7 +1605,7 @@ namespace CharacterDataEditor.Screens
                                     if (moveSpriteIndex > -1)
                                     {
                                         var sprite = allSprites[moveSpriteIndex];
-                                        ChangeAnimatedSprite(sprite);
+                                        ChangeAnimatedSprite(sprite, true);
                                     }
                                 }, () =>
                                 {
