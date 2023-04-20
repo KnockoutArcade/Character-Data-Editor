@@ -2,7 +2,6 @@
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models;
-using CharacterDataEditor.Models.CharacterData;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
 using System;
@@ -242,7 +241,16 @@ namespace CharacterDataEditor.Helpers
                 {
                     previousSprite = currentSprite;
                     currentAnimationFrame = 0;
-                    nextFrameAdvance = (int)data.SpriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)data.SpriteData.Sequence.playbackSpeed;
+                    frameCounter = 0;
+
+                    if (data.EnableFrameDataDraw)
+                    {
+                        nextFrameAdvance = data.FrameDrawData.GetFrameToDraw(frameCounter).Length;
+                    }
+                    else
+                    {
+                        nextFrameAdvance = (int)data.SpriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)data.SpriteData.Sequence.playbackSpeed;
+                    }
                     frameCounter = 0;
                     spriteTextures = new List<LoadedTextureModel>();
 
@@ -277,12 +285,26 @@ namespace CharacterDataEditor.Helpers
 
                     if (frameCounter >= nextFrameAdvance)
                     {
-                        frameCounter = 0;
+                        if (data.EnableFrameDataDraw)
+                        {
+                            var frameDataToDraw = data.FrameDrawData.GetFrameToDraw(frameCounter);
+                            nextFrameAdvance = (frameDataToDraw == null) ? 0 : frameDataToDraw.Length;
+                        }
+                        else
+                        {
+                            frameCounter = 0;
+                        }
+
                         currentAnimationFrame++;
 
                         if (currentAnimationFrame >= data.SpriteData.Frames.Count())
                         {
                             currentAnimationFrame = 0;
+
+                            if (data.EnableFrameDataDraw)
+                            {
+                                frameCounter = 0;
+                            }
                         }
                     }
                 }

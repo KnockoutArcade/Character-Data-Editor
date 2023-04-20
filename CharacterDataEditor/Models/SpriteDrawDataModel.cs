@@ -1,6 +1,7 @@
 ﻿using CharacterDataEditor.Enums;
 using CharacterDataEditor.Models.CharacterData;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace CharacterDataEditor.Models
@@ -18,5 +19,7 @@ namespace CharacterDataEditor.Models
         public ILogger Logger { get; set; }
         public FrameAdvance FrameAdvance { get; set; }
         public string DefaultTexture { get; set; }
+        public bool EnableFrameDataDraw { get; set; } = false;
+        public List<FrameDataModel> FrameDrawData { get; set; }
     }
 }
