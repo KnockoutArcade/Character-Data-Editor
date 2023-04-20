@@ -1,7 +1,9 @@
 ## What's Changed?
 
-* Changed RGB to save as RGB10 instead of RGB255
-* Added context menu with "duplicate" option to make a duplicate of moves and palettes
+* Moves are drawn using the Window Data
+* Fix for crash when creating a new character due to missing Version in JSON files
+* Fix for duplicate button creating a pointer instead of deep copy
+* Minor refactors to improve performance
 
 ## Known Bugs
 
