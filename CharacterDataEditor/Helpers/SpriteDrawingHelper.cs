@@ -44,7 +44,7 @@ namespace CharacterDataEditor.Helpers
             bullseye = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.BullseyePath));
         }
 
-        private AnimatedSpriteReturnDataModel DrawSprite(Vector2 drawPosition, Vector2 origin, float scale, Vector2 maxDrawSize, SpriteDrawFlags flags, PaletteModel baseColor = null, PaletteModel swapColor = null)
+        private AnimatedSpriteReturnDataModel DrawSprite(SpriteDrawDataModel data)
         {
             Texture2D textureToDraw;
 
@@ -53,7 +53,7 @@ namespace CharacterDataEditor.Helpers
                 currentAnimationFrame = 0;
             }
 
-            if (flags.HasFlag(SpriteDrawFlags.NotAnimated))
+            if (data.Flags.HasFlag(SpriteDrawFlags.NotAnimated))
             {
                 textureToDraw = spriteTextures.FirstOrDefault().Texture;
             }
@@ -66,8 +66,8 @@ namespace CharacterDataEditor.Helpers
 
             //destination rectangle determines the size to scale it to and the position on screen
             Rectangle destinationRectangle = new Rectangle();
-            destinationRectangle.width = (textureToDraw.width * 3) * scale;
-            destinationRectangle.height = (textureToDraw.height * 3) * scale;
+            destinationRectangle.width = (textureToDraw.width * 3) * data.Scale;
+            destinationRectangle.height = (textureToDraw.height * 3) * data.Scale;
 
             //check if sprite destination is above max size, if so... determine the scale between x and y, and adjust the larger to the bounds
             // and the smaller to be scaled appropriately
@@ -75,7 +75,7 @@ namespace CharacterDataEditor.Helpers
             Vector2 Rescale(float w, float h, Vector2 max)
             {
                 var widthOver = w - max.X;
-                var heightOver = h - maxDrawSize.Y;
+                var heightOver = h - data.MaxDrawSize.Y;
 
                 if (widthOver >= heightOver)
                 {
@@ -93,7 +93,7 @@ namespace CharacterDataEditor.Helpers
                 }
 
                 widthOver = w - max.X;
-                heightOver = h - maxDrawSize.Y;
+                heightOver = h - data.MaxDrawSize.Y;
 
                 if (widthOver > 0 || heightOver > 0)
                 {
@@ -103,46 +103,46 @@ namespace CharacterDataEditor.Helpers
                 return new Vector2(w, h);
             }
 
-            if (maxDrawSize != Vector2.Zero && (destinationRectangle.width > maxDrawSize.X || destinationRectangle.height > maxDrawSize.Y))
+            if (data.MaxDrawSize != Vector2.Zero && (destinationRectangle.width > data.MaxDrawSize.X || destinationRectangle.height > data.MaxDrawSize.Y))
             {
-                maxDrawSize *= scale;
-                var newWH = Rescale(destinationRectangle.width, destinationRectangle.height, maxDrawSize);
+                data.MaxDrawSize *= data.Scale;
+                var newWH = Rescale(destinationRectangle.width, destinationRectangle.height, data.MaxDrawSize);
 
                 destinationRectangle.width = newWH.X;
                 destinationRectangle.height = newWH.Y;
             }
 
-            if (flags.HasFlag(SpriteDrawFlags.CenterHorizontal))
+            if (data.Flags.HasFlag(SpriteDrawFlags.CenterHorizontal))
             {
                 var centerHorizontal = ClientWindow.X / 2 - (destinationRectangle.width / 2);
                 destinationRectangle.x = centerHorizontal;
             }
             else
             {
-                destinationRectangle.x = drawPosition.X * scale;
+                destinationRectangle.x = data.DrawPosition.X * data.Scale;
             }
 
-            if (flags.HasFlag(SpriteDrawFlags.CenterVertical))
+            if (data.Flags.HasFlag(SpriteDrawFlags.CenterVertical))
             {
                 var centerVertical = ClientWindow.Y / 2 - (destinationRectangle.height / 2);
                 destinationRectangle.y = centerVertical;
             }
             else
             {
-                destinationRectangle.y = drawPosition.Y * scale;
+                destinationRectangle.y = data.DrawPosition.Y * data.Scale;
             }
 
-            if (flags.HasFlag(SpriteDrawFlags.ShowSpriteOutline))
+            if (data.Flags.HasFlag(SpriteDrawFlags.ShowSpriteOutline))
             {
                 Raylib.DrawRectangle((int)destinationRectangle.x, (int)destinationRectangle.y, (int)destinationRectangle.width, (int)destinationRectangle.height, Color.BLACK);
             }
 
-            if (flags.HasFlag(SpriteDrawFlags.PaletteSwapActive) && baseColor?.ColorPalette?.Count > 0 && swapColor?.ColorPalette?.Count > 0)
+            if (data.Flags.HasFlag(SpriteDrawFlags.PaletteSwapActive) && data.BaseColor?.ColorPalette?.Count > 0 && data.SwapColor?.ColorPalette?.Count > 0)
             {
                 ShaderHelper.ShaderStartRender();
 
-                var baseColorArray = baseColor.ToShaderVec4Array();
-                var swapColorArray = swapColor.ToShaderVec4Array();
+                var baseColorArray = data.BaseColor.ToShaderVec4Array();
+                var swapColorArray = data.SwapColor.ToShaderVec4Array();
 
                 for (int i = 0; i < baseColorArray.Length; i++)
                 {
@@ -155,25 +155,25 @@ namespace CharacterDataEditor.Helpers
             // Color.White is used to not tint the texture at all
             Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, Vector2.Zero, 0.0f, Color.WHITE);
 
-            if (flags.HasFlag(SpriteDrawFlags.PaletteSwapActive))
+            if (data.Flags.HasFlag(SpriteDrawFlags.PaletteSwapActive))
             {
                 ShaderHelper.ShaderEndRender();
             }
 
-            if (flags.HasFlag(SpriteDrawFlags.DrawOrigin))
+            if (data.Flags.HasFlag(SpriteDrawFlags.DrawOrigin))
             {
                 var srcRect = new Rectangle(0.0f, 0.0f, bullseye.width, bullseye.height);
                 // x and y will be the destination rect for the main sprite's X and Y, then adjust for the
                 // origin, then adjust by 1/2 the destination drawing size...
 
-                var destRect = new Rectangle(destinationRectangle.x, destinationRectangle.y, bullseye.width * scale, bullseye.height * scale);
+                var destRect = new Rectangle(destinationRectangle.x, destinationRectangle.y, bullseye.width * data.Scale, bullseye.height * data.Scale);
 
                 // determine actual scale of sprite to original
                 var spriteScale = destinationRectangle.width / textureSourceRectangle.width;
 
                 // adjust the draw x and y to reflect the "origin" set by GMS2
-                destRect.x += ((origin.X * spriteScale) - (destRect.width / 2.0f));
-                destRect.y += ((origin.Y * spriteScale) - (destRect.height / 2.0f));
+                destRect.x += ((data.Origin.X * spriteScale) - (destRect.width / 2.0f));
+                destRect.y += ((data.Origin.Y * spriteScale) - (destRect.height / 2.0f));
 
                 Raylib.DrawTexturePro(bullseye, srcRect, destRect, Vector2.Zero, 0.0f, Color.WHITE);
             }
@@ -188,45 +188,45 @@ namespace CharacterDataEditor.Helpers
             };
         }
 
-        public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDataModel spriteData, PaletteModel basePalette, PaletteModel paletteData, Vector2 drawPosition, float scale, ILogger logger, Vector2 maxDrawSize, FrameAdvance frameAdvance, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDrawDataModel data)
         {
-            var origin = spriteData != null ? new Vector2(spriteData.Sequence.xorigin, spriteData.Sequence.yorigin) : Vector2.Zero;
+            data.Origin = data.SpriteData != null ? new Vector2(data.SpriteData.Sequence.xorigin, data.SpriteData.Sequence.yorigin) : Vector2.Zero;
 
 
-            if (frameAdvance == FrameAdvance.Forward)
+            if (data.FrameAdvance == FrameAdvance.Forward)
             {
                 currentAnimationFrame++;
 
-                if (currentAnimationFrame >= spriteData.Frames.Count())
+                if (currentAnimationFrame >= data.SpriteData.Frames.Count())
                 {
                     currentAnimationFrame = 0;
                 }
             }
-            else if (frameAdvance == FrameAdvance.Backward)
+            else if (data.FrameAdvance == FrameAdvance.Backward)
             {
                 currentAnimationFrame--;
 
                 if (currentAnimationFrame < 0)
                 {
-                    currentAnimationFrame = spriteData.Frames.Count() - 1;
+                    currentAnimationFrame = data.SpriteData.Frames.Count() - 1;
                 }
             }
 
-            return DrawSprite(drawPosition, origin, scale, maxDrawSize, flags, basePalette, paletteData);
+            return DrawSprite(data);
         }
 
-        public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDataModel spriteData, PaletteModel basePalette, PaletteModel paletteData, Vector2 drawPosition, float scale, string defaultTexture, ILogger logger, Vector2 maxDrawSize, SpriteDrawFlags flags = SpriteDrawFlags.None)
+        public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDrawDataModel data)
         {
-            var origin = spriteData != null ? new Vector2(spriteData.Sequence.xorigin, spriteData.Sequence.yorigin) : Vector2.Zero;
+            data.Origin = data.SpriteData != null ? new Vector2(data.SpriteData.Sequence.xorigin, data.SpriteData.Sequence.yorigin) : Vector2.Zero;
 
-            if (spriteData == null)
+            if (data.SpriteData == null)
             {
                 if (spriteTextures == null)
                 {
                     spriteTextures = new List<LoadedTextureModel>();
                 }
 
-                var textureFullPath = Path.Combine(AppContext.BaseDirectory, defaultTexture);
+                var textureFullPath = Path.Combine(AppContext.BaseDirectory, data.DefaultTexture);
                 if (!spriteTextures.Any() || textureFullPath != spriteTextures.First().TexturePath)
                 {
                     spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
@@ -236,42 +236,42 @@ namespace CharacterDataEditor.Helpers
             }
             else
             {
-                currentSprite = spriteData.Name;
+                currentSprite = data.SpriteData.Name;
 
                 if (previousSprite != currentSprite)
                 {
                     previousSprite = currentSprite;
                     currentAnimationFrame = 0;
-                    nextFrameAdvance = (int)spriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)spriteData.Sequence.playbackSpeed;
+                    nextFrameAdvance = (int)data.SpriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)data.SpriteData.Sequence.playbackSpeed;
                     frameCounter = 0;
                     spriteTextures = new List<LoadedTextureModel>();
 
                     //load all textures now...
 
-                    var spriteDataPathFragments = spriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
+                    var spriteDataPathFragments = data.SpriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
 
-                    foreach (var sequenceItem in spriteData.Sequence.tracks[0].keyframes.Frames)
+                    foreach (var sequenceItem in data.SpriteData.Sequence.tracks[0].keyframes.Frames)
                     {
-                        var spriteImagePath = spriteData.FilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
-                        var frameData = spriteData.Frames.Where(x => x.name == sequenceItem.Channels._0.Id.name).FirstOrDefault();
+                        var spriteImagePath = data.SpriteData.FilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
+                        var frameData = data.SpriteData.Frames.Where(x => x.name == sequenceItem.Channels._0.Id.name).FirstOrDefault();
 
                         if (frameData == null)
                         {
-                            logger.LogError($"Frame data not found for current frame {currentAnimationFrame}");
+                            data.Logger.LogError($"Frame data not found for current frame {currentAnimationFrame}");
                         }
 
                         spriteImagePath = Path.Combine(spriteImagePath, frameData.name + ".png");
 
                         if (!File.Exists(spriteImagePath))
                         {
-                            logger.LogError("unable to open file for frame data");
+                            data.Logger.LogError("unable to open file for frame data");
                         }
 
                         spriteTextures.Add(new LoadedTextureModel(spriteImagePath));
                     }
                 }
 
-                if (!flags.HasFlag(SpriteDrawFlags.Pause))
+                if (!data.Flags.HasFlag(SpriteDrawFlags.Pause))
                 {
                     frameCounter++;
 
@@ -280,7 +280,7 @@ namespace CharacterDataEditor.Helpers
                         frameCounter = 0;
                         currentAnimationFrame++;
 
-                        if (currentAnimationFrame >= spriteData.Frames.Count())
+                        if (currentAnimationFrame >= data.SpriteData.Frames.Count())
                         {
                             currentAnimationFrame = 0;
                         }
@@ -288,7 +288,7 @@ namespace CharacterDataEditor.Helpers
                 }
             }
 
-            return DrawSprite(drawPosition, origin, scale, maxDrawSize, flags, basePalette, paletteData);
+            return DrawSprite(data);
         }
     }
 }

@@ -103,16 +103,18 @@ namespace CharacterDataEditor.Screens
 
         private void DrawLogo(float scale)
         {
-            spriteDrawer.DrawSpriteToScreen(
-                null,
-                null,
-                null,
-                new Vector2(0, 0),
-                scale,
-                ResourceConstants.LogoPath,
-                _logger,
-                new Vector2(400, 400),
-                SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.NotAnimated);
+            spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
+            {
+                SpriteData = null,
+                BaseColor = null,
+                SwapColor = null,
+                DrawPosition = Vector2.Zero,
+                Scale = scale,
+                DefaultTexture = ResourceConstants.LogoPath,
+                Logger = _logger,
+                MaxDrawSize = new Vector2(400, 400),
+                Flags = SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.NotAnimated
+            });
         }
 
         private void DrawMainMenu(float scale)

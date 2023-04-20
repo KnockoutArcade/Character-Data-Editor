@@ -264,7 +264,18 @@ namespace CharacterDataEditor.Screens
 
             if (frameAdvance != FrameAdvance.None)
             {
-                var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(spriteData, character.BaseColor, paletteData, spriteDrawPosition, scale, _logger, maxSpriteSize, frameAdvance, animationFlags);
+                var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(new SpriteDrawDataModel
+                {
+                    SpriteData = spriteData,
+                    BaseColor = character.BaseColor,
+                    SwapColor = paletteData,
+                    DrawPosition = spriteDrawPosition,
+                    Scale = scale,
+                    Logger = _logger,
+                    MaxDrawSize = maxSpriteSize,
+                    FrameAdvance = frameAdvance,
+                    Flags = animationFlags
+                });
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
@@ -273,7 +284,18 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                var frameData = spriteDrawer.DrawSpriteToScreen(spriteData, character.BaseColor, paletteData, spriteDrawPosition, scale, ResourceConstants.LogoPath, _logger, maxSpriteSize, animationFlags);
+                var frameData = spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
+                {
+                    SpriteData = spriteData,
+                    BaseColor = character.BaseColor,
+                    SwapColor = paletteData,
+                    DrawPosition = spriteDrawPosition,
+                    Scale = scale,
+                    Logger = _logger,
+                    MaxDrawSize = maxSpriteSize,
+                    DefaultTexture = ResourceConstants.LogoPath,
+                    Flags = animationFlags
+                });
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
