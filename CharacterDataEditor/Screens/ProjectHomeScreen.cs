@@ -242,16 +242,18 @@ namespace CharacterDataEditor.Screens
                 Y = (height / 2) / scale
             };
 
-            spriteDrawer.DrawSpriteToScreen(
-                spriteData,
-                null,
-                null,
-                drawPos, 
-                scale, 
-                ResourceConstants.LogoPath, 
-                _logger, 
-                Vector2.Zero, 
-                SpriteDrawFlags.CenterVertical);
+            spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
+            {
+                SpriteData = spriteData,
+                BaseColor = null,
+                SwapColor = null,
+                DrawPosition = drawPos,
+                Scale = scale,
+                DefaultTexture = ResourceConstants.LogoPath,
+                Logger = _logger,
+                MaxDrawSize = Vector2.Zero,
+                Flags = SpriteDrawFlags.CenterVertical
+            });
         }
 
         private void DrawNewCharacterPanel(float scale, IScreenManager screenManager)
