@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using static System.Collections.Specialized.BitVector32;
 
 namespace CharacterDataEditor.Screens
 {
@@ -68,6 +67,8 @@ namespace CharacterDataEditor.Screens
         private const int buttonSpacing = 8;
 
         private string editorWindowTitle;
+
+        private bool isMoveAnimationRender;
 
         private delegate void AfterConfirmAction(int keyCode);
         private AfterConfirmAction exitConfirmAction;
@@ -224,10 +225,12 @@ namespace CharacterDataEditor.Screens
             }
         }
 
-        private void ChangeAnimatedSprite(SpriteDataModel sprite)
+        private void ChangeAnimatedSprite(SpriteDataModel sprite, bool useFrameData = false)
         {
             //disable box drawing when the change first happens
             boxDrawMode = BoxDrawMode.None;
+
+            isMoveAnimationRender = useFrameData;
 
             spriteData = sprite;
         }
@@ -265,7 +268,18 @@ namespace CharacterDataEditor.Screens
 
             if (frameAdvance != FrameAdvance.None)
             {
-                var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(spriteData, character.BaseColor, paletteData, spriteDrawPosition, scale, _logger, maxSpriteSize, frameAdvance, animationFlags);
+                var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(new SpriteDrawDataModel
+                {
+                    SpriteData = spriteData,
+                    BaseColor = character.BaseColor,
+                    SwapColor = paletteData,
+                    DrawPosition = spriteDrawPosition,
+                    Scale = scale,
+                    Logger = _logger,
+                    MaxDrawSize = maxSpriteSize,
+                    FrameAdvance = frameAdvance,
+                    Flags = animationFlags
+                });
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
@@ -274,7 +288,20 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                var frameData = spriteDrawer.DrawSpriteToScreen(spriteData, character.BaseColor, paletteData, spriteDrawPosition, scale, ResourceConstants.LogoPath, _logger, maxSpriteSize, animationFlags);
+                var frameData = spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
+                {
+                    SpriteData = spriteData,
+                    BaseColor = character.BaseColor,
+                    SwapColor = paletteData,
+                    DrawPosition = spriteDrawPosition,
+                    Scale = scale,
+                    Logger = _logger,
+                    MaxDrawSize = maxSpriteSize,
+                    DefaultTexture = ResourceConstants.LogoPath,
+                    Flags = animationFlags,
+                    EnableFrameDataDraw = isMoveAnimationRender,
+                    FrameDrawData = (isMoveAnimationRender) ? moveInEditor.FrameData : null
+                });
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
@@ -1290,7 +1317,7 @@ namespace CharacterDataEditor.Screens
                 ImGui.SetCursorPos(cursorPos);
 
                 var currentAnimationSpeedLabel =
-                    currentAnimationSpeed == 0 ? "10 (default)" :
+                    currentAnimationSpeed == 0 ? (isMoveAnimationRender) ? "Set By Data" : "10 (default)" :
                     currentAnimationSpeed.ToString();
 
                 ImGui.Text(" ");
@@ -1578,7 +1605,7 @@ namespace CharacterDataEditor.Screens
                                     if (moveSpriteIndex > -1)
                                     {
                                         var sprite = allSprites[moveSpriteIndex];
-                                        ChangeAnimatedSprite(sprite);
+                                        ChangeAnimatedSprite(sprite, true);
                                     }
                                 }, () =>
                                 {

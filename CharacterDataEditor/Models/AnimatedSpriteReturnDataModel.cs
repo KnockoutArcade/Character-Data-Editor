@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace CharacterDataEditor.Models.CharacterData
+namespace CharacterDataEditor.Models
 {
     public class AnimatedSpriteReturnDataModel
     {
