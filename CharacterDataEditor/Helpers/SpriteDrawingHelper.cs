@@ -288,7 +288,17 @@ namespace CharacterDataEditor.Helpers
                         if (data.EnableFrameDataDraw)
                         {
                             var frameDataToDraw = data.FrameDrawData.GetFrameToDraw(frameCounter);
-                            nextFrameAdvance = (frameDataToDraw == null) ? 0 : frameDataToDraw.Length;
+
+                            if (frameDataToDraw == null)
+                            {
+                                var firstFrameData = data.FrameDrawData.OrderBy(x => x.ImageIndex).FirstOrDefault();
+
+                                nextFrameAdvance = (firstFrameData == null) ? 1 : firstFrameData.Length;
+                            }
+                            else
+                            {
+                                nextFrameAdvance = frameDataToDraw.Length;
+                            }
                         }
                         else
                         {
