@@ -2,7 +2,7 @@
 {
     public class VersionConstants
     {
-        public const string CurrentVersion = Ver102;
+        public const string CurrentVersion = Ver103;
 
         public const string Original = "";
         public const string Ver094 = "Ver0.9.4";
@@ -11,5 +11,6 @@
         public const string Ver1 = "Ver1.0.0";
         public const string Ver101 = "Ver1.0.1";
         public const string Ver102 = "Ver1.0.2";
+        public const string Ver103 = "Ver1.0.3";
     }
 }
