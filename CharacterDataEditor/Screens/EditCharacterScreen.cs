@@ -1,4 +1,4 @@
-using CharacterDataEditor.Constants;
+﻿using CharacterDataEditor.Constants;
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
@@ -383,7 +383,6 @@ namespace CharacterDataEditor.Screens
                     }
 
                     paletteInEditor = character.BaseColor;
-                    moveInEditor = null;
                     editorMode = EditorMode.BasePalette;
                     ChangeRenderedPalette(null);
                 }
@@ -398,7 +397,6 @@ namespace CharacterDataEditor.Screens
                         var newPalette = new PaletteModel();
                         character.Palettes.Add(newPalette);
                         paletteInEditor = newPalette;
-                        moveInEditor = null;
                         editorMode = EditorMode.Palette;
                         ChangeRenderedPalette(newPalette);
                     }
@@ -414,7 +412,6 @@ namespace CharacterDataEditor.Screens
                         if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                             {
                                 paletteInEditor = palette;
-                                moveInEditor = null;
                                 editorMode = EditorMode.Palette;
                                 ChangeRenderedPalette(palette);
                             }, () =>
