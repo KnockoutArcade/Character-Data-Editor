@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CharacterDataEditor.Models.CharacterData
+namespace CharacterDataEditor.Enums
 {
     [Flags]
     public enum JumpType
