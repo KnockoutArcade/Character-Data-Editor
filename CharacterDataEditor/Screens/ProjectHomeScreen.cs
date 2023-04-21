@@ -4,6 +4,8 @@ using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
 using OriginalVersion = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
+using Ver095 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095;
+using Ver102 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver102;
 using CharacterDataEditor.Services;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
@@ -82,20 +84,38 @@ namespace CharacterDataEditor.Screens
 
                 foreach (var characterNeedingUpgrade in charactersNeedingUpgrade)
                 {
-                    // for now I'll hard code this to the original version, but operations should be placed here to
-                    // determine which previous version to open...
-
                     UpgradeResults results;
 
-                    if (characterNeedingUpgrade.Version == VersionConstants.Original) // first version with breaking changes on upgrade
+                    switch (characterNeedingUpgrade.Version)
                     {
-                        var oldCharacter = _characterOperations.GetCharacterByFilename<OriginalVersion.CharacterDataModel>(characterNeedingUpgrade.FileName);
-
-                        results = oldCharacter.Upgrade();
-                    }
-                    else
-                    {
-                        results = characterNeedingUpgrade.Upgrade();
+                        case VersionConstants.Ver094:
+                        case VersionConstants.Ver095:
+                            {
+                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver095.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                                results = oldCharacter.Upgrade();
+                                break;
+                            }
+                        case VersionConstants.Ver096:
+                        case VersionConstants.Ver1:
+                        case VersionConstants.Ver101:
+                        case VersionConstants.Ver102:
+                            {
+                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver102.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                                results = oldCharacter.Upgrade();
+                                break;
+                            }
+                        case VersionConstants.Original:
+                            {
+                                var oldCharacter = _characterOperations.GetCharacterByFilename<OriginalVersion.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                                results = oldCharacter.Upgrade();
+                                break;
+                            }
+                        case VersionConstants.Ver110:
+                        default:
+                            {
+                                results = characterNeedingUpgrade.Upgrade();
+                                break;
+                            }
                     }
 
                     if (results.IsDataLossSuspected)
