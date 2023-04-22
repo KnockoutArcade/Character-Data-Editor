@@ -1,6 +1,7 @@
 ## What's Changed?
 
 * Theme selection and saving
+* Added Max HP to Character Data
 
 ## Known Bugs
 

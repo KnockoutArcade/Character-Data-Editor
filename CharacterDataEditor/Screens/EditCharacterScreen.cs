@@ -383,7 +383,6 @@ namespace CharacterDataEditor.Screens
                     }
 
                     paletteInEditor = character.BaseColor;
-                    moveInEditor = null;
                     editorMode = EditorMode.BasePalette;
                     ChangeRenderedPalette(null);
                 }
@@ -398,7 +397,6 @@ namespace CharacterDataEditor.Screens
                         var newPalette = new PaletteModel();
                         character.Palettes.Add(newPalette);
                         paletteInEditor = newPalette;
-                        moveInEditor = null;
                         editorMode = EditorMode.Palette;
                         ChangeRenderedPalette(newPalette);
                     }
@@ -414,7 +412,6 @@ namespace CharacterDataEditor.Screens
                         if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                             {
                                 paletteInEditor = palette;
-                                moveInEditor = null;
                                 editorMode = EditorMode.Palette;
                                 ChangeRenderedPalette(palette);
                             }, () =>
@@ -1421,6 +1418,7 @@ namespace CharacterDataEditor.Screens
                     ImGui.TableNextColumn();
                     ImGui.EndTable();
 
+                    var maxHitPoints = character.MaxHitPoints;
                     var horizontalSpeed = character.HorizontalSpeed;
                     var verticalSpeed = character.VerticalSpeed;
                     var envDisplacement = character.EnvironmentalDisplacement;
@@ -1439,6 +1437,7 @@ namespace CharacterDataEditor.Screens
                     var superMeterBuildRate = character.SuperMeterBuildRate;
                     var spriteCollection = character.CharacterSprites;
 
+                    ImguiDrawingHelper.DrawIntInput("maxHitPoints", ref maxHitPoints);
                     ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
                     ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
@@ -1458,6 +1457,7 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
 
+                    character.MaxHitPoints = maxHitPoints;
                     character.HorizontalSpeed = horizontalSpeed;
                     character.VerticalSpeed = verticalSpeed;
                     character.EnvironmentalDisplacement = envDisplacement;

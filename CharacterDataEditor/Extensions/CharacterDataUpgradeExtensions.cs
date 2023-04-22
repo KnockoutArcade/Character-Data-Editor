@@ -22,6 +22,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver102:
+                    return (originalCharacter as CharacterDataModel).Upgrade102to103();
                 case VersionConstants.Ver101:
                     return (originalCharacter as CharacterDataModel).Upgrade101to102();
                 case VersionConstants.Ver1:
@@ -169,6 +171,22 @@ namespace CharacterDataEditor.Extensions
             }
 
             previous.Version = VersionConstants.Ver102;
+
+            return previous.Upgrade102to103(new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade102to103(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            //ensure this character has the default hp set
+            previous.MaxHitPoints = 100;
+
+            previous.Version = VersionConstants.Ver103;
 
             return new UpgradeResults
             {

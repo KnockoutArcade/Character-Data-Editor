@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CharacterDataEditor.Enums;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public string Name { get; set; } = string.Empty;
         #region Base Stats
+        public int MaxHitPoints { get; set; } = 100;
         // movement
         public float HorizontalSpeed { get; set; } = 0.0f;
         public float VerticalSpeed { get; set; } = 0.0f;
@@ -39,7 +41,7 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, WalkSpeed, BaseColor, Palettes, MoveData);
             hash = HashCode.Combine(hash, RunSpeed, Traction, JumpSpeed, FallSpeed, BackDashDuration, BackDashInvincibility, BackDashSpeed);
-            hash = HashCode.Combine(hash, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate);
+            hash = HashCode.Combine(hash, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate, MaxHitPoints);
 
             return hash;
         }
@@ -88,7 +90,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                 objAsCharacterDataModel.CharacterSprites.Equals(CharacterSprites) &&
                                                 objAsCharacterDataModel.SuperMeterBuildRate.Equals(SuperMeterBuildRate))
                                             {
-                                                return true;
+                                                if (objAsCharacterDataModel.MaxHitPoints.Equals(MaxHitPoints))
+                                                {
+                                                    return true;
+                                                }
                                             }
                                         }
                                     }
