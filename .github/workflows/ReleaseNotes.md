@@ -1,14 +1,19 @@
 ## What's Changed?
 
-* Moves are drawn using the Window Data
-* Fix for crash when creating a new character due to missing Version in JSON files
-* Fix for duplicate button creating a pointer instead of deep copy
-* Minor refactors to improve performance
+### !!!Breaking Changes!!!
+
+* MoveType is now a ```flags``` type instead of standard enum, this will change how it works!
+
+### Other Changes
+
+* Theme selection and saving
+* Added Max HP to Character Data
+* Added move cancellation options to move data
+* Improved character data upgrade system
 
 ## Known Bugs
 
 * Hit and Hurt boxes disappear when adjusting values
-* Animation can run slow on computers without dedicated graphics
 
 ### Any other issues?
 

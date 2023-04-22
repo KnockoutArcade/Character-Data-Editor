@@ -383,7 +383,6 @@ namespace CharacterDataEditor.Screens
                     }
 
                     paletteInEditor = character.BaseColor;
-                    moveInEditor = null;
                     editorMode = EditorMode.BasePalette;
                     ChangeRenderedPalette(null);
                 }
@@ -398,7 +397,6 @@ namespace CharacterDataEditor.Screens
                         var newPalette = new PaletteModel();
                         character.Palettes.Add(newPalette);
                         paletteInEditor = newPalette;
-                        moveInEditor = null;
                         editorMode = EditorMode.Palette;
                         ChangeRenderedPalette(newPalette);
                     }
@@ -414,7 +412,6 @@ namespace CharacterDataEditor.Screens
                         if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                             {
                                 paletteInEditor = palette;
-                                moveInEditor = null;
                                 editorMode = EditorMode.Palette;
                                 ChangeRenderedPalette(palette);
                             }, () =>
@@ -450,9 +447,15 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                int selectedMoveType = (int)moveInEditor.MoveType;
-                ImguiDrawingHelper.DrawComboInput("moveType", moveTypesList.ToArray(), ref selectedMoveType);
-                moveInEditor.MoveType = (MoveType)selectedMoveType;
+                var moveTypeName = moveInEditor.MoveType.ToString();
+                int selectedMoveTypeIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
+                ImguiDrawingHelper.DrawComboInput("moveType", moveTypesList.ToArray(), ref selectedMoveTypeIndex);
+                var selectedMoveTypeName = moveTypesList[selectedMoveTypeIndex];
+                moveInEditor.MoveType = (MoveType)Enum.Parse(typeof(MoveType), selectedMoveTypeName.ToCamelCase());
+
+                var moveCancel = moveInEditor.MoveCanCancelInto;
+                ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
+                moveInEditor.MoveCanCancelInto = moveCancel;
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
@@ -1421,6 +1424,7 @@ namespace CharacterDataEditor.Screens
                     ImGui.TableNextColumn();
                     ImGui.EndTable();
 
+                    var maxHitPoints = character.MaxHitPoints;
                     var horizontalSpeed = character.HorizontalSpeed;
                     var verticalSpeed = character.VerticalSpeed;
                     var envDisplacement = character.EnvironmentalDisplacement;
@@ -1439,6 +1443,7 @@ namespace CharacterDataEditor.Screens
                     var superMeterBuildRate = character.SuperMeterBuildRate;
                     var spriteCollection = character.CharacterSprites;
 
+                    ImguiDrawingHelper.DrawIntInput("maxHitPoints", ref maxHitPoints);
                     ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
                     ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
@@ -1458,6 +1463,7 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
 
+                    character.MaxHitPoints = maxHitPoints;
                     character.HorizontalSpeed = horizontalSpeed;
                     character.VerticalSpeed = verticalSpeed;
                     character.EnvironmentalDisplacement = envDisplacement;

@@ -1,10 +1,9 @@
-﻿using CharacterDataEditor.Enums;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CharacterDataEditor.Enums;
 
-namespace CharacterDataEditor.Models.CharacterData
+namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103
 {
     public class CharacterDataModel : BaseCharacter
     {
@@ -41,7 +40,7 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, WalkSpeed, BaseColor, Palettes, MoveData);
             hash = HashCode.Combine(hash, RunSpeed, Traction, JumpSpeed, FallSpeed, BackDashDuration, BackDashInvincibility, BackDashSpeed);
-            hash = HashCode.Combine(hash, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate, MaxHitPoints);
+            hash = HashCode.Combine(hash, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate);
 
             return hash;
         }
@@ -90,10 +89,7 @@ namespace CharacterDataEditor.Models.CharacterData
                                                 objAsCharacterDataModel.CharacterSprites.Equals(CharacterSprites) &&
                                                 objAsCharacterDataModel.SuperMeterBuildRate.Equals(SuperMeterBuildRate))
                                             {
-                                                if (objAsCharacterDataModel.MaxHitPoints.Equals(MaxHitPoints))
-                                                {
-                                                    return true;
-                                                }
+                                                return true;
                                             }
                                         }
                                     }
@@ -103,7 +99,7 @@ namespace CharacterDataEditor.Models.CharacterData
                     }
                 }
             }
-            
+
 
             return false;
         }
