@@ -447,9 +447,15 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                int selectedMoveType = (int)moveInEditor.MoveType;
-                ImguiDrawingHelper.DrawComboInput("moveType", moveTypesList.ToArray(), ref selectedMoveType);
-                moveInEditor.MoveType = (MoveType)selectedMoveType;
+                var moveTypeName = moveInEditor.MoveType.ToString();
+                int selectedMoveTypeIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
+                ImguiDrawingHelper.DrawComboInput("moveType", moveTypesList.ToArray(), ref selectedMoveTypeIndex);
+                var selectedMoveTypeName = moveTypesList[selectedMoveTypeIndex];
+                moveInEditor.MoveType = (MoveType)Enum.Parse(typeof(MoveType), selectedMoveTypeName.ToCamelCase());
+
+                var moveCancel = moveInEditor.MoveCanCancelInto;
+                ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
+                moveInEditor.MoveCanCancelInto = moveCancel;
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;

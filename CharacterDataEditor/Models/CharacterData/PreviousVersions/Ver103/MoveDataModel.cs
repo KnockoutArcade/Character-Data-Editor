@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
-using CharacterDataEditor.Enums;
+using CharacterDataEditor.Enums.PreviousVersions;
 using Newtonsoft.Json;
 
-namespace CharacterDataEditor.Models.CharacterData
+namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103
 {
     public class MoveDataModel
     {
         public string UID { get; set; } = Guid.NewGuid().ToString();
-        public MoveType MoveType { get; set; } = MoveType.None;
-        public MoveType MoveCanCancelInto { get; set; } = MoveType.None;
+        public MoveType MoveType { get; set; } = MoveType.BackwardThrow;
         public string SpriteName { get; set; } = string.Empty;
         public int Duration { get; set; } = 0;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
@@ -43,7 +41,6 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
             hash = HashCode.Combine(hash, OpponentPositionData, CounterData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData);
-            hash = HashCode.Combine(hash, MoveCanCancelInto);
 
             return hash;
         }
@@ -92,10 +89,7 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                 {
                                                                     if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
                                                                     {
-                                                                        if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
-                                                                        {
-                                                                            return true;
-                                                                        }
+                                                                        return true;
                                                                     }
                                                                 }
                                                             }

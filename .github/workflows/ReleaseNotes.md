@@ -1,7 +1,15 @@
 ## What's Changed?
 
+### !!!Breaking Changes!!!
+
+* MoveType is now a ```flags``` type instead of standard enum, this will change how it works!
+
+### Other Changes
+
 * Theme selection and saving
 * Added Max HP to Character Data
+* Added move cancellation options to move data
+* Improved character data upgrade system
 
 ## Known Bugs
 
