@@ -1,5 +1,6 @@
 ﻿using CharacterDataEditor.Screens;
 using Microsoft.Extensions.Logging;
+using Raylib_cs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace CharacterDataEditor.Services
         public IScreen CurrentScreen { get; }
         public float ScreenScale { get; set; }
         public bool ExitWindow { get; set; }
+        public Color BackgroundColor { get; set; }
         public void NavigateTo(string screenName);
         public void NavigateTo(Type screenType);
         public void NavigateTo(string screenName, dynamic screenData);
@@ -33,6 +35,7 @@ namespace CharacterDataEditor.Services
         public IScreen CurrentScreen { get { return _currentScreen; } }
         public float ScreenScale { get; set; }
         public bool ExitWindow { get; set; }
+        public Color BackgroundColor { get; set; }
 
         public void NavigateTo(string screenName)
         {
