@@ -12,6 +12,23 @@ namespace CharacterDataEditor.Helpers
 {
     public static class ImguiDrawingHelper
     {
+        public static void DrawHelpMarker(string description, float scale = 2.0f)
+        {
+            ImGui.TextDisabled("(?)");
+            if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayShort))
+            {
+                ImGui.BeginTooltip();
+
+                ImGui.SetWindowFontScale(scale);
+
+                ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
+                ImGui.TextUnformatted(description);
+                ImGui.PopTextWrapPos();
+
+                ImGui.EndTooltip();
+            }
+        }
+
         public static bool DrawIntInput(string label, ref int value, int minValue = int.MinValue, int? maxValue = null)
         {
             ImGui.Columns(2);
@@ -38,6 +55,66 @@ namespace CharacterDataEditor.Helpers
             ImGui.Columns(1);
 
             return itemSelected;
+        }
+
+        public static void DrawFlagsInputListbox<T>(string label, ref T value, float scale, bool drawZeroValue = false) where T : Enum
+        {
+            var flagValues = Enum.GetValues(typeof(T));
+            List<(string key, bool value, int flagValue)> flagValuesList = new List<(string key, bool value, int flagValue)>();
+
+            foreach (T item in flagValues)
+            {
+                if (!drawZeroValue && (int)(object)item == 0)
+                {
+                    continue;
+                }
+
+                var valueStatus = ((int)(object)value & (int)(object)item) == (int)(object)item;
+                flagValuesList.Add((item.ToString().AddSpacesToCamelCase(), valueStatus, (int)(object)item));
+            }
+
+            ImGui.Columns(2);
+
+            ImGui.Text(label.UpperCaseFirstLetter().AddSpacesToCamelCase());
+            ImGui.SameLine();
+            DrawHelpMarker("Click to select, click again to deselect. An '*' appears on selected items.");
+
+            ImGui.NextColumn();
+
+            if (ImGui.BeginListBox($"##{label}#lb"))
+            {
+                for (int i = 0; i < flagValuesList.Count; i++)
+                {
+                    var item = flagValuesList[i];
+
+                    bool status = item.value;
+
+                    var itemText = item.value ? $"* {item.key}" : item.key;
+
+                    if (ImGui.Selectable(itemText, item.value))
+                    {
+                        item.value = !item.value;
+                    }
+
+                    flagValuesList[i] = item;
+                }
+
+                ImGui.EndListBox();
+            }
+
+            int refOutValue = 0;
+
+            foreach (var item in flagValuesList)
+            {
+                if (item.value)
+                {
+                    refOutValue += item.flagValue;
+                }
+            }
+
+            value = (T)(object)refOutValue;
+
+            ImGui.Columns(1);
         }
 
         public static void DrawFlagsInput<T>(string label, ref T value, bool drawZeroValue = false) where T : Enum
