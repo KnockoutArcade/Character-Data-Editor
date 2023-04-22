@@ -14,15 +14,22 @@ namespace CharacterDataEditor.Screens
     public class MainScreen : IScreen
     {
         private readonly IRecentFiles _recentFiles;
+        private readonly IEditorOptions _editorOptionsService;
         private readonly ILogger<MainScreen> _logger;
         private float screenWidth, screenHeight;
         private List<RecentProjectModel> _recentProjects;
-        private SpriteDrawingHelper spriteDrawer;
+        private SpriteDrawingHelper _spriteDrawer;
+        private EditorOptionsModel _editorOptions;
 
-        public MainScreen(ILogger<MainScreen> logger, IRecentFiles recentFiles)
+        private string _currentTheme;
+
+        private bool _themeSelectorOpen;
+
+        public MainScreen(ILogger<MainScreen> logger, IRecentFiles recentFiles, IEditorOptions editorOptionsService)
         {
             _logger = logger;
             _recentFiles = recentFiles;
+            _editorOptionsService = editorOptionsService;
         }
 
         public void CheckForExit(IScreenManager screenManager)
@@ -38,14 +45,24 @@ namespace CharacterDataEditor.Screens
             screenWidth = screenData?.width ?? 1280.0f;
             screenHeight = screenData?.height ?? 720.0f;
             _recentProjects = _recentFiles.GetRecentProjectFiles();
-            spriteDrawer = new SpriteDrawingHelper();
+            _editorOptions = _editorOptionsService.GetEditorOptions();
+            _spriteDrawer = new SpriteDrawingHelper();
+            _currentTheme = "None";
+
+            _themeSelectorOpen = false;
         }
 
         public void RenderImGui(IScreenManager screenManager)
         {
+            if (_currentTheme != _editorOptions.ThemeName)
+            {
+                ChangeTheme(screenManager, _editorOptions.ThemeName);
+            }
+
             DrawMainMenu(screenManager.ScreenScale);
             DrawOpenProjectWindow(screenManager.ScreenScale, screenManager);
             DrawLogo(screenManager.ScreenScale);
+            DrawThemeSelector(screenManager.ScreenScale, screenManager);
         }
 
         public void RenderAfterImGui(IScreenManager screenManager)
@@ -103,7 +120,7 @@ namespace CharacterDataEditor.Screens
 
         private void DrawLogo(float scale)
         {
-            spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
+            _spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
             {
                 SpriteData = null,
                 BaseColor = null,
@@ -115,6 +132,72 @@ namespace CharacterDataEditor.Screens
                 MaxDrawSize = new Vector2(400, 400),
                 Flags = SpriteDrawFlags.CenterHorizontal | SpriteDrawFlags.NotAnimated
             });
+        }
+
+        private void DrawThemeSelector(float scale, IScreenManager screenManager)
+        {
+            if (_themeSelectorOpen)
+            {
+                var windowSize = new Vector2(100.0f, 70.0f);
+                windowSize *= scale;
+
+                ImGui.SetNextWindowSize(windowSize, ImGuiCond.FirstUseEver);
+
+                if (ImGui.Begin("Select Theme", ref _themeSelectorOpen, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse))
+                {
+                    ImGui.SetWindowFontScale(scale);
+                    
+                    if (ImGui.Button("Dark Theme"))
+                    {
+                        ChangeTheme(screenManager, "Dark");
+                    }
+
+                    ImGui.NewLine();
+
+                    if (ImGui.Button("Light Theme"))
+                    {
+                        ChangeTheme(screenManager, "Light");
+                    }
+
+                    ImGui.NewLine();
+
+                    if (ImGui.Button("Classic Theme"))
+                    {
+                        ChangeTheme(screenManager, "Classic");
+                    }
+
+                    ImGui.End();
+                }
+            }
+        }
+
+        private void ChangeTheme(IScreenManager screenManager, string themeName)
+        {
+            switch (themeName)
+            {
+                case "Light":
+                    screenManager.BackgroundColor = Color.LIGHTGRAY;
+                    ImGui.StyleColorsLight();
+                    break;
+                case "Classic":
+                    screenManager.BackgroundColor = new Color(8, 1, 15, 1);
+                    ImGui.StyleColorsClassic();
+                    break;
+                case "Dark":
+                default:
+                    screenManager.BackgroundColor = Color.DARKGRAY;
+                    ImGui.StyleColorsDark();
+                    break;
+            }
+
+            _currentTheme = themeName;
+            
+            if (themeName != _editorOptions.ThemeName)
+            {
+                _editorOptions.ThemeName = themeName;
+                _editorOptions.LastUpdated = DateTime.Now;
+                _editorOptionsService.SetEditorOptions(_editorOptions);
+            }
         }
 
         private void DrawMainMenu(float scale)
@@ -131,7 +214,17 @@ namespace CharacterDataEditor.Screens
                     Environment.Exit(0);
                 }
 
-                ImGui.End();
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Edit"))
+            {
+                if (ImGui.MenuItem("Theme"))
+                {
+                    _themeSelectorOpen = true;
+                }
+
+                ImGui.EndMenu();
             }
 
             ImGui.EndMainMenuBar();
