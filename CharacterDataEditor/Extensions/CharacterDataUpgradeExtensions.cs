@@ -27,7 +27,11 @@ namespace CharacterDataEditor.Extensions
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
                 case VersionConstants.Ver102:
+<<<<<<< HEAD
                     return (originalCharacter as Ver102.CharacterDataModel).Upgrade102to110();
+=======
+                    return (originalCharacter as CharacterDataModel).Upgrade102to103();
+>>>>>>> develop
                 case VersionConstants.Ver101:
                     return (originalCharacter as Ver102.CharacterDataModel).Upgrade101to102();
                 case VersionConstants.Ver1:
@@ -176,15 +180,22 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver102;
 
+<<<<<<< HEAD
             return previous.Upgrade102to110(new UpgradeResults
             {
                 UpgradedCharacterData = null,
+=======
+            return previous.Upgrade102to103(new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+>>>>>>> develop
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
             });
         }
 
+<<<<<<< HEAD
         private static UpgradeResults Upgrade102to110(this Ver102.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
         {
             // convert to json string
@@ -208,6 +219,14 @@ namespace CharacterDataEditor.Extensions
             }
 
             newCharacter.Version = VersionConstants.Ver110;
+=======
+        private static UpgradeResults Upgrade102to103(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            //ensure this character has the default hp set
+            previous.MaxHitPoints = 100;
+
+            previous.Version = VersionConstants.Ver103;
+>>>>>>> develop
 
             return new UpgradeResults
             {
