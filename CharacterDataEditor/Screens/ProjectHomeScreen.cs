@@ -99,6 +99,7 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver1:
                         case VersionConstants.Ver101:
                         case VersionConstants.Ver102:
+                        case VersionConstants.Ver103:
                             {
                                 var oldCharacter = _characterOperations.GetCharacterByFilename<Ver103.CharacterDataModel>(characterNeedingUpgrade.FileName);
                                 results = oldCharacter.Upgrade();
