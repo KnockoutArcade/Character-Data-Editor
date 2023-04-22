@@ -10,7 +10,8 @@ namespace CharacterDataEditor.Models.CharacterData
     public class MoveDataModel
     {
         public string UID { get; set; } = Guid.NewGuid().ToString();
-        public MoveType MoveType { get; set; } = MoveType.BackwardThrow;
+        public MoveType MoveType { get; set; } = MoveType.None;
+        public MoveType MoveCanCancelInto { get; set; } = MoveType.None;
         public string SpriteName { get; set; } = string.Empty;
         public int Duration { get; set; } = 0;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
@@ -42,6 +43,7 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
             hash = HashCode.Combine(hash, OpponentPositionData, CounterData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData);
+            hash = HashCode.Combine(hash, MoveCanCancelInto);
 
             return hash;
         }
@@ -90,7 +92,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                 {
                                                                     if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
                                                                     {
-                                                                        return true;
+                                                                        if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
+                                                                        {
+                                                                            return true;
+                                                                        }
                                                                     }
                                                                 }
                                                             }
