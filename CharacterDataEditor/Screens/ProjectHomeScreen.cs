@@ -5,7 +5,7 @@ using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
 using OriginalVersion = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
 using Ver095 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095;
-using Ver102 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver102;
+using Ver103 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103;
 using CharacterDataEditor.Services;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
@@ -100,7 +100,7 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver101:
                         case VersionConstants.Ver102:
                             {
-                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver102.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver103.CharacterDataModel>(characterNeedingUpgrade.FileName);
                                 results = oldCharacter.Upgrade();
                                 break;
                             }

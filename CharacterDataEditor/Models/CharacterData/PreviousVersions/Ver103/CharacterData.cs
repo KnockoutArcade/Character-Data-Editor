@@ -3,12 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver102
+namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103
 {
     public class CharacterDataModel : BaseCharacter
     {
         public string Name { get; set; } = string.Empty;
         #region Base Stats
+        public int MaxHitPoints { get; set; } = 100;
         // movement
         public float HorizontalSpeed { get; set; } = 0.0f;
         public float VerticalSpeed { get; set; } = 0.0f;

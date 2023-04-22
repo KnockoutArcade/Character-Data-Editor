@@ -2,7 +2,7 @@
 using CharacterDataEditor.Models.CharacterData;
 using OriginalVersion = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
 using Ver095 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095;
-using Ver102 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver102;
+using Ver103 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103;
 using CharacterDataEditor.Constants;
 using CharacterDataEditor.Models;
 using System.Collections.Generic;
@@ -26,18 +26,16 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver103:
+                    return (originalCharacter as Ver103.CharacterDataModel).Upgrade103to110();
                 case VersionConstants.Ver102:
-<<<<<<< HEAD
-                    return (originalCharacter as Ver102.CharacterDataModel).Upgrade102to110();
-=======
-                    return (originalCharacter as CharacterDataModel).Upgrade102to103();
->>>>>>> develop
+                    return (originalCharacter as Ver103.CharacterDataModel).Upgrade102to103();
                 case VersionConstants.Ver101:
-                    return (originalCharacter as Ver102.CharacterDataModel).Upgrade101to102();
+                    return (originalCharacter as Ver103.CharacterDataModel).Upgrade101to102();
                 case VersionConstants.Ver1:
-                    return (originalCharacter as Ver102.CharacterDataModel).Upgrade100to101();
+                    return (originalCharacter as Ver103.CharacterDataModel).Upgrade100to101();
                 case VersionConstants.Ver096:
-                    return (originalCharacter as Ver102.CharacterDataModel).Upgrade096to100();
+                    return (originalCharacter as Ver103.CharacterDataModel).Upgrade096to100();
                 case VersionConstants.Ver095:
                     return (originalCharacter as Ver095.CharacterDataModel).Upgrade095to096();
                 case VersionConstants.Ver094:
@@ -105,7 +103,7 @@ namespace CharacterDataEditor.Extensions
 
             var characterAsJson = JsonConvert.SerializeObject(previous, Formatting.Indented);
             // convert back to object as new model
-            var newCharacter = JsonConvert.DeserializeObject<Ver102.CharacterDataModel>(characterAsJson);
+            var newCharacter = JsonConvert.DeserializeObject<Ver103.CharacterDataModel>(characterAsJson);
 
             newCharacter.CharacterSprites.Idle = previous.BaseSprite;
             newCharacter.Version = VersionConstants.Ver096;
@@ -119,7 +117,7 @@ namespace CharacterDataEditor.Extensions
             });
         }
 
-        private static UpgradeResults Upgrade096to100(this Ver102.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        private static UpgradeResults Upgrade096to100(this Ver103.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
         {
             foreach (var move in previous.MoveData)
             {
@@ -140,7 +138,7 @@ namespace CharacterDataEditor.Extensions
             });
         }
 
-        private static UpgradeResults Upgrade100to101(this Ver102.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        private static UpgradeResults Upgrade100to101(this Ver103.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
         {
             foreach (var move in previous.MoveData)
             {
@@ -158,7 +156,7 @@ namespace CharacterDataEditor.Extensions
             });
         }
 
-        private static UpgradeResults Upgrade101to102(this Ver102.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        private static UpgradeResults Upgrade101to102(this Ver103.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
         {
             //convert the rgb 255 values to rgb 1 values
             foreach (var color in previous.BaseColor.ColorPalette)
@@ -180,23 +178,32 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver102;
 
-<<<<<<< HEAD
-            return previous.Upgrade102to110(new UpgradeResults
-            {
-                UpgradedCharacterData = null,
-=======
             return previous.Upgrade102to103(new UpgradeResults
             {
-                UpgradedCharacterData = previous,
->>>>>>> develop
+                UpgradedCharacterData = null,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
             });
         }
 
-<<<<<<< HEAD
-        private static UpgradeResults Upgrade102to110(this Ver102.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        private static UpgradeResults Upgrade102to103(this Ver103.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            //ensure this character has the default hp set
+            previous.MaxHitPoints = 100;
+
+            previous.Version = VersionConstants.Ver103;
+
+            return previous.Upgrade103to110(new UpgradeResults
+            {
+                UpgradedCharacterData = null,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade103to110(this Ver103.CharacterDataModel previous, UpgradeResults previousOperationResults = null)
         {
             // convert to json string
             var characterAsJson = JsonConvert.SerializeObject(previous, Formatting.Indented);
@@ -219,14 +226,6 @@ namespace CharacterDataEditor.Extensions
             }
 
             newCharacter.Version = VersionConstants.Ver110;
-=======
-        private static UpgradeResults Upgrade102to103(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
-        {
-            //ensure this character has the default hp set
-            previous.MaxHitPoints = 100;
-
-            previous.Version = VersionConstants.Ver103;
->>>>>>> develop
 
             return new UpgradeResults
             {

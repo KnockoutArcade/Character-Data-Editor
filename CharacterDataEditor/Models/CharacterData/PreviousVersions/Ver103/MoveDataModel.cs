@@ -4,7 +4,7 @@ using System.Linq;
 using CharacterDataEditor.Enums.PreviousVersions;
 using Newtonsoft.Json;
 
-namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver102
+namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103
 {
     public class MoveDataModel
     {
