@@ -41,7 +41,7 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, WalkSpeed, BaseColor, Palettes, MoveData);
             hash = HashCode.Combine(hash, RunSpeed, Traction, JumpSpeed, FallSpeed, BackDashDuration, BackDashInvincibility, BackDashSpeed);
-            hash = HashCode.Combine(hash, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate);
+            hash = HashCode.Combine(hash, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate, MaxHitPoints);
 
             return hash;
         }
@@ -90,7 +90,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                 objAsCharacterDataModel.CharacterSprites.Equals(CharacterSprites) &&
                                                 objAsCharacterDataModel.SuperMeterBuildRate.Equals(SuperMeterBuildRate))
                                             {
-                                                return true;
+                                                if (objAsCharacterDataModel.MaxHitPoints.Equals(MaxHitPoints))
+                                                {
+                                                    return true;
+                                                }
                                             }
                                         }
                                     }
