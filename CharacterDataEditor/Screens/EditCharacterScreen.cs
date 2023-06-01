@@ -786,8 +786,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial)
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
-                        string[] number = { 0.ToString(), 1.ToString(), 2.ToString() };
-                        ImguiDrawingHelper.DrawComboInput("numberOfEnhancements", number, ref enhancementCount);
+                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount);
 
                         if (enhancementCount < moveInEditor.NumberOfEnhancements)
                         {
@@ -817,6 +816,7 @@ namespace CharacterDataEditor.Screens
                                 if (ImGui.TreeNode($"Enhancement [{i}]"))
                                 {
                                     int numpadInput = specialDataItem.NumpadInput;
+                                    bool buttonPressRequired = specialDataItem.ButtonPressRequired;
                                     int startingFrame = specialDataItem.StartingFrame;
                                     int endingFrame = specialDataItem.EndingFrame;
                                     MoveType enhancementMove = specialDataItem.EnhancementMove;
@@ -824,6 +824,7 @@ namespace CharacterDataEditor.Screens
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
                                     ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput);
+                                    ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
 
@@ -845,6 +846,7 @@ namespace CharacterDataEditor.Screens
                                     }
 
                                     specialDataItem.NumpadInput = numpadInput;
+                                    specialDataItem.ButtonPressRequired = buttonPressRequired;
                                     specialDataItem.StartingFrame = startingFrame;
                                     specialDataItem.EndingFrame = endingFrame;
                                     specialDataItem.EnhancementMove = enhancementMove;
