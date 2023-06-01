@@ -487,7 +487,13 @@ namespace CharacterDataEditor.Screens
                 }
 
                 // Select what moves to cancel into
-                if (moveInEditor.SpecialMoveType == SpecialMoveType.None)
+                if (moveInEditor.SpecialMoveType != SpecialMoveType.None)
+                {
+                    var moveCancel = moveInEditor.SpecialMoveCanCancelInto;
+                    ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
+                    moveInEditor.SpecialMoveCanCancelInto = moveCancel;
+                }
+                else
                 {
                     var moveCancel = moveInEditor.MoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
@@ -816,14 +822,68 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Command Normal dropdown
+                if (ImGui.CollapsingHeader("Command Normal Data"))
+                {
+                    if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
+                    {
+                        int numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
+                        string button = moveInEditor.CommandNormalData.Button;
+                        bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
+                        bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
+
+                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Keep this at 0 if a direction isn't required.");
+                        // Makes sure the int is a valid input direction
+                        if (numpadDirection > 9)
+                        {
+                            numpadDirection = 9;
+                        }
+
+                        string[] buttons = { "Light", "Medium", "Heavy" };
+                        var buttonIndex = 0;
+                        for (int i = 0; i < buttons.Length; i++)
+                        {
+                            if (buttons[i] == button)
+                            {
+                                buttonIndex = i;
+                                break;
+                            }
+                        }
+                        ImguiDrawingHelper.DrawComboInput("button", buttons, ref buttonIndex);
+                        button = buttons[buttonIndex];
+
+                        ImguiDrawingHelper.DrawBoolInput("groundOrAir", ref groundOrAir, "Unchecked for ground, checked for air");
+
+                        if (groundOrAir)
+                        {
+                            ImguiDrawingHelper.DrawBoolInput("cancelWhenLanding", ref cancelWhenLanding);
+                        }
+                        else
+                        {
+                            cancelWhenLanding = false;
+                        }
+
+                        moveInEditor.CommandNormalData.NumpadDirection = numpadDirection;
+                        moveInEditor.CommandNormalData.Button = button;
+                        moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
+                        moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
+
+
+                    }
+                    else
+                    {
+                        ImGui.Text("Not a command normal!");
+                    }
+                }
+
                 // Special Data dropdown
                 if (ImGui.CollapsingHeader("Special Data"))
                 {
                     if (moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
-                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || Enum.IsDefined(typeof(SpecialMoveType), moveInEditor.SpecialMoveType))
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.SpecialMoveType != SpecialMoveType.None)
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
-                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
+                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount);
 
                         if (enhancementCount < moveInEditor.NumberOfEnhancements)
                         {
@@ -853,15 +913,13 @@ namespace CharacterDataEditor.Screens
                                 if (ImGui.TreeNode($"Enhancement [{i}]"))
                                 {
                                     int numpadInput = specialDataItem.NumpadInput;
-                                    bool buttonPressRequired = specialDataItem.ButtonPressRequired;
                                     int startingFrame = specialDataItem.StartingFrame;
                                     int endingFrame = specialDataItem.EndingFrame;
                                     SpecialMoveType enhancementMove = specialDataItem.EnhancementMove;
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
-                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput, int.MinValue, null, "For rekka follow-ups, you can also use single directions (like 8 or 2).");
-                                    ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
+                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput);
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
 
@@ -883,7 +941,6 @@ namespace CharacterDataEditor.Screens
                                     }
 
                                     specialDataItem.NumpadInput = numpadInput;
-                                    specialDataItem.ButtonPressRequired = buttonPressRequired;
                                     specialDataItem.StartingFrame = startingFrame;
                                     specialDataItem.EndingFrame = endingFrame;
                                     specialDataItem.EnhancementMove = enhancementMove;
@@ -898,7 +955,7 @@ namespace CharacterDataEditor.Screens
                     }
                     else
                     {
-                        ImGui.Text("Not a special move");
+                        ImGui.Text("Not a special move!");
                     }
                 }
 
@@ -955,6 +1012,7 @@ namespace CharacterDataEditor.Screens
                     moveInEditor.RehitData.HitBox = rehitHitbox;
                 }
 
+                // Opponent Position Data dropdown
                 if (isThrow && ImGui.CollapsingHeader("Opponent Position Data"))
                 {
                     float distanceFromWall = moveInEditor.OpponentPositionData.DistanceFromWall;

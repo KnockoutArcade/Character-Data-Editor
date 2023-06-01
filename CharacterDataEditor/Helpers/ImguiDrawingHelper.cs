@@ -198,11 +198,15 @@ namespace CharacterDataEditor.Helpers
             return itemSelected;
         }
 
-        public static void DrawBoolInput(string label, ref bool value)
+        public static void DrawBoolInput(string label, ref bool value, string tooltip = "")
         {
             ImGui.Columns(2);
             ImGui.Text(label.UpperCaseFirstLetter().AddSpacesToCamelCase());
-
+            if (tooltip != "")
+            {
+                ImGui.SameLine();
+                DrawHelpMarker(tooltip);
+            }
             ImGui.NextColumn();
             ImGui.Checkbox($"##{label}", ref value);
 

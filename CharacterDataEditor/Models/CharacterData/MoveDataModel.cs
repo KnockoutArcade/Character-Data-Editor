@@ -21,6 +21,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
         public List<AttackDataModel> AttackData { get; set; } = new List<AttackDataModel>();
         public List<CounterHitDataModel> CounterData { get; set; } = new List<CounterHitDataModel>();
+        public CommandNormalDataModel CommandNormalData { get; set; } = new CommandNormalDataModel();
         public int NumberOfEnhancements { get { return SpecialData?.Count ?? 0; } }
         public List<SpecialDataModel> SpecialData { get; set; } = new List<SpecialDataModel>();
         public bool IsThrow { get; set; } = false;
@@ -46,8 +47,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(UID, MoveType, SpecialMoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData);
-            hash = HashCode.Combine(hash, RehitData, OpponentPositionData, CounterData, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript);
-            hash = HashCode.Combine(hash, Duration, ProjectileData, MoveCanCancelInto, SpecialMoveCanCancelInto);
+            hash = HashCode.Combine(hash, RehitData, OpponentPositionData, CounterData, CommandNormalData, SpecialData, GroundMovementData, AirMovementData);
+            hash = HashCode.Combine(hash, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto, SpecialMoveCanCancelInto);
 
             return hash;
         }
@@ -104,7 +105,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                 {
                                                                                     if (objAsMoveData.SpecialData.Equals(SpecialData))
                                                                                     {
-                                                                                        return true;
+                                                                                        if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
+                                                                                        {
+                                                                                            return true;
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             }

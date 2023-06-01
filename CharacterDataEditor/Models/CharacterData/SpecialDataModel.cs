@@ -6,7 +6,6 @@ namespace CharacterDataEditor.Models.CharacterData
     public class SpecialDataModel
     {
         public int NumpadInput { get; set; } = 0;
-        public bool ButtonPressRequired { get; set; } = false;
         public int StartingFrame { get; set; } = 0;
         public int EndingFrame { get; set; } = 0;
         public SpecialMoveType EnhancementMove { get; set; } = SpecialMoveType.EnhancedNeutral;
@@ -15,7 +14,7 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(NumpadInput, ButtonPressRequired, StartingFrame, EndingFrame, EnhancementMove, TransitionImmediately, TransitionFrame);
+            var hash = HashCode.Combine(NumpadInput, StartingFrame, EndingFrame, EnhancementMove, TransitionImmediately, TransitionFrame);
 
             return hash;
         }
@@ -36,20 +35,17 @@ namespace CharacterDataEditor.Models.CharacterData
 
             if (objAsSpecialData.NumpadInput == NumpadInput)
             {
-                if (objAsSpecialData.ButtonPressRequired == ButtonPressRequired)
+                if (objAsSpecialData.StartingFrame == StartingFrame)
                 {
-                    if (objAsSpecialData.StartingFrame == StartingFrame)
+                    if (objAsSpecialData.EndingFrame == EndingFrame)
                     {
-                        if (objAsSpecialData.EndingFrame == EndingFrame)
+                        if (objAsSpecialData.EnhancementMove == EnhancementMove)
                         {
-                            if (objAsSpecialData.EnhancementMove == EnhancementMove)
+                            if (objAsSpecialData.TransitionImmediately == TransitionImmediately)
                             {
-                                if (objAsSpecialData.TransitionImmediately == TransitionImmediately)
+                                if (objAsSpecialData.TransitionFrame == TransitionFrame)
                                 {
-                                    if (objAsSpecialData.TransitionFrame == TransitionFrame)
-                                    {
-                                        return true;
-                                    }
+                                    return true;
                                 }
                             }
                         }
