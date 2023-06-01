@@ -487,13 +487,7 @@ namespace CharacterDataEditor.Screens
                 }
 
                 // Select what moves to cancel into
-                if (moveInEditor.SpecialMoveType != SpecialMoveType.None)
-                {
-                    var moveCancel = moveInEditor.SpecialMoveCanCancelInto;
-                    ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
-                    moveInEditor.SpecialMoveCanCancelInto = moveCancel;
-                }
-                else
+                if (moveInEditor.SpecialMoveType == SpecialMoveType.None)
                 {
                     var moveCancel = moveInEditor.MoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
@@ -829,7 +823,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || Enum.IsDefined(typeof(SpecialMoveType), moveInEditor.SpecialMoveType))
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
-                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount);
+                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
 
                         if (enhancementCount < moveInEditor.NumberOfEnhancements)
                         {
@@ -866,7 +860,7 @@ namespace CharacterDataEditor.Screens
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
-                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput);
+                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput, int.MinValue, null, "For rekka follow-ups, you can also use single directions (like 8 or 2).");
                                     ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
