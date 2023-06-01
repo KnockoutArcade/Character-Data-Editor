@@ -12,8 +12,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public string UID { get; set; } = Guid.NewGuid().ToString();
         public MoveType MoveType { get; set; } = MoveType.None;
         public MoveType MoveCanCancelInto { get; set; } = MoveType.None;
-        public SpecialMoveType SpecialMoveType { get; set; } = SpecialMoveType.None;
-        public SpecialMoveType SpecialMoveCanCancelInto { get; set; } = SpecialMoveType.None;
+        public EnhanceMoveType EnhanceMoveType { get; set; } = EnhanceMoveType.None;
+        public EnhanceMoveType EnhanceMoveCanCancelInto { get; set; } = EnhanceMoveType.None;
         public string SpriteName { get; set; } = string.Empty;
         public int Duration { get; set; } = 0;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
@@ -46,9 +46,9 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(UID, MoveType, SpecialMoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData);
+            var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData);
             hash = HashCode.Combine(hash, RehitData, OpponentPositionData, CounterData, CommandNormalData, SpecialData, GroundMovementData, AirMovementData);
-            hash = HashCode.Combine(hash, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto, SpecialMoveCanCancelInto);
+            hash = HashCode.Combine(hash, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto, EnhanceMoveCanCancelInto);
 
             return hash;
         }
@@ -71,7 +71,7 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsMoveData.MoveType == MoveType)
                 {
-                    if (objAsMoveData.SpecialMoveType == SpecialMoveType)
+                    if (objAsMoveData.EnhanceMoveType == EnhanceMoveType)
                     {
                         if (objAsMoveData.SpriteName == SpriteName)
                         {
@@ -101,7 +101,7 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                         {
                                                                             if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
                                                                             {
-                                                                                if (objAsMoveData.SpecialMoveCanCancelInto.Equals(SpecialMoveCanCancelInto))
+                                                                                if (objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto))
                                                                                 {
                                                                                     if (objAsMoveData.SpecialData.Equals(SpecialData))
                                                                                     {

@@ -3,7 +3,7 @@
 namespace CharacterDataEditor.Enums
 {
     [Flags]
-    public enum SpecialMoveType
+    public enum EnhanceMoveType
     {
         None = 0x000000,
         EnhancedNeutral = 0x000001,

@@ -123,7 +123,7 @@ namespace CharacterDataEditor.Screens
 
             var moveTypes = Enum.GetValues(typeof(MoveType));
             moveTypesList = new List<string>();
-            var specialMoveTypes = Enum.GetValues(typeof(SpecialMoveType));
+            var specialMoveTypes = Enum.GetValues(typeof(EnhanceMoveType));
             specialMoveTypesList = new List<string>();
             allMoveTypesList = new List<string>();
 
@@ -133,7 +133,7 @@ namespace CharacterDataEditor.Screens
 
                 moveTypesList.Add(itemAsString);
             }
-            foreach (SpecialMoveType item in specialMoveTypes)
+            foreach (EnhanceMoveType item in specialMoveTypes)
             {
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
@@ -468,9 +468,9 @@ namespace CharacterDataEditor.Screens
                     var moveTypeName = moveInEditor.MoveType.ToString();
                     allMoveTypesListIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
                 }
-                else if (moveInEditor.SpecialMoveType != SpecialMoveType.None)
+                else if (moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
                 {
-                    var moveTypeName = moveInEditor.SpecialMoveType.ToString();
+                    var moveTypeName = moveInEditor.EnhanceMoveType.ToString();
                     allMoveTypesListIndex = specialMoveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase()) + moveTypesList.Count - 1;
                 }
                 ImguiDrawingHelper.DrawComboInput("moveType", allMoves, ref allMoveTypesListIndex);
@@ -478,20 +478,20 @@ namespace CharacterDataEditor.Screens
                 if (allMoveTypesListIndex < moveTypesList.Count)
                 {
                     moveInEditor.MoveType = (MoveType)Enum.Parse(typeof(MoveType), selectedMoveTypeName.ToCamelCase());
-                    moveInEditor.SpecialMoveType = SpecialMoveType.None;
+                    moveInEditor.EnhanceMoveType = EnhanceMoveType.None;
                 }
                 else
                 {
-                    moveInEditor.SpecialMoveType = (SpecialMoveType)Enum.Parse(typeof(SpecialMoveType), selectedMoveTypeName.ToCamelCase());
+                    moveInEditor.EnhanceMoveType = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedMoveTypeName.ToCamelCase());
                     moveInEditor.MoveType = MoveType.None;
                 }
 
                 // Select what moves to cancel into
-                if (moveInEditor.SpecialMoveType != SpecialMoveType.None)
+                if (moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
                 {
-                    var moveCancel = moveInEditor.SpecialMoveCanCancelInto;
+                    var moveCancel = moveInEditor.EnhanceMoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
-                    moveInEditor.SpecialMoveCanCancelInto = moveCancel;
+                    moveInEditor.EnhanceMoveCanCancelInto = moveCancel;
                 }
                 else
                 {
@@ -880,7 +880,7 @@ namespace CharacterDataEditor.Screens
                 if (ImGui.CollapsingHeader("Special Data"))
                 {
                     if (moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
-                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.SpecialMoveType != SpecialMoveType.None)
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
                         ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
@@ -920,7 +920,7 @@ namespace CharacterDataEditor.Screens
                                     bool buttonPressRequired = specialDataItem.ButtonPressRequired;
                                     int startingFrame = specialDataItem.StartingFrame;
                                     int endingFrame = specialDataItem.EndingFrame;
-                                    SpecialMoveType enhancementMove = specialDataItem.EnhancementMove;
+                                    EnhanceMoveType enhancementMove = specialDataItem.EnhancementMove;
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
@@ -933,7 +933,7 @@ namespace CharacterDataEditor.Screens
                                     int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
                                     ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
                                     var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
-                                    enhancementMove = (SpecialMoveType)Enum.Parse(typeof(SpecialMoveType), selectedEnhancementName.ToCamelCase());
+                                    enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
 
                                     ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
 
@@ -1800,7 +1800,7 @@ namespace CharacterDataEditor.Screens
                             string moveString = "";
                             if (character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase() == "None")
                             {
-                                moveString = character.MoveData[i].SpecialMoveType.ToString().AddSpacesToCamelCase();
+                                moveString = character.MoveData[i].EnhanceMoveType.ToString().AddSpacesToCamelCase();
                             }
                             else
                             {
