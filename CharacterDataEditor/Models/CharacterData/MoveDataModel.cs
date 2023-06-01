@@ -12,6 +12,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public string UID { get; set; } = Guid.NewGuid().ToString();
         public MoveType MoveType { get; set; } = MoveType.None;
         public MoveType MoveCanCancelInto { get; set; } = MoveType.None;
+        public SpecialMoveType SpecialMoveType { get; set; } = SpecialMoveType.None;
+        public SpecialMoveType SpecialMoveCanCancelInto { get; set; } = SpecialMoveType.None;
         public string SpriteName { get; set; } = string.Empty;
         public int Duration { get; set; } = 0;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
@@ -43,9 +45,9 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
-            hash = HashCode.Combine(hash, OpponentPositionData, CounterData, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration);
-            hash = HashCode.Combine(hash, ProjectileData, MoveCanCancelInto);
+            var hash = HashCode.Combine(UID, MoveType, SpecialMoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData);
+            hash = HashCode.Combine(hash, RehitData, OpponentPositionData, CounterData, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript);
+            hash = HashCode.Combine(hash, Duration, ProjectileData, MoveCanCancelInto, SpecialMoveCanCancelInto);
 
             return hash;
         }
@@ -68,37 +70,43 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsMoveData.MoveType == MoveType)
                 {
-                    if (objAsMoveData.SpriteName == SpriteName)
+                    if (objAsMoveData.SpecialMoveType == SpecialMoveType)
                     {
-                        if (objAsMoveData.FrameData.SequenceEqual(FrameData))
+                        if (objAsMoveData.SpriteName == SpriteName)
                         {
-                            if (objAsMoveData.AttackData.SequenceEqual(AttackData))
+                            if (objAsMoveData.FrameData.SequenceEqual(FrameData))
                             {
-                                if (objAsMoveData.IsThrow == IsThrow)
+                                if (objAsMoveData.AttackData.SequenceEqual(AttackData))
                                 {
-                                    if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
+                                    if (objAsMoveData.IsThrow == IsThrow)
                                     {
-                                        if (objAsMoveData.OpponentPositionData.Equals(OpponentPositionData))
+                                        if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
                                         {
-                                            if (objAsMoveData.RehitData.Equals(RehitData))
+                                            if (objAsMoveData.OpponentPositionData.Equals(OpponentPositionData))
                                             {
-                                                if (objAsMoveData.GroundMovementData.Equals(GroundMovementData))
+                                                if (objAsMoveData.RehitData.Equals(RehitData))
                                                 {
-                                                    if (objAsMoveData.AirMovementData.Equals(AirMovementData))
+                                                    if (objAsMoveData.GroundMovementData.Equals(GroundMovementData))
                                                     {
-                                                        if (objAsMoveData.CounterData.SequenceEqual(CounterData))
+                                                        if (objAsMoveData.AirMovementData.Equals(AirMovementData))
                                                         {
-                                                            if (objAsMoveData.Duration.Equals(Duration))
+                                                            if (objAsMoveData.CounterData.SequenceEqual(CounterData))
                                                             {
-                                                                if (objAsMoveData.SupplimentaryScript.Equals(SupplimentaryScript))
+                                                                if (objAsMoveData.Duration.Equals(Duration))
                                                                 {
-                                                                    if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
+                                                                    if (objAsMoveData.SupplimentaryScript.Equals(SupplimentaryScript))
                                                                     {
-                                                                        if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
+                                                                        if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
                                                                         {
-                                                                            if (objAsMoveData.SpecialData.Equals(SpecialData))
+                                                                            if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
                                                                             {
-                                                                                return true;
+                                                                                if (objAsMoveData.SpecialMoveCanCancelInto.Equals(SpecialMoveCanCancelInto))
+                                                                                {
+                                                                                    if (objAsMoveData.SpecialData.Equals(SpecialData))
+                                                                                    {
+                                                                                        return true;
+                                                                                    }
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
