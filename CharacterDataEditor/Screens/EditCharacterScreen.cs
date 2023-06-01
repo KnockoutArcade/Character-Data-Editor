@@ -832,7 +832,7 @@ namespace CharacterDataEditor.Screens
                         bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
                         bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
 
-                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Keep this at 0 if a direction isn't required.");
+                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Enter in numpad notation. Keep this at 0 if a direction isn't required.");
                         // Makes sure the int is a valid input direction
                         if (numpadDirection > 9)
                         {
@@ -883,7 +883,11 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.SpecialMoveType != SpecialMoveType.None)
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
-                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount);
+                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
+                        if (enhancementCount < 0)
+                        {
+                            enhancementCount = 0;
+                        }
 
                         if (enhancementCount < moveInEditor.NumberOfEnhancements)
                         {
@@ -913,21 +917,23 @@ namespace CharacterDataEditor.Screens
                                 if (ImGui.TreeNode($"Enhancement [{i}]"))
                                 {
                                     int numpadInput = specialDataItem.NumpadInput;
+                                    bool buttonPressRequired = specialDataItem.ButtonPressRequired;
                                     int startingFrame = specialDataItem.StartingFrame;
                                     int endingFrame = specialDataItem.EndingFrame;
                                     SpecialMoveType enhancementMove = specialDataItem.EnhancementMove;
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
-                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput);
+                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput, int.MinValue, null, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
+                                    ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
 
                                     var enhancementName = enhancementMove.ToString();
-                                    int selectedEnhancementIndex = moveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
-                                    ImguiDrawingHelper.DrawComboInput("enhancementMove", moveTypesList.ToArray(), ref selectedEnhancementIndex);
-                                    var selectedEnhancementName = moveTypesList[selectedEnhancementIndex];
-                                    enhancementMove = (SpecialMoveType)Enum.Parse(typeof(MoveType), selectedEnhancementName.ToCamelCase());
+                                    int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                    ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                    var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
+                                    enhancementMove = (SpecialMoveType)Enum.Parse(typeof(SpecialMoveType), selectedEnhancementName.ToCamelCase());
 
                                     ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
 
@@ -941,6 +947,7 @@ namespace CharacterDataEditor.Screens
                                     }
 
                                     specialDataItem.NumpadInput = numpadInput;
+                                    specialDataItem.ButtonPressRequired = buttonPressRequired;
                                     specialDataItem.StartingFrame = startingFrame;
                                     specialDataItem.EndingFrame = endingFrame;
                                     specialDataItem.EnhancementMove = enhancementMove;
