@@ -329,10 +329,10 @@ namespace CharacterDataEditor.Screens
             switch (boxDrawMode)
             {
                 case BoxDrawMode.Hurtbox:
-                    boxDrawColor = Color.RED;
+                    boxDrawColor = Color.BLUE;
                     break;
                 case BoxDrawMode.Hitbox:
-                    boxDrawColor = Color.BLUE;
+                    boxDrawColor = Color.RED;
                     break;
                 case BoxDrawMode.None:
                 default:
