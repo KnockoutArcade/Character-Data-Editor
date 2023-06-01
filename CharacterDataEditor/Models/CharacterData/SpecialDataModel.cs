@@ -9,7 +9,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public bool ButtonPressRequired { get; set; } = false;
         public int StartingFrame { get; set; } = 0;
         public int EndingFrame { get; set; } = 0;
-        public SpecialMoveType EnhancementMove { get; set; } = SpecialMoveType.EnhancedNSpecial;
+        public SpecialMoveType EnhancementMove { get; set; } = SpecialMoveType.EnhancedNeutral;
         public bool TransitionImmediately { get; set; } = false;
         public int TransitionFrame { get; set; } = 0;
 

@@ -471,7 +471,7 @@ namespace CharacterDataEditor.Screens
                 else if (moveInEditor.SpecialMoveType != SpecialMoveType.None)
                 {
                     var moveTypeName = moveInEditor.SpecialMoveType.ToString();
-                    allMoveTypesListIndex = specialMoveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase()) + moveTypesList.Count;
+                    allMoveTypesListIndex = specialMoveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase()) + moveTypesList.Count - 1;
                 }
                 ImguiDrawingHelper.DrawComboInput("moveType", allMoves, ref allMoveTypesListIndex);
                 var selectedMoveTypeName = allMoveTypesList[allMoveTypesListIndex];
@@ -1738,6 +1738,15 @@ namespace CharacterDataEditor.Screens
                             var selected = character.MoveData[i] == moveInEditor;
                             var moveSpriteIndex = string.IsNullOrWhiteSpace(character.MoveData[i].SpriteName) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == character.MoveData[i].SpriteName));
                             var playingIndicator = moveSpriteIndex != -1 && spriteData == allSprites[moveSpriteIndex] ? "*" : "";
+                            string moveString = "";
+                            if (character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase() == "None")
+                            {
+                                moveString = character.MoveData[i].SpecialMoveType.ToString().AddSpacesToCamelCase();
+                            }
+                            else
+                            {
+                                moveString = character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase();
+                            }
 
                             if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                                 {
@@ -1753,7 +1762,7 @@ namespace CharacterDataEditor.Screens
                                 }, () =>
                                 {
                                     character.MoveData.Add(character.MoveData[i].GetDuplicate());
-                                }, $"{character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase()}{playingIndicator}", selected, i))
+                                }, $"{moveString}{playingIndicator}", selected, i))
                             {
                                 //if selected, unselect
                                 if (moveInEditor == character.MoveData[i])
