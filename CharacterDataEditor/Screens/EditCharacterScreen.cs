@@ -36,6 +36,9 @@ namespace CharacterDataEditor.Screens
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
+        private List<string> specialMoveTypesList = new List<string>();
+        private List<string> allMoveTypesList = new List<string>(); // Used for selecing the move type, combines both moveType enums
+        private int allMoveTypesListIndex;
         private List<string> attackTypesList = new List<string>();
         private List<string> spriteTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
@@ -120,6 +123,9 @@ namespace CharacterDataEditor.Screens
 
             var moveTypes = Enum.GetValues(typeof(MoveType));
             moveTypesList = new List<string>();
+            var specialMoveTypes = Enum.GetValues(typeof(SpecialMoveType));
+            specialMoveTypesList = new List<string>();
+            allMoveTypesList = new List<string>();
 
             foreach (MoveType item in moveTypes)
             {
@@ -127,6 +133,14 @@ namespace CharacterDataEditor.Screens
 
                 moveTypesList.Add(itemAsString);
             }
+            foreach (SpecialMoveType item in specialMoveTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                specialMoveTypesList.Add(itemAsString);
+            }
+            allMoveTypesList = moveTypesList.Concat(specialMoveTypesList).ToList();
+            allMoveTypesList.RemoveAt(moveTypesList.Count);
 
             var attackTypes = Enum.GetValues(typeof(AttackType));
             attackTypesList = new List<string>();
@@ -447,15 +461,44 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                var moveTypeName = moveInEditor.MoveType.ToString();
-                int selectedMoveTypeIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
-                ImguiDrawingHelper.DrawComboInput("moveType", moveTypesList.ToArray(), ref selectedMoveTypeIndex);
-                var selectedMoveTypeName = moveTypesList[selectedMoveTypeIndex];
-                moveInEditor.MoveType = (MoveType)Enum.Parse(typeof(MoveType), selectedMoveTypeName.ToCamelCase());
+                // Select the move
+                string[] allMoves = allMoveTypesList.ToArray();
+                if (moveInEditor.MoveType != MoveType.None)
+                {
+                    var moveTypeName = moveInEditor.MoveType.ToString();
+                    allMoveTypesListIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
+                }
+                else if (moveInEditor.SpecialMoveType != SpecialMoveType.None)
+                {
+                    var moveTypeName = moveInEditor.SpecialMoveType.ToString();
+                    allMoveTypesListIndex = specialMoveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase()) + moveTypesList.Count;
+                }
+                ImguiDrawingHelper.DrawComboInput("moveType", allMoves, ref allMoveTypesListIndex);
+                var selectedMoveTypeName = allMoveTypesList[allMoveTypesListIndex];
+                if (allMoveTypesListIndex < moveTypesList.Count)
+                {
+                    moveInEditor.MoveType = (MoveType)Enum.Parse(typeof(MoveType), selectedMoveTypeName.ToCamelCase());
+                    moveInEditor.SpecialMoveType = SpecialMoveType.None;
+                }
+                else
+                {
+                    moveInEditor.SpecialMoveType = (SpecialMoveType)Enum.Parse(typeof(SpecialMoveType), selectedMoveTypeName.ToCamelCase());
+                    moveInEditor.MoveType = MoveType.None;
+                }
 
-                var moveCancel = moveInEditor.MoveCanCancelInto;
-                ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
-                moveInEditor.MoveCanCancelInto = moveCancel;
+                // Select what moves to cancel into
+                if (moveInEditor.SpecialMoveType != SpecialMoveType.None)
+                {
+                    var moveCancel = moveInEditor.SpecialMoveCanCancelInto;
+                    ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
+                    moveInEditor.SpecialMoveCanCancelInto = moveCancel;
+                }
+                else
+                {
+                    var moveCancel = moveInEditor.MoveCanCancelInto;
+                    ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
+                    moveInEditor.MoveCanCancelInto = moveCancel;
+                }
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
@@ -465,7 +508,7 @@ namespace CharacterDataEditor.Screens
                 var selectedScriptIndex = scriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplimentaryScript)) : -1;
                 ImguiDrawingHelper.DrawComboInput("supplimentaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
                 moveInEditor.SupplimentaryScript = selectedScriptIndex != -1 ? allScripts[selectedScriptIndex].Name : string.Empty;
-                
+
                 if (selectedSpriteIndex > -1)
                 {
                     if (moveInEditor.SpriteName != allSprites[selectedSpriteIndex].Name)
@@ -783,7 +826,7 @@ namespace CharacterDataEditor.Screens
                 if (ImGui.CollapsingHeader("Special Data"))
                 {
                     if (moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
-                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial)
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || Enum.IsDefined(typeof(SpecialMoveType), moveInEditor.SpecialMoveType))
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
                         ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount);
@@ -819,7 +862,7 @@ namespace CharacterDataEditor.Screens
                                     bool buttonPressRequired = specialDataItem.ButtonPressRequired;
                                     int startingFrame = specialDataItem.StartingFrame;
                                     int endingFrame = specialDataItem.EndingFrame;
-                                    MoveType enhancementMove = specialDataItem.EnhancementMove;
+                                    SpecialMoveType enhancementMove = specialDataItem.EnhancementMove;
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
@@ -832,7 +875,7 @@ namespace CharacterDataEditor.Screens
                                     int selectedEnhancementIndex = moveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
                                     ImguiDrawingHelper.DrawComboInput("enhancementMove", moveTypesList.ToArray(), ref selectedEnhancementIndex);
                                     var selectedEnhancementName = moveTypesList[selectedEnhancementIndex];
-                                    enhancementMove = (MoveType)Enum.Parse(typeof(MoveType), selectedEnhancementName.ToCamelCase());
+                                    enhancementMove = (SpecialMoveType)Enum.Parse(typeof(MoveType), selectedEnhancementName.ToCamelCase());
 
                                     ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
 
