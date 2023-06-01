@@ -487,13 +487,7 @@ namespace CharacterDataEditor.Screens
                 }
 
                 // Select what moves to cancel into
-                if (moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
-                {
-                    var moveCancel = moveInEditor.EnhanceMoveCanCancelInto;
-                    ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
-                    moveInEditor.EnhanceMoveCanCancelInto = moveCancel;
-                }
-                else
+                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None)
                 {
                     var moveCancel = moveInEditor.MoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
@@ -832,7 +826,7 @@ namespace CharacterDataEditor.Screens
                         bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
                         bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
 
-                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Enter in numpad notation. Keep this at 0 if a direction isn't required.");
+                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Enter in numpad notation.");
                         // Makes sure the int is a valid input direction
                         if (numpadDirection > 9)
                         {
@@ -1599,6 +1593,8 @@ namespace CharacterDataEditor.Screens
 
             if (ImGui.Begin("Character Properties", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
             {
+                int idleIndex = 0; // This variable is used for changing the sprite back to the idle animation when deleting a move to prevent crashing
+
                 ImGui.SetWindowFontScale(scale);
                 if (ImGui.CollapsingHeader("Character Data", ImGuiTreeNodeFlags.DefaultOpen))
                 {
@@ -1770,6 +1766,8 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.Launched = launchedSelected != -1 ? allSprites[launchedSelected].Name : string.Empty;
                     character.CharacterSprites.Knockdown = knockdownSelected != -1 ? allSprites[knockdownSelected].Name : string.Empty;
                     character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
+
+                    idleIndex = idleSelected;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -1838,6 +1836,7 @@ namespace CharacterDataEditor.Screens
 
                                 //remove it here
                                 character.MoveData.RemoveAt(i);
+                                ChangeAnimatedSprite(allSprites[idleIndex], false); // Changes the sprite upon move deletion to prevent crashing
                             }
                         }
                     }
