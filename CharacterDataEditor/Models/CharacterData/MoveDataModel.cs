@@ -19,6 +19,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
         public List<AttackDataModel> AttackData { get; set; } = new List<AttackDataModel>();
         public List<CounterHitDataModel> CounterData { get; set; } = new List<CounterHitDataModel>();
+        public int NumberOfEnhancements { get { return SpecialData?.Count ?? 0; } }
+        public List<SpecialDataModel> SpecialData { get; set; } = new List<SpecialDataModel>();
         public bool IsThrow { get; set; } = false;
         public OpponentPositionDataModel OpponentPositionData { get; set; } = new OpponentPositionDataModel();
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
@@ -42,8 +44,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(UID, MoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData, RehitData);
-            hash = HashCode.Combine(hash, OpponentPositionData, CounterData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData);
-            hash = HashCode.Combine(hash, MoveCanCancelInto);
+            hash = HashCode.Combine(hash, OpponentPositionData, CounterData, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration);
+            hash = HashCode.Combine(hash, ProjectileData, MoveCanCancelInto);
 
             return hash;
         }
@@ -94,7 +96,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                     {
                                                                         if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
                                                                         {
-                                                                            return true;
+                                                                            if (objAsMoveData.SpecialData.Equals(SpecialData))
+                                                                            {
+                                                                                return true;
+                                                                            }
                                                                         }
                                                                     }
                                                                 }

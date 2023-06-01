@@ -484,6 +484,7 @@ namespace CharacterDataEditor.Screens
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
                 moveInEditor.IsThrow = isThrow;
 
+                // Windows dropdown
                 if (ImGui.CollapsingHeader("Windows"))
                 {
                     int windowCount = moveInEditor.NumberOfFrames;
@@ -542,6 +543,7 @@ namespace CharacterDataEditor.Screens
                     character.MoveData = new List<MoveDataModel>();
                 }
 
+                // Attack Properties dropdown
                 if (ImGui.CollapsingHeader("Attack Properties"))
                 {
                     int hitboxCount = moveInEditor.NumberOfHitboxes;
@@ -688,6 +690,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Counter Hit Data dropdown
                 if (ImGui.CollapsingHeader("Counter Hit Data"))
                 {
                     if (moveInEditor.NumberOfHitboxes == 0)
@@ -776,6 +779,91 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Special Data dropdown
+                if (ImGui.CollapsingHeader("Special Data"))
+                {
+                    if (moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial)
+                    {
+                        int enhancementCount = moveInEditor.NumberOfEnhancements;
+                        string[] number = { 0.ToString(), 1.ToString(), 2.ToString() };
+                        ImguiDrawingHelper.DrawComboInput("numberOfEnhancements", number, ref enhancementCount);
+
+                        if (enhancementCount < moveInEditor.NumberOfEnhancements)
+                        {
+                            while (enhancementCount < moveInEditor.NumberOfEnhancements)
+                            {
+                                moveInEditor.SpecialData.RemoveAt(moveInEditor.NumberOfEnhancements - 1);
+                            }
+                        }
+                        else
+                        {
+                            while (enhancementCount > moveInEditor.NumberOfEnhancements)
+                            {
+                                moveInEditor.SpecialData.Add(new SpecialDataModel());
+                            }
+                        }
+
+                        if (enhancementCount == 0)
+                        {
+                            ImGui.Text("No enhancements");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < moveInEditor.NumberOfEnhancements; i++)
+                            {
+                                var specialDataItem = moveInEditor.SpecialData[i];
+
+                                if (ImGui.TreeNode($"Enhancement [{i}]"))
+                                {
+                                    int numpadInput = specialDataItem.NumpadInput;
+                                    int startingFrame = specialDataItem.StartingFrame;
+                                    int endingFrame = specialDataItem.EndingFrame;
+                                    MoveType enhancementMove = specialDataItem.EnhancementMove;
+                                    bool transitionImmediately = specialDataItem.TransitionImmediately;
+                                    int transitionFrame = specialDataItem.TransitionFrame;
+
+                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput);
+                                    ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
+                                    ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
+
+                                    var enhancementName = enhancementMove.ToString();
+                                    int selectedEnhancementIndex = moveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                    ImguiDrawingHelper.DrawComboInput("enhancementMove", moveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                    var selectedEnhancementName = moveTypesList[selectedEnhancementIndex];
+                                    enhancementMove = (MoveType)Enum.Parse(typeof(MoveType), selectedEnhancementName.ToCamelCase());
+
+                                    ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
+
+                                    if (!transitionImmediately)
+                                    {
+                                        ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                    }
+                                    else
+                                    {
+                                        transitionFrame = 0;
+                                    }
+
+                                    specialDataItem.NumpadInput = numpadInput;
+                                    specialDataItem.StartingFrame = startingFrame;
+                                    specialDataItem.EndingFrame = endingFrame;
+                                    specialDataItem.EnhancementMove = enhancementMove;
+                                    specialDataItem.TransitionImmediately = transitionImmediately;
+                                    specialDataItem.TransitionFrame = transitionFrame;
+
+
+                                    ImGui.TreePop();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text("Not a special move");
+                    }
+                }
+
+                // Rehit Data dropdown
                 if (ImGui.CollapsingHeader("Rehit Data"))
                 {
                     int rehitHitbox = moveInEditor.RehitData.HitBox;
@@ -905,6 +993,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Projectile Data dropdown
                 if (!isThrow && ImGui.CollapsingHeader("Projectile Data"))
                 {
                     int projectileCount = moveInEditor.NumberOfProjectiles;
@@ -966,6 +1055,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Hurtboxes dropdown
                 if (ImGui.CollapsingHeader("Hurtboxes"))
                 {
                     int hurtboxCount = moveInEditor.NumberOfHurtboxes;
@@ -1038,6 +1128,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Air movement data
                 if (ImGui.CollapsingHeader("Air Movement Data"))
                 {
                     int movementDataCount = moveInEditor.AirMovementData.NumberOfWindows;
@@ -1108,6 +1199,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Ground Movement Data dropdown
                 if (ImGui.CollapsingHeader("Ground Movement Data"))
                 {
                     int movementDataCount = moveInEditor.GroundMovementData.NumberOfWindows;
