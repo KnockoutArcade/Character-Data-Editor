@@ -962,7 +962,8 @@ namespace CharacterDataEditor.Screens
                     if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
                     {
                         int numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
-                        int button = moveInEditor.CommandNormalData.Button;
+                        //TODO: Make this better please
+                        int button = (int)moveInEditor.CommandNormalData.Button;
                         bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
                         bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
 
@@ -998,7 +999,8 @@ namespace CharacterDataEditor.Screens
                         }
 
                         moveInEditor.CommandNormalData.NumpadDirection = numpadDirection;
-                        moveInEditor.CommandNormalData.Button = button;
+                        //TODO: Make this better, please
+                        moveInEditor.CommandNormalData.Button = (CommandButton)button;
                         moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
                         moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
 
