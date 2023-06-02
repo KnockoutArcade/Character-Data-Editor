@@ -25,6 +25,13 @@
     <None Remove="Resources\logo.png" />
     <None Remove="Resources\Pause.png" />
     <None Remove="Resources\Play.png" />
+    <None Remove="Resources\ShowHitboxes.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\ShowHitboxes.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

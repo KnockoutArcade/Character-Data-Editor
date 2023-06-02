@@ -32,7 +32,7 @@ namespace CharacterDataEditor.Screens
         private Texture2D pauseButtonTexture;
         private Texture2D advanceOneFrameForwardTexture;
         private Texture2D advanceOneFrameBackTexture;
-        private Texture2D showHitboxesFeature;
+        private Texture2D showHitboxesTexture;
 
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
@@ -122,6 +122,7 @@ namespace CharacterDataEditor.Screens
             pauseButtonTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.PauseButtonPath));
             advanceOneFrameForwardTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameButtonPath));
             advanceOneFrameBackTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameBackButtonPath));
+            showHitboxesTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.ShowHitboxes));
 
             spriteDrawer = new SpriteDrawingHelper();
             frameCounter = 0;
@@ -335,20 +336,8 @@ namespace CharacterDataEditor.Screens
 
         private void RenderHitHurtBox(float scale)
         {
-            Color boxDrawColor;
-
-            switch (boxDrawMode)
-            {
-                case BoxDrawMode.Hurtbox:
-                    boxDrawColor = Color.BLUE;
-                    break;
-                case BoxDrawMode.Hitbox:
-                    boxDrawColor = Color.RED;
-                    break;
-                case BoxDrawMode.None:
-                default:
-                    return;
-            }
+            Color hitboxDrawColor = Color.RED;
+            Color hurtboxDrawColor = Color.BLUE;
 
             var spriteFinalScale = spriteDrawData.ScaledDrawSize.X / spriteData.Width;
 
@@ -381,7 +370,7 @@ namespace CharacterDataEditor.Screens
                 finalHeight);
             
             //draw the box
-            Raylib.DrawRectangleLinesEx(destRect, 3.0f, boxDrawColor);
+            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
         }
 
         private void RenderPaletteWindow(float scale)
@@ -1608,6 +1597,13 @@ namespace CharacterDataEditor.Screens
                 {
                     animationPaused = true;
                     frameAdvance = FrameAdvance.Forward;
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.ImageButton("##Show", (IntPtr)showHitboxesTexture.id, imageButtonSize))
+                {
+                    
                 }
 
                 ImGui.End();
