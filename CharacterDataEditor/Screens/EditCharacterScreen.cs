@@ -1538,7 +1538,7 @@ namespace CharacterDataEditor.Screens
                 var currentAnimationSpeed = spriteData != null ? spriteData.Sequence.playbackSpeed : 0.0f;
 
                 //160 * screenManager.ScreenScale
-                var cursorPos = new Vector2(0, spriteDrawPosition.Y + (screenManager.ScreenScale * 200));
+                var cursorPos = new Vector2(0, spriteDrawPosition.Y + (screenManager.ScreenScale * 180));
                 ImGui.SetCursorPos(cursorPos);
 
                 var currentAnimationSpeedLabel =

@@ -198,19 +198,23 @@ namespace CharacterDataEditor.Helpers
                 if (data.FrameAdvance == FrameAdvance.Forward)
                 {
                     currentAnimationFrame++;
+                    currentTotalFrame++;
 
                     if (currentAnimationFrame >= data.SpriteData.Frames.Count())
                     {
                         currentAnimationFrame = 0;
+                        currentTotalFrame = 1;
                     }
                 }
                 else if (data.FrameAdvance == FrameAdvance.Backward)
                 {
                     currentAnimationFrame--;
+                    currentTotalFrame--;
 
                     if (currentAnimationFrame < 0)
                     {
                         currentAnimationFrame = data.SpriteData.Frames.Count() - 1;
+                        currentTotalFrame = data.SpriteData.Frames.Count();
                     }
                 }
             }
@@ -267,6 +271,7 @@ namespace CharacterDataEditor.Helpers
                     {
                         spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
                         currentAnimationFrame = 0;
+                        currentTotalFrame = 1;
                         frameCounter = 0;
                     }
                 }
@@ -278,6 +283,7 @@ namespace CharacterDataEditor.Helpers
                     {
                         previousSprite = currentSprite;
                         currentAnimationFrame = 0;
+                        currentTotalFrame = 1;
                         frameCounter = 0;
 
                         if (data.EnableFrameDataDraw)
@@ -292,7 +298,6 @@ namespace CharacterDataEditor.Helpers
                         spriteTextures = new List<LoadedTextureModel>();
 
                         //load all textures now...
-
                         var spriteDataPathFragments = data.SpriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
 
                         foreach (var sequenceItem in data.SpriteData.Sequence.tracks[0].keyframes.Frames)
@@ -343,10 +348,12 @@ namespace CharacterDataEditor.Helpers
                             }
 
                             currentAnimationFrame++;
+                            currentTotalFrame++;
 
                             if (currentAnimationFrame >= data.SpriteData.Frames.Count())
                             {
                                 currentAnimationFrame = 0;
+                                currentTotalFrame = 1;
 
                                 if (data.EnableFrameDataDraw)
                                 {
@@ -379,7 +386,6 @@ namespace CharacterDataEditor.Helpers
                         spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
                         currentAnimationFrame = 0;
                         currentTotalFrame = 1;
-                        frameCounter = 0;
                     }
                 }
                 else
@@ -390,21 +396,10 @@ namespace CharacterDataEditor.Helpers
                     {
                         previousSprite = currentSprite;
                         currentAnimationFrame = 0;
-                        frameCounter = 0;
-
-                        if (data.EnableFrameDataDraw)
-                        {
-                            nextFrameAdvance = data.FrameDrawData.GetFrameToDraw(frameCounter).Length;
-                        }
-                        else
-                        {
-                            nextFrameAdvance = (int)data.SpriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)data.SpriteData.Sequence.playbackSpeed;
-                        }
-                        frameCounter = 0;
+                        
                         spriteTextures = new List<LoadedTextureModel>();
 
                         //load all textures now...
-
                         var spriteDataPathFragments = data.SpriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
 
                         foreach (var sequenceItem in data.SpriteData.Sequence.tracks[0].keyframes.Frames)
