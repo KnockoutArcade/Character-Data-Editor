@@ -588,19 +588,19 @@ namespace CharacterDataEditor.Screens
 
                     // Fill windows list with animation frame indexes for each frame
                     int currentFrame = 0;
-                    int frameLength = 1;
+                    int frameLength = 0;
                     windows.Clear();
                     for (int i = 0; i < totalFrames; i++)
                     {
-                        frameLength++;
                         windows.Add(currentFrame);
+                        frameLength++;
 
                         var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
                         if (currentFrame < moveInEditor.FrameData.Count)
                         {
                             windowItem = moveInEditor.FrameData[currentFrame];
                         }
-                        if (frameLength > windowItem.Length)
+                        if (frameLength >= windowItem.Length - 2) // -2 is a cheap fix for a frame bug
                         {
                             currentFrame++;
                         }
@@ -1846,19 +1846,19 @@ namespace CharacterDataEditor.Screens
                                     // Fill windows list with animation frame indexes for each frame
                                     currentFrame = 0;
                                     int windowCurrentFrame = 0;
-                                    int frameLength = 1;
+                                    int frameLength = 0;
                                     windows.Clear();
                                     for (int i = 0; i < totalFrames; i++)
                                     {
-                                        frameLength++;
                                         windows.Add(windowCurrentFrame);
+                                        frameLength++;
 
                                         var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
                                         if (windowCurrentFrame < moveInEditor.FrameData.Count)
                                         {
                                             windowItem = moveInEditor.FrameData[windowCurrentFrame];
                                         }
-                                        if (frameLength > windowItem.Length)
+                                        if (frameLength >= windowItem.Length - 2) // -2 is a cheap fix for a frame bug
                                         {
                                             windowCurrentFrame++;
                                         }
