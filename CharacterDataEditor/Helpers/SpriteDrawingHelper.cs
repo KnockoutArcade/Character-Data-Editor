@@ -16,7 +16,7 @@ namespace CharacterDataEditor.Helpers
     public class SpriteDrawingHelper
     {
         private int currentAnimationFrame = 0;
-        private int currentTotalFrame = 0;
+        private int currentTotalFrame = 1;
         private int frameCounter = 0;
         private int nextFrameAdvance = 0;
         private string previousSprite = string.Empty;
@@ -219,27 +219,29 @@ namespace CharacterDataEditor.Helpers
                 if (resetAnimation)
                 {
                     currentAnimationFrame = 0;
-                    currentTotalFrame = 0;
+                    currentTotalFrame = 1;
                 }
 
                 if (data.FrameAdvance == FrameAdvance.Forward)
                 {
-                    currentAnimationFrame = windows[currentTotalFrame];
+                    currentAnimationFrame = windows[currentTotalFrame - 1];
                     currentTotalFrame++;
 
-                    if (currentTotalFrame >= totalFrames)
+                    if (currentTotalFrame > totalFrames)
                     {
-                        currentTotalFrame = 0;
+                        currentTotalFrame = 1;
+                        currentAnimationFrame = windows[currentTotalFrame - 1];
                     }
                 }
                 else if (data.FrameAdvance == FrameAdvance.Backward)
                 {
-                    currentAnimationFrame = windows[currentTotalFrame];
+                    currentAnimationFrame = windows[currentTotalFrame - 1];
                     currentTotalFrame--;
 
-                    if (currentTotalFrame < 0)
+                    if (currentTotalFrame <= 0)
                     {
-                        currentTotalFrame = totalFrames - 1;
+                        currentTotalFrame = totalFrames;
+                        currentAnimationFrame = windows[currentTotalFrame - 1];
                     }
                 }
             }
@@ -360,7 +362,7 @@ namespace CharacterDataEditor.Helpers
                 if (resetAnimation)
                 {
                     currentAnimationFrame = 0;
-                    currentTotalFrame = 0;
+                    currentTotalFrame = 1;
                     frameCounter = 0;
                 }
 
@@ -376,7 +378,7 @@ namespace CharacterDataEditor.Helpers
                     {
                         spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
                         currentAnimationFrame = 0;
-                        currentTotalFrame = 0;
+                        currentTotalFrame = 1;
                         frameCounter = 0;
                     }
                 }
@@ -452,12 +454,13 @@ namespace CharacterDataEditor.Helpers
                                 frameCounter = 0;
                             }
 
-                            currentAnimationFrame = windows[currentTotalFrame];
+                            currentAnimationFrame = windows[currentTotalFrame - 1];
                             currentTotalFrame++;
 
-                            if (currentTotalFrame >= totalFrames)
+                            if (currentTotalFrame > totalFrames)
                             {
-                                currentTotalFrame = 0;
+                                currentTotalFrame = 1;
+                                currentAnimationFrame = windows[currentTotalFrame - 1];
 
                                 if (data.EnableFrameDataDraw)
                                 {

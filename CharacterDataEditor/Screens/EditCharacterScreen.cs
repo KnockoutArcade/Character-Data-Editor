@@ -592,22 +592,17 @@ namespace CharacterDataEditor.Screens
                     windows.Clear();
                     for (int i = 0; i < totalFrames; i++)
                     {
-                        for (int j = 0; j < moveInEditor.FrameData.Count; j++)
-                        {
-                            var windowItem = moveInEditor.FrameData[j];
-                            if (windowItem.ImageIndex == currentFrame)
-                            {
-                                windowItem.Length = frameLength;
-                                break;
-                            }
-                        }
-
-                        frameLength--;
+                        frameLength++;
                         windows.Add(currentFrame);
-                        if (frameLength <= 0)
+
+                        var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                        if (currentFrame < moveInEditor.FrameData.Count)
+                        {
+                            windowItem = moveInEditor.FrameData[currentFrame];
+                        }
+                        if (frameLength > windowItem.Length)
                         {
                             currentFrame++;
-                            frameLength = 1;
                         }
                     }
                 }
@@ -1855,22 +1850,17 @@ namespace CharacterDataEditor.Screens
                                     windows.Clear();
                                     for (int i = 0; i < totalFrames; i++)
                                     {
-                                        for (int j = 0; j < moveInEditor.FrameData.Count; j++)
-                                        {
-                                            var windowItem = moveInEditor.FrameData[j];
-                                            if (windowItem.ImageIndex == windowCurrentFrame)
-                                            {
-                                                windowItem.Length = frameLength;
-                                                break;
-                                            }
-                                        }
-
-                                        frameLength--;
+                                        frameLength++;
                                         windows.Add(windowCurrentFrame);
-                                        if (frameLength <= 0)
+
+                                        var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                                        if (windowCurrentFrame < moveInEditor.FrameData.Count)
+                                        {
+                                            windowItem = moveInEditor.FrameData[windowCurrentFrame];
+                                        }
+                                        if (frameLength > windowItem.Length)
                                         {
                                             windowCurrentFrame++;
-                                            frameLength = 1;
                                         }
                                     }
                                     resetAnimation = true;
