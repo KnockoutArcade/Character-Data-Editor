@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CharacterDataEditor.Screens
 {
@@ -1869,6 +1870,10 @@ namespace CharacterDataEditor.Screens
                             var sprite = allSprites[selectedIndex];
                             ChangeAnimatedSprite(sprite);
                         }
+
+                        showingMove = false;
+                        totalFrames = 0;
+                        windows.Clear();
                     };
 
                     var changeAction = (int selectedIndex) =>
@@ -1883,22 +1888,22 @@ namespace CharacterDataEditor.Screens
                     string isPlaying(int index) =>
                         index != -1 && spriteData == allSprites[index] ? "*" : "";
 
-                    ImguiDrawingHelper.DrawSelectableComboInput($"idle{isPlaying(idleSelected)}", allSprites.Select(x => x.Name).ToArray(), ref idleSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"crouch{isPlaying(crouchSelected)}", allSprites.Select(x => x.Name).ToArray(), ref crouchSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"standBlock{isPlaying(standBlockSelected)}", allSprites.Select(x => x.Name).ToArray(), ref standBlockSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"crouchBlock{isPlaying(crouchBlockSelected)}", allSprites.Select(x => x.Name).ToArray(), ref crouchBlockSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"walkForward{isPlaying(walkForwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref walkForwardSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"walkBackward{isPlaying(walkBackwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref walkBackwardSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"runForward{isPlaying(runForwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref runForwardSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"runBackward{isPlaying(runBackwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref runBackwardSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"jumpSquat{isPlaying(jumpSquatSelected)}", allSprites.Select(x => x.Name).ToArray(), ref jumpSquatSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"jump{isPlaying(jumpSelected)}", allSprites.Select(x => x.Name).ToArray(), ref jumpSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"hurt{isPlaying(hurtSelected)}", allSprites.Select(x => x.Name).ToArray(), ref hurtSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"grab{isPlaying(grabSelected)}", allSprites.Select(x => x.Name).ToArray(), ref grabSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"hold{isPlaying(holdSelected)}", allSprites.Select(x => x.Name).ToArray(), ref holdSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"launched{isPlaying(launchedSelected)}", allSprites.Select(x => x.Name).ToArray(), ref launchedSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"knockDown{isPlaying(knockdownSelected)}", allSprites.Select(x => x.Name).ToArray(), ref knockdownSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"getUp{isPlaying(getUpSelected)}", allSprites.Select(x => x.Name).ToArray(), ref getUpSelected, selectionAction, changeAction, ref showingMove, ref totalFrames, ref windows);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"idle{isPlaying(idleSelected)}", allSprites.Select(x => x.Name).ToArray(), ref idleSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"crouch{isPlaying(crouchSelected)}", allSprites.Select(x => x.Name).ToArray(), ref crouchSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"standBlock{isPlaying(standBlockSelected)}", allSprites.Select(x => x.Name).ToArray(), ref standBlockSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"crouchBlock{isPlaying(crouchBlockSelected)}", allSprites.Select(x => x.Name).ToArray(), ref crouchBlockSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"walkForward{isPlaying(walkForwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref walkForwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"walkBackward{isPlaying(walkBackwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref walkBackwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"runForward{isPlaying(runForwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref runForwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"runBackward{isPlaying(runBackwardSelected)}", allSprites.Select(x => x.Name).ToArray(), ref runBackwardSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"jumpSquat{isPlaying(jumpSquatSelected)}", allSprites.Select(x => x.Name).ToArray(), ref jumpSquatSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"jump{isPlaying(jumpSelected)}", allSprites.Select(x => x.Name).ToArray(), ref jumpSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"hurt{isPlaying(hurtSelected)}", allSprites.Select(x => x.Name).ToArray(), ref hurtSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"grab{isPlaying(grabSelected)}", allSprites.Select(x => x.Name).ToArray(), ref grabSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"hold{isPlaying(holdSelected)}", allSprites.Select(x => x.Name).ToArray(), ref holdSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"launched{isPlaying(launchedSelected)}", allSprites.Select(x => x.Name).ToArray(), ref launchedSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"knockDown{isPlaying(knockdownSelected)}", allSprites.Select(x => x.Name).ToArray(), ref knockdownSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"getUp{isPlaying(getUpSelected)}", allSprites.Select(x => x.Name).ToArray(), ref getUpSelected, selectionAction, changeAction);
 
                     character.CharacterSprites.Idle = idleSelected != -1 ? allSprites[idleSelected].Name : string.Empty;
                     character.CharacterSprites.Crouch = crouchSelected != -1 ? allSprites[crouchSelected].Name : string.Empty;
