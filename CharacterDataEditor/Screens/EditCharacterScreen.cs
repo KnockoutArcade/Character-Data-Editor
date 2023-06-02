@@ -961,7 +961,7 @@ namespace CharacterDataEditor.Screens
                     if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
                     {
                         int numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
-                        string button = moveInEditor.CommandNormalData.Button;
+                        int button = moveInEditor.CommandNormalData.Button;
                         bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
                         bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
 
@@ -976,14 +976,14 @@ namespace CharacterDataEditor.Screens
                         var buttonIndex = 0;
                         for (int i = 0; i < buttons.Length; i++)
                         {
-                            if (buttons[i] == button)
+                            if (i + 1 == button)
                             {
                                 buttonIndex = i;
                                 break;
                             }
                         }
                         ImguiDrawingHelper.DrawComboInput("button", buttons, ref buttonIndex);
-                        button = buttons[buttonIndex];
+                        button = buttonIndex + 1;
 
                         ImguiDrawingHelper.DrawBoolInput("groundOrAir", ref groundOrAir, "Unchecked for ground, checked for air");
 
