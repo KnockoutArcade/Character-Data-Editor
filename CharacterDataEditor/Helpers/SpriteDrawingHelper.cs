@@ -430,43 +430,13 @@ namespace CharacterDataEditor.Helpers
 
                     if (!data.Flags.HasFlag(SpriteDrawFlags.Pause))
                     {
-                        frameCounter++;
+                        currentAnimationFrame = windows[currentTotalFrame - 1];
+                        currentTotalFrame++;
 
-                        if (frameCounter >= nextFrameAdvance)
+                        if (currentTotalFrame > totalFrames)
                         {
-                            if (data.EnableFrameDataDraw)
-                            {
-                                var frameDataToDraw = data.FrameDrawData.GetFrameToDraw(frameCounter);
-
-                                if (frameDataToDraw == null)
-                                {
-                                    var firstFrameData = data.FrameDrawData.OrderBy(x => x.ImageIndex).FirstOrDefault();
-
-                                    nextFrameAdvance = (firstFrameData == null) ? 1 : firstFrameData.Length;
-                                }
-                                else
-                                {
-                                    nextFrameAdvance = frameDataToDraw.Length;
-                                }
-                            }
-                            else
-                            {
-                                frameCounter = 0;
-                            }
-
+                            currentTotalFrame = 1;
                             currentAnimationFrame = windows[currentTotalFrame - 1];
-                            currentTotalFrame++;
-
-                            if (currentTotalFrame > totalFrames)
-                            {
-                                currentTotalFrame = 1;
-                                currentAnimationFrame = windows[currentTotalFrame - 1];
-
-                                if (data.EnableFrameDataDraw)
-                                {
-                                    frameCounter = 0;
-                                }
-                            }
                         }
                     }
                 }
