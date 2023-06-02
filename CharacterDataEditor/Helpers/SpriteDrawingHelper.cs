@@ -228,25 +228,21 @@ namespace CharacterDataEditor.Helpers
 
                 if (data.FrameAdvance == FrameAdvance.Forward)
                 {
-                    currentAnimationFrame = windows[currentTotalFrame - 1];
                     currentTotalFrame++;
-
                     if (currentTotalFrame > totalFrames)
                     {
                         currentTotalFrame = 1;
-                        currentAnimationFrame = windows[currentTotalFrame - 1];
                     }
+                    currentAnimationFrame = windows[currentTotalFrame - 1];
                 }
                 else if (data.FrameAdvance == FrameAdvance.Backward)
                 {
-                    currentAnimationFrame = windows[currentTotalFrame - 1];
                     currentTotalFrame--;
-
                     if (currentTotalFrame <= 0)
                     {
                         currentTotalFrame = totalFrames;
-                        currentAnimationFrame = windows[currentTotalFrame - 1];
                     }
+                    currentAnimationFrame = windows[currentTotalFrame - 1];
                 }
             }
 

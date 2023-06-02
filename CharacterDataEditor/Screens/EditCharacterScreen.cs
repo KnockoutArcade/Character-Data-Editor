@@ -707,7 +707,7 @@ namespace CharacterDataEditor.Screens
                         {
                             windowItem = moveInEditor.FrameData[currentFrame];
                         }
-                        if (frameLength >= windowItem.Length - 2) // -2 is a cheap fix for a frame bug
+                        if (frameLength >= windowItem.Length - 1)
                         {
                             currentFrame++;
                         }
@@ -1974,7 +1974,7 @@ namespace CharacterDataEditor.Screens
                                         {
                                             windowItem = moveInEditor.FrameData[windowCurrentFrame];
                                         }
-                                        if (frameLength >= windowItem.Length - 2) // -2 is a cheap fix for a frame bug
+                                        if (frameLength >= windowItem.Length - 1)
                                         {
                                             windowCurrentFrame++;
                                         }
