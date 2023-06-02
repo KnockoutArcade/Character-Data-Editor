@@ -351,141 +351,143 @@ namespace CharacterDataEditor.Screens
             switch (boxDrawMode)
             {
                 case BoxDrawMode.Both:
-
-                    hitboxRects.Clear();
-                    for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
+                    if (showingMove)
                     {
-                        hitboxRects.Add(new List<Rectangle>());
-
-                        var attackDataItem = moveInEditor.AttackData[i];
-
-                        hitboxRects[i].Clear();
-                        int tempLifetime = 0;
-                        for (int j = 0; j < totalFrames; j++)
+                        hurtboxRects.Clear();
+                        for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
                         {
-                            if (j == attackDataItem.Start)
-                            {
-                                tempLifetime = attackDataItem.Lifetime;
-                            }
+                            hurtboxRects.Add(new List<Rectangle>());
 
-                            if (tempLifetime <= 0)
+                            var attackDataItem = moveInEditor.HurtboxData[i];
+
+                            hurtboxRects[i].Clear();
+                            int tempLifetime = 0;
+                            for (int j = 0; j < totalFrames; j++)
                             {
-                                bool foundRehitHitbox = false;
-                                for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                if (j == attackDataItem.Start)
                                 {
-                                    if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
-                                    {
-                                        foundRehitHitbox = true;
-                                        break;
-                                    }
+                                    tempLifetime = attackDataItem.Lifetime;
                                 }
-                                if (foundRehitHitbox)
+
+                                if (tempLifetime <= 0)
                                 {
-                                    var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
-                                    hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                    hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
                                 }
                                 else
                                 {
-                                    hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                    hurtboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
                                 }
-                            }
-                            else
-                            {
-                                hitboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
-                            }
 
-                            tempLifetime--;
+                                tempLifetime--;
+                            }
+                            hurtboxRects[i].RemoveAt(0);
+                            hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                            //adjust height and width to triple then multiply by scale
+                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                            var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                            var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                            var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                            var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                            yDrawPos -= yOffsetAdjusted;
+                            xDrawPos += xOffsetAdjusted;
+
+                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                            var destRect = new Rectangle(
+                                xDrawPos,
+                                yDrawPos,
+                                finalWidth,
+                                finalHeight);
+
+                            // draw the hurtbox
+                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hurtboxDrawColor);
                         }
-                        hitboxRects[i].RemoveAt(0);
-                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
 
-                        //adjust height and width to triple then multiply by scale
-                        var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
-                        var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
-
-                        var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                        var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
-
-                        var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
-                        var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                        var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                        var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
-
-                        yDrawPos -= yOffsetAdjusted;
-                        xDrawPos += xOffsetAdjusted;
-
-                        yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
-
-                        if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+                        hitboxRects.Clear();
+                        for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
                         {
-                            xDrawPos += (0.5f * spriteFinalScale);
+                            hitboxRects.Add(new List<Rectangle>());
+
+                            var attackDataItem = moveInEditor.AttackData[i];
+
+                            hitboxRects[i].Clear();
+                            int tempLifetime = 0;
+                            for (int j = 0; j < totalFrames; j++)
+                            {
+                                if (j == attackDataItem.Start)
+                                {
+                                    tempLifetime = attackDataItem.Lifetime;
+                                }
+
+                                if (tempLifetime <= 0)
+                                {
+                                    bool foundRehitHitbox = false;
+                                    for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                    {
+                                        if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
+                                        {
+                                            foundRehitHitbox = true;
+                                            break;
+                                        }
+                                    }
+                                    if (foundRehitHitbox)
+                                    {
+                                        var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
+                                        hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                    }
+                                    else
+                                    {
+                                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                    }
+                                }
+                                else
+                                {
+                                    hitboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
+                                }
+
+                                tempLifetime--;
+                            }
+                            hitboxRects[i].RemoveAt(0);
+                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                            //adjust height and width to triple then multiply by scale
+                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                            var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                            var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                            var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                            var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                            yDrawPos -= yOffsetAdjusted;
+                            xDrawPos += xOffsetAdjusted;
+
+                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                            if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+                            {
+                                xDrawPos += (0.5f * spriteFinalScale);
+                            }
+
+                            var destRect = new Rectangle(
+                                xDrawPos,
+                                yDrawPos,
+                                finalWidth,
+                                finalHeight);
+
+                            // draw the hitbox
+                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
                         }
-
-                        var destRect = new Rectangle(
-                            xDrawPos,
-                            yDrawPos,
-                            finalWidth,
-                            finalHeight);
-
-                        // draw the hitbox
-                        Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
-                    }
-
-                    hurtboxRects.Clear();
-                    for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
-                    {
-                        hurtboxRects.Add(new List<Rectangle>());
-
-                        var attackDataItem = moveInEditor.HurtboxData[i];
-
-                        hurtboxRects[i].Clear();
-                        int tempLifetime = 0;
-                        for (int j = 0; j < totalFrames; j++)
-                        {
-                            if (j == attackDataItem.Start)
-                            {
-                                tempLifetime = attackDataItem.Lifetime;
-                            }
-
-                            if (tempLifetime <= 0)
-                            {
-                                hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-                            }
-                            else
-                            {
-                                hurtboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
-                            }
-
-                            tempLifetime--;
-                        }
-                        hurtboxRects[i].RemoveAt(0);
-                        hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-
-                        //adjust height and width to triple then multiply by scale
-                        var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
-                        var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
-
-                        var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                        var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
-
-                        var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
-                        var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                        var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                        var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
-
-                        yDrawPos -= yOffsetAdjusted;
-                        xDrawPos += xOffsetAdjusted;
-
-                        yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
-
-                        var destRect = new Rectangle(
-                            xDrawPos,
-                            yDrawPos,
-                            finalWidth,
-                            finalHeight);
-
-                        // draw the hurtbox
-                        Raylib.DrawRectangleLinesEx(destRect, 3.0f, hurtboxDrawColor);
                     }
                     break;
                 case BoxDrawMode.None:
@@ -1678,7 +1680,7 @@ namespace CharacterDataEditor.Screens
 
                 var imageButtonSize = new Vector2((advanceOneFrameBackTexture.width / 2) * scale, (advanceOneFrameBackTexture.height / 2) * scale);
 
-                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 3.75f, (315 * scale) - imageButtonSize.Y);
+                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 7.5f, (315 * scale) - imageButtonSize.Y);
 
                 ImGui.SetCursorPos(cursorPos);
 
