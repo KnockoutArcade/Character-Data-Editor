@@ -1,19 +1,14 @@
 ## What's Changed?
 
-### !!!Breaking Changes!!!
-
-* MoveType is now a ```flags``` type instead of standard enum, this will change how it works!
-
-### Other Changes
-
-* Theme selection and saving
-* Added Max HP to Character Data
-* Added move cancellation options to move data
-* Improved character data upgrade system
+* Added EnhanceMoveType enum for enhanced specials and rekkas.
+* Added SpecialData for special move data, such as motion inputs, starting and ending frames for the input window, etc.
+* Added CommandNormalData for command normal data, such as required direction, button, etc.
+* Fixed the move animations so they play at the proper speeds using each move's Window Data.
+* Changed the hitbox and hurtbox feature by adding a button to show them during runtime.
 
 ## Known Bugs
 
-* Hit and Hurt boxes disappear when adjusting values
+* None!
 
 ### Any other issues?
 
