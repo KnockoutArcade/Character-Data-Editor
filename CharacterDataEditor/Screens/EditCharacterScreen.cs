@@ -370,7 +370,24 @@ namespace CharacterDataEditor.Screens
 
                             if (tempLifetime <= 0)
                             {
-                                hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                bool foundRehitHitbox = false;
+                                for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                {
+                                    if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
+                                    {
+                                        foundRehitHitbox = true;
+                                        break;
+                                    }
+                                }
+                                if (foundRehitHitbox)
+                                {
+                                    var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
+                                    hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                }
+                                else
+                                {
+                                    hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                }
                             }
                             else
                             {
@@ -379,6 +396,8 @@ namespace CharacterDataEditor.Screens
 
                             tempLifetime--;
                         }
+                        hitboxRects[i].RemoveAt(0);
+                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
 
                         //adjust height and width to triple then multiply by scale
                         var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
@@ -439,6 +458,8 @@ namespace CharacterDataEditor.Screens
 
                             tempLifetime--;
                         }
+                        hurtboxRects[i].RemoveAt(0);
+                        hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
 
                         //adjust height and width to triple then multiply by scale
                         var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
