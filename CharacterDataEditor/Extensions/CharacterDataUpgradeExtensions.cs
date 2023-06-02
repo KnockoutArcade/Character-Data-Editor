@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CharacterDataEditor.Enums;
 using System;
+using SysIO = System.IO;
 
 namespace CharacterDataEditor.Extensions
 {
@@ -26,6 +27,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver110:
+                    return (originalCharacter as CharacterDataModel).Upgrade110to111();
                 case VersionConstants.Ver103:
                     return (originalCharacter as Ver103.CharacterDataModel).Upgrade103to110();
                 case VersionConstants.Ver102:
@@ -227,9 +230,28 @@ namespace CharacterDataEditor.Extensions
 
             newCharacter.Version = VersionConstants.Ver110;
 
-            return new UpgradeResults
+            return Upgrade110to111(newCharacter, new UpgradeResults
             {
                 UpgradedCharacterData = newCharacter,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade110to111(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            foreach (var move in previous.MoveData)
+            {
+                move.EnhanceMoveType = EnhanceMoveType.None;
+                move.EnhanceMoveCanCancelInto = EnhanceMoveType.None;
+                move.CommandNormalData = new CommandNormalDataModel();
+                move.SpecialData = new List<SpecialDataModel>();
+            }
+
+            return new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
