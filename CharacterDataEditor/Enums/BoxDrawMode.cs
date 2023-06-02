@@ -4,6 +4,7 @@
     {
         None = 0,
         Hurtbox = 1,
-        Hitbox = 2
+        Hitbox = 2,
+        Both = 3
     }
 }

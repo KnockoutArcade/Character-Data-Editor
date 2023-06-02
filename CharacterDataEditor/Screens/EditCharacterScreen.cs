@@ -9,10 +9,12 @@ using ImGuiNET;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CharacterDataEditor.Screens
 {
@@ -32,10 +34,14 @@ namespace CharacterDataEditor.Screens
         private Texture2D pauseButtonTexture;
         private Texture2D advanceOneFrameForwardTexture;
         private Texture2D advanceOneFrameBackTexture;
+        private Texture2D showHitboxesTexture;
 
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
+        private List<string> specialMoveTypesList = new List<string>();
+        private List<string> allMoveTypesList = new List<string>(); // Used for selecing the move type, combines both moveType enums
+        private int allMoveTypesListIndex;
         private List<string> attackTypesList = new List<string>();
         private List<string> spriteTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
@@ -55,12 +61,18 @@ namespace CharacterDataEditor.Screens
         private EditorMode editorMode;
         private BoxDrawMode boxDrawMode;
 
-        private Rectangle boxRect;
+        private List<List<Rectangle>> hitboxRects;
+        private List<List<Rectangle>> hurtboxRects;
+        private bool showHitHurtboxes;
 
         private int currentFrame;
+        private int totalFrames;
+        private List<int> windows;
+        private bool resetAnimation; // Resets the current animation in SpriteDrawingHelper whenever a different move is selected
+        private bool showingMove;
         private AnimatedSpriteReturnDataModel spriteDrawData;
 
-        private int frameCounter;
+        private int frameCounter; // This is used for checking unsaved work
         private bool unsaved;
         private bool exiting;
 
@@ -114,12 +126,16 @@ namespace CharacterDataEditor.Screens
             pauseButtonTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.PauseButtonPath));
             advanceOneFrameForwardTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameButtonPath));
             advanceOneFrameBackTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameBackButtonPath));
+            showHitboxesTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.ShowHitboxes));
 
             spriteDrawer = new SpriteDrawingHelper();
             frameCounter = 0;
 
             var moveTypes = Enum.GetValues(typeof(MoveType));
             moveTypesList = new List<string>();
+            var specialMoveTypes = Enum.GetValues(typeof(EnhanceMoveType));
+            specialMoveTypesList = new List<string>();
+            allMoveTypesList = new List<string>();
 
             foreach (MoveType item in moveTypes)
             {
@@ -127,6 +143,14 @@ namespace CharacterDataEditor.Screens
 
                 moveTypesList.Add(itemAsString);
             }
+            foreach (EnhanceMoveType item in specialMoveTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                specialMoveTypesList.Add(itemAsString);
+            }
+            allMoveTypesList = moveTypesList.Concat(specialMoveTypesList).ToList();
+            allMoveTypesList.RemoveAt(moveTypesList.Count);
 
             var attackTypes = Enum.GetValues(typeof(AttackType));
             attackTypesList = new List<string>();
@@ -152,8 +176,15 @@ namespace CharacterDataEditor.Screens
             spriteDrawPosition = new Vector2(0, 40);
 
             currentFrame = 0;
+            totalFrames = 0;
+            windows = new List<int>();
+            resetAnimation = false;
+            showingMove = false;
             frameAdvance = FrameAdvance.None;
             boxDrawMode = BoxDrawMode.None;
+            hitboxRects = new List<List<Rectangle>>();
+            hurtboxRects = new List<List<Rectangle>>();
+            showHitHurtboxes = false;
 
             editorWindowTitle = "Editor";
         }
@@ -279,10 +310,11 @@ namespace CharacterDataEditor.Screens
                     MaxDrawSize = maxSpriteSize,
                     FrameAdvance = frameAdvance,
                     Flags = animationFlags
-                });
+                }, showingMove, totalFrames, windows, resetAnimation);
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
+                resetAnimation = false;
 
                 frameAdvance = FrameAdvance.None;
             }
@@ -301,62 +333,167 @@ namespace CharacterDataEditor.Screens
                     Flags = animationFlags,
                     EnableFrameDataDraw = isMoveAnimationRender,
                     FrameDrawData = (isMoveAnimationRender) ? moveInEditor.FrameData : null
-                });
+                }, showingMove, totalFrames, windows, resetAnimation);
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
+                resetAnimation = false;
             }
         }
 
         private void RenderHitHurtBox(float scale)
         {
-            Color boxDrawColor;
-
-            switch (boxDrawMode)
-            {
-                case BoxDrawMode.Hurtbox:
-                    boxDrawColor = Color.RED;
-                    break;
-                case BoxDrawMode.Hitbox:
-                    boxDrawColor = Color.BLUE;
-                    break;
-                case BoxDrawMode.None:
-                default:
-                    return;
-            }
+            Color hitboxDrawColor = Color.RED;
+            Color hurtboxDrawColor = Color.BLUE;
 
             var spriteFinalScale = spriteDrawData.ScaledDrawSize.X / spriteData.Width;
 
-            //adjust height and width to triple then multiply by scale
-            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
-            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
-
-            var xOffsetAdjusted = boxRect.x * spriteFinalScale;
-            var yOffsetAdjusted = boxRect.y * spriteFinalScale;
-
-            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
-            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-            var finalWidth = boxRect.width * spriteFinalScale;
-            var finalHeight = boxRect.height * spriteFinalScale;
-
-            yDrawPos -= yOffsetAdjusted;
-            xDrawPos += xOffsetAdjusted;
-
-            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
-
-            if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
-            {
-                xDrawPos += (0.5f * spriteFinalScale);
-            }
-
-            var destRect = new Rectangle(
-                xDrawPos,
-                yDrawPos,
-                finalWidth, 
-                finalHeight);
-            
             //draw the box
-            Raylib.DrawRectangleLinesEx(destRect, 3.0f, boxDrawColor);
+            switch (boxDrawMode)
+            {
+                case BoxDrawMode.Both:
+                    if (showingMove)
+                    {
+                        hurtboxRects.Clear();
+                        for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
+                        {
+                            hurtboxRects.Add(new List<Rectangle>());
+
+                            var attackDataItem = moveInEditor.HurtboxData[i];
+
+                            hurtboxRects[i].Clear();
+                            int tempLifetime = 0;
+                            for (int j = 0; j < totalFrames; j++)
+                            {
+                                if (j == attackDataItem.Start)
+                                {
+                                    tempLifetime = attackDataItem.Lifetime;
+                                }
+
+                                if (tempLifetime <= 0)
+                                {
+                                    hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                }
+                                else
+                                {
+                                    hurtboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
+                                }
+
+                                tempLifetime--;
+                            }
+                            hurtboxRects[i].RemoveAt(0);
+                            hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                            //adjust height and width to triple then multiply by scale
+                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                            var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                            var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                            var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                            var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                            yDrawPos -= yOffsetAdjusted;
+                            xDrawPos += xOffsetAdjusted;
+
+                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                            var destRect = new Rectangle(
+                                xDrawPos,
+                                yDrawPos,
+                                finalWidth,
+                                finalHeight);
+
+                            // draw the hurtbox
+                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hurtboxDrawColor);
+                        }
+
+                        hitboxRects.Clear();
+                        for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
+                        {
+                            hitboxRects.Add(new List<Rectangle>());
+
+                            var attackDataItem = moveInEditor.AttackData[i];
+
+                            hitboxRects[i].Clear();
+                            int tempLifetime = 0;
+                            for (int j = 0; j < totalFrames; j++)
+                            {
+                                if (j == attackDataItem.Start)
+                                {
+                                    tempLifetime = attackDataItem.Lifetime;
+                                }
+
+                                if (tempLifetime <= 0)
+                                {
+                                    bool foundRehitHitbox = false;
+                                    for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                    {
+                                        if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
+                                        {
+                                            foundRehitHitbox = true;
+                                            break;
+                                        }
+                                    }
+                                    if (foundRehitHitbox)
+                                    {
+                                        var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
+                                        hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                    }
+                                    else
+                                    {
+                                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                    }
+                                }
+                                else
+                                {
+                                    hitboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
+                                }
+
+                                tempLifetime--;
+                            }
+                            hitboxRects[i].RemoveAt(0);
+                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                            //adjust height and width to triple then multiply by scale
+                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                            var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                            var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                            var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                            var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                            yDrawPos -= yOffsetAdjusted;
+                            xDrawPos += xOffsetAdjusted;
+
+                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                            if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+                            {
+                                xDrawPos += (0.5f * spriteFinalScale);
+                            }
+
+                            var destRect = new Rectangle(
+                                xDrawPos,
+                                yDrawPos,
+                                finalWidth,
+                                finalHeight);
+
+                            // draw the hitbox
+                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
+                        }
+                    }
+                    break;
+                case BoxDrawMode.None:
+                    break;
+            }
         }
 
         private void RenderPaletteWindow(float scale)
@@ -437,8 +574,6 @@ namespace CharacterDataEditor.Screens
 
         private void RenderMoveEditor(float scale)
         {
-            bool anyBoxRenderActive = false;
-
             editorWindowTitle = "Move Editor";
 
             if (moveInEditor == null)
@@ -447,15 +582,38 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                var moveTypeName = moveInEditor.MoveType.ToString();
-                int selectedMoveTypeIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
-                ImguiDrawingHelper.DrawComboInput("moveType", moveTypesList.ToArray(), ref selectedMoveTypeIndex);
-                var selectedMoveTypeName = moveTypesList[selectedMoveTypeIndex];
-                moveInEditor.MoveType = (MoveType)Enum.Parse(typeof(MoveType), selectedMoveTypeName.ToCamelCase());
+                // Select the move
+                string[] allMoves = allMoveTypesList.ToArray();
+                if (moveInEditor.MoveType != MoveType.None)
+                {
+                    var moveTypeName = moveInEditor.MoveType.ToString();
+                    allMoveTypesListIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
+                }
+                else if (moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
+                {
+                    var moveTypeName = moveInEditor.EnhanceMoveType.ToString();
+                    allMoveTypesListIndex = specialMoveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase()) + moveTypesList.Count - 1;
+                }
+                ImguiDrawingHelper.DrawComboInput("moveType", allMoves, ref allMoveTypesListIndex);
+                var selectedMoveTypeName = allMoveTypesList[allMoveTypesListIndex];
+                if (allMoveTypesListIndex < moveTypesList.Count)
+                {
+                    moveInEditor.MoveType = (MoveType)Enum.Parse(typeof(MoveType), selectedMoveTypeName.ToCamelCase());
+                    moveInEditor.EnhanceMoveType = EnhanceMoveType.None;
+                }
+                else
+                {
+                    moveInEditor.EnhanceMoveType = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedMoveTypeName.ToCamelCase());
+                    moveInEditor.MoveType = MoveType.None;
+                }
 
-                var moveCancel = moveInEditor.MoveCanCancelInto;
-                ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
-                moveInEditor.MoveCanCancelInto = moveCancel;
+                // Select what moves to cancel into
+                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None)
+                {
+                    var moveCancel = moveInEditor.MoveCanCancelInto;
+                    ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
+                    moveInEditor.MoveCanCancelInto = moveCancel;
+                }
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
@@ -465,7 +623,7 @@ namespace CharacterDataEditor.Screens
                 var selectedScriptIndex = scriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplimentaryScript)) : -1;
                 ImguiDrawingHelper.DrawComboInput("supplimentaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
                 moveInEditor.SupplimentaryScript = selectedScriptIndex != -1 ? allScripts[selectedScriptIndex].Name : string.Empty;
-                
+
                 if (selectedSpriteIndex > -1)
                 {
                     if (moveInEditor.SpriteName != allSprites[selectedSpriteIndex].Name)
@@ -479,11 +637,13 @@ namespace CharacterDataEditor.Screens
                 int moveDuration = moveInEditor.Duration;
                 ImguiDrawingHelper.DrawIntInput("moveDuration", ref moveDuration, 0);
                 moveInEditor.Duration = moveDuration;
+                totalFrames = moveDuration;
 
                 bool isThrow = moveInEditor.IsThrow;
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
                 moveInEditor.IsThrow = isThrow;
 
+                // Windows dropdown
                 if (ImGui.CollapsingHeader("Windows"))
                 {
                     int windowCount = moveInEditor.NumberOfFrames;
@@ -535,6 +695,26 @@ namespace CharacterDataEditor.Screens
                             }
                         }
                     }
+
+                    // Fill windows list with animation frame indexes for each frame
+                    int currentFrame = 0;
+                    int frameLength = 0;
+                    windows.Clear();
+                    for (int i = 0; i < totalFrames; i++)
+                    {
+                        windows.Add(currentFrame);
+                        frameLength++;
+
+                        var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                        if (currentFrame < moveInEditor.FrameData.Count)
+                        {
+                            windowItem = moveInEditor.FrameData[currentFrame];
+                        }
+                        if (frameLength >= windowItem.Length - 1)
+                        {
+                            currentFrame++;
+                        }
+                    }
                 }
 
                 if (character.MoveData == null)
@@ -542,11 +722,17 @@ namespace CharacterDataEditor.Screens
                     character.MoveData = new List<MoveDataModel>();
                 }
 
+                // Attack Properties dropdown
                 if (ImGui.CollapsingHeader("Attack Properties"))
                 {
                     int hitboxCount = moveInEditor.NumberOfHitboxes;
 
                     ImguiDrawingHelper.DrawIntInput("numberOfHitboxes", ref hitboxCount);
+                    hitboxRects.Clear();
+                    for (int i = 0; i < hitboxCount; i++)
+                    {
+                        hitboxRects.Add(new List<Rectangle>());
+                    }
 
                     if (hitboxCount < 0)
                     {
@@ -614,23 +800,16 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
                                 ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
-                                var wSelect = ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
-                                var hSelect = ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
-                                var xSelect = ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
-                                var ySelect = ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
+                                ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
+                                ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
+                                ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
+                                ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
                                 ImguiDrawingHelper.DrawIntInput("group", ref group);
                                 ImguiDrawingHelper.DrawIntInput("damage", ref damage);
                                 ImguiDrawingHelper.DrawDecimalInput("meterGain", ref meterGain);
                                 ImguiDrawingHelper.DrawDecimalInput("comboScaling", ref comboScaling);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStop", ref attackHitstop);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStun", ref attackHitstun);
-
-                                if (wSelect || hSelect || xSelect || ySelect)
-                                {
-                                    anyBoxRenderActive = true;
-                                    boxRect = new Rectangle(widthOffset, heightOffset, attackWidth, attackHeight);
-                                    boxDrawMode = BoxDrawMode.Hitbox;
-                                }
 
                                 int selectedAttackType = (int)attackType;
                                 ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
@@ -688,6 +867,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Counter Hit Data dropdown
                 if (ImGui.CollapsingHeader("Counter Hit Data"))
                 {
                     if (moveInEditor.NumberOfHitboxes == 0)
@@ -776,6 +956,153 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Command Normal dropdown
+                if (ImGui.CollapsingHeader("Command Normal Data"))
+                {
+                    if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
+                    {
+                        int numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
+                        //TODO: Make this better please
+                        int button = (int)moveInEditor.CommandNormalData.Button;
+                        bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
+                        bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
+
+                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Enter in numpad notation.");
+                        // Makes sure the int is a valid input direction
+                        if (numpadDirection > 9)
+                        {
+                            numpadDirection = 9;
+                        }
+
+                        string[] buttons = { "Light", "Medium", "Heavy" };
+                        var buttonIndex = 0;
+                        for (int i = 0; i < buttons.Length; i++)
+                        {
+                            if (i + 1 == button)
+                            {
+                                buttonIndex = i;
+                                break;
+                            }
+                        }
+                        ImguiDrawingHelper.DrawComboInput("button", buttons, ref buttonIndex);
+                        button = buttonIndex + 1;
+
+                        ImguiDrawingHelper.DrawBoolInput("groundOrAir", ref groundOrAir, "Unchecked for ground, checked for air");
+
+                        if (groundOrAir)
+                        {
+                            ImguiDrawingHelper.DrawBoolInput("cancelWhenLanding", ref cancelWhenLanding);
+                        }
+                        else
+                        {
+                            cancelWhenLanding = false;
+                        }
+
+                        moveInEditor.CommandNormalData.NumpadDirection = numpadDirection;
+                        //TODO: Make this better, please
+                        moveInEditor.CommandNormalData.Button = (CommandButton)button;
+                        moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
+                        moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
+
+
+                    }
+                    else
+                    {
+                        ImGui.Text("Not a command normal!");
+                    }
+                }
+
+                // Special Data dropdown
+                if (ImGui.CollapsingHeader("Special Data"))
+                {
+                    if (moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
+                    {
+                        int enhancementCount = moveInEditor.NumberOfEnhancements;
+                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
+                        if (enhancementCount < 0)
+                        {
+                            enhancementCount = 0;
+                        }
+
+                        if (enhancementCount < moveInEditor.NumberOfEnhancements)
+                        {
+                            while (enhancementCount < moveInEditor.NumberOfEnhancements)
+                            {
+                                moveInEditor.SpecialData.RemoveAt(moveInEditor.NumberOfEnhancements - 1);
+                            }
+                        }
+                        else
+                        {
+                            while (enhancementCount > moveInEditor.NumberOfEnhancements)
+                            {
+                                moveInEditor.SpecialData.Add(new SpecialDataModel());
+                            }
+                        }
+
+                        if (enhancementCount == 0)
+                        {
+                            ImGui.Text("No enhancements");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < moveInEditor.NumberOfEnhancements; i++)
+                            {
+                                var specialDataItem = moveInEditor.SpecialData[i];
+
+                                if (ImGui.TreeNode($"Enhancement [{i}]"))
+                                {
+                                    int numpadInput = specialDataItem.NumpadInput;
+                                    bool buttonPressRequired = specialDataItem.ButtonPressRequired;
+                                    int startingFrame = specialDataItem.StartingFrame;
+                                    int endingFrame = specialDataItem.EndingFrame;
+                                    EnhanceMoveType enhancementMove = specialDataItem.EnhancementMove;
+                                    bool transitionImmediately = specialDataItem.TransitionImmediately;
+                                    int transitionFrame = specialDataItem.TransitionFrame;
+
+                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput, int.MinValue, null, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
+                                    ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
+                                    ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
+                                    ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
+
+                                    var enhancementName = enhancementMove.ToString();
+                                    int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                    ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                    var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
+                                    enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
+
+                                    ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
+
+                                    if (!transitionImmediately)
+                                    {
+                                        ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                    }
+                                    else
+                                    {
+                                        transitionFrame = 0;
+                                    }
+
+                                    specialDataItem.NumpadInput = numpadInput;
+                                    specialDataItem.ButtonPressRequired = buttonPressRequired;
+                                    specialDataItem.StartingFrame = startingFrame;
+                                    specialDataItem.EndingFrame = endingFrame;
+                                    specialDataItem.EnhancementMove = enhancementMove;
+                                    specialDataItem.TransitionImmediately = transitionImmediately;
+                                    specialDataItem.TransitionFrame = transitionFrame;
+
+
+                                    ImGui.TreePop();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text("Not a special move!");
+                    }
+                }
+
+                // Rehit Data dropdown
                 if (ImGui.CollapsingHeader("Rehit Data"))
                 {
                     int rehitHitbox = moveInEditor.RehitData.HitBox;
@@ -828,6 +1155,7 @@ namespace CharacterDataEditor.Screens
                     moveInEditor.RehitData.HitBox = rehitHitbox;
                 }
 
+                // Opponent Position Data dropdown
                 if (isThrow && ImGui.CollapsingHeader("Opponent Position Data"))
                 {
                     float distanceFromWall = moveInEditor.OpponentPositionData.DistanceFromWall;
@@ -905,6 +1233,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Projectile Data dropdown
                 if (!isThrow && ImGui.CollapsingHeader("Projectile Data"))
                 {
                     int projectileCount = moveInEditor.NumberOfProjectiles;
@@ -966,11 +1295,17 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Hurtboxes dropdown
                 if (ImGui.CollapsingHeader("Hurtboxes"))
                 {
                     int hurtboxCount = moveInEditor.NumberOfHurtboxes;
 
                     ImguiDrawingHelper.DrawIntInput("numberOfHurtboxes", ref hurtboxCount);
+                    hurtboxRects.Clear();
+                    for (int i = 0; i < hurtboxCount; i++)
+                    {
+                        hurtboxRects.Add(new List<Rectangle>());
+                    }
 
                     if (hurtboxCount < 0)
                     {
@@ -982,6 +1317,7 @@ namespace CharacterDataEditor.Screens
                         while (hurtboxCount < moveInEditor.NumberOfHurtboxes)
                         {
                             moveInEditor.HurtboxData.RemoveAt(moveInEditor.NumberOfHurtboxes - 1);
+                            hurtboxRects.RemoveAt(moveInEditor.NumberOfHurtboxes - 1);
                         }
                     }
                     else
@@ -989,6 +1325,7 @@ namespace CharacterDataEditor.Screens
                         while (hurtboxCount > moveInEditor.NumberOfHurtboxes)
                         {
                             moveInEditor.HurtboxData.Add(new HurtboxDataModel());
+                            hurtboxRects.Add(new List<Rectangle>());
                         }
                     }
 
@@ -1013,17 +1350,10 @@ namespace CharacterDataEditor.Screens
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
-                                var wSelect = ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
-                                var hSelect = ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
-                                var xSelect = ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
-                                var ySelect = ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
-
-                                if (wSelect || hSelect || xSelect || ySelect)
-                                {
-                                    anyBoxRenderActive = true;
-                                    boxRect = new Rectangle(widthOffset, heightOffset, attackWidth, attackHeight);
-                                    boxDrawMode = BoxDrawMode.Hurtbox;
-                                }
+                                ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
+                                ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
+                                ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
+                                ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
 
                                 currentHurtbox.Start = start;
                                 currentHurtbox.Lifetime = lifetime;
@@ -1038,6 +1368,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Air movement data
                 if (ImGui.CollapsingHeader("Air Movement Data"))
                 {
                     int movementDataCount = moveInEditor.AirMovementData.NumberOfWindows;
@@ -1108,6 +1439,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                // Ground Movement Data dropdown
                 if (ImGui.CollapsingHeader("Ground Movement Data"))
                 {
                     int movementDataCount = moveInEditor.GroundMovementData.NumberOfWindows;
@@ -1177,11 +1509,6 @@ namespace CharacterDataEditor.Screens
                         }
                     }
                 }
-            }
-
-            if (!anyBoxRenderActive)
-            {
-                boxDrawMode = BoxDrawMode.None;
             }
         }
 
@@ -1316,7 +1643,7 @@ namespace CharacterDataEditor.Screens
                 var currentAnimationSpeed = spriteData != null ? spriteData.Sequence.playbackSpeed : 0.0f;
 
                 //160 * screenManager.ScreenScale
-                var cursorPos = new Vector2(0, spriteDrawPosition.Y + (screenManager.ScreenScale * 200));
+                var cursorPos = new Vector2(0, spriteDrawPosition.Y + (screenManager.ScreenScale * 180));
                 ImGui.SetCursorPos(cursorPos);
 
                 var currentAnimationSpeedLabel =
@@ -1344,7 +1671,7 @@ namespace CharacterDataEditor.Screens
                 curPos.X += moveInAmount * scale;
                 ImGui.SetCursorPos(curPos);
 
-                ImGui.Text($"Current Frame: {currentFrame}");
+                ImGui.Text($"Current Move Frame: {currentFrame}");
 
                 curPos = ImGui.GetCursorPos();
                 curPos.X += moveInAmount * scale;
@@ -1352,11 +1679,11 @@ namespace CharacterDataEditor.Screens
 
                 var spriteFramesCount = spriteData != null ? spriteData.Frames.Count : 0;
 
-                ImGui.Text($"Total Frames: {spriteFramesCount}");
+                ImGui.Text($"Total Sprite Frames: {spriteFramesCount}");
 
                 var imageButtonSize = new Vector2((advanceOneFrameBackTexture.width / 2) * scale, (advanceOneFrameBackTexture.height / 2) * scale);
 
-                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 3.75f, (315 * scale) - imageButtonSize.Y);
+                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 7.5f, (315 * scale) - imageButtonSize.Y);
 
                 ImGui.SetCursorPos(cursorPos);
 
@@ -1388,6 +1715,22 @@ namespace CharacterDataEditor.Screens
                     frameAdvance = FrameAdvance.Forward;
                 }
 
+                ImGui.SameLine();
+
+                if (ImGui.ImageButton("##Show", (IntPtr)showHitboxesTexture.id, imageButtonSize))
+                {
+                    if (!showHitHurtboxes)
+                    {
+                        boxDrawMode = BoxDrawMode.Both;
+                        showHitHurtboxes = true;
+                    }
+                    else
+                    {
+                        boxDrawMode = BoxDrawMode.None;
+                        showHitHurtboxes = false;
+                    }
+                }
+
                 ImGui.End();
             }
         }
@@ -1403,6 +1746,8 @@ namespace CharacterDataEditor.Screens
 
             if (ImGui.Begin("Character Properties", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
             {
+                int idleIndex = 0; // This variable is used for changing the sprite back to the idle animation when deleting a move to prevent crashing
+
                 ImGui.SetWindowFontScale(scale);
                 if (ImGui.CollapsingHeader("Character Data", ImGuiTreeNodeFlags.DefaultOpen))
                 {
@@ -1527,6 +1872,10 @@ namespace CharacterDataEditor.Screens
                             var sprite = allSprites[selectedIndex];
                             ChangeAnimatedSprite(sprite);
                         }
+
+                        showingMove = false;
+                        totalFrames = 0;
+                        windows.Clear();
                     };
 
                     var changeAction = (int selectedIndex) =>
@@ -1574,6 +1923,8 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.Launched = launchedSelected != -1 ? allSprites[launchedSelected].Name : string.Empty;
                     character.CharacterSprites.Knockdown = knockdownSelected != -1 ? allSprites[knockdownSelected].Name : string.Empty;
                     character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
+
+                    idleIndex = idleSelected;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -1601,13 +1952,48 @@ namespace CharacterDataEditor.Screens
                             var selected = character.MoveData[i] == moveInEditor;
                             var moveSpriteIndex = string.IsNullOrWhiteSpace(character.MoveData[i].SpriteName) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == character.MoveData[i].SpriteName));
                             var playingIndicator = moveSpriteIndex != -1 && spriteData == allSprites[moveSpriteIndex] ? "*" : "";
+                            string moveString = "";
+                            if (character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase() == "None")
+                            {
+                                moveString = character.MoveData[i].EnhanceMoveType.ToString().AddSpacesToCamelCase();
+                            }
+                            else
+                            {
+                                moveString = character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase();
+                            }
 
                             if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
                                 {
                                     moveInEditor = character.MoveData[i];
                                     paletteInEditor = null;
                                     editorMode = EditorMode.Move;
-                                    
+                                    totalFrames = moveInEditor.Duration;
+                                    // Fill windows list with animation frame indexes for each frame
+                                    currentFrame = 0;
+                                    int windowCurrentFrame = 0;
+                                    int frameLength = 0;
+                                    windows.Clear();
+                                    for (int i = 0; i < totalFrames; i++)
+                                    {
+                                        windows.Add(windowCurrentFrame);
+                                        frameLength++;
+
+                                        var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                                        if (windowCurrentFrame < moveInEditor.FrameData.Count)
+                                        {
+                                            windowItem = moveInEditor.FrameData[windowCurrentFrame];
+                                        }
+                                        if (frameLength >= windowItem.Length - 1)
+                                        {
+                                            windowCurrentFrame++;
+                                        }
+                                    }
+                                    resetAnimation = true;
+                                    showingMove = true;
+
+                                    boxDrawMode = BoxDrawMode.None;
+                                    showHitHurtboxes = false;
+
                                     if (moveSpriteIndex > -1)
                                     {
                                         var sprite = allSprites[moveSpriteIndex];
@@ -1616,7 +2002,7 @@ namespace CharacterDataEditor.Screens
                                 }, () =>
                                 {
                                     character.MoveData.Add(character.MoveData[i].GetDuplicate());
-                                }, $"{character.MoveData[i].MoveType.ToString().AddSpacesToCamelCase()}{playingIndicator}", selected, i))
+                                }, $"{moveString}{playingIndicator}", selected, i))
                             {
                                 //if selected, unselect
                                 if (moveInEditor == character.MoveData[i])
@@ -1633,6 +2019,7 @@ namespace CharacterDataEditor.Screens
 
                                 //remove it here
                                 character.MoveData.RemoveAt(i);
+                                ChangeAnimatedSprite(allSprites[idleIndex], false); // Changes the sprite upon move deletion to prevent crashing
                             }
                         }
                     }
