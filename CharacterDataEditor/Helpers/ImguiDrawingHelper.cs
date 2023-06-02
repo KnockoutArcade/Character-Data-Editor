@@ -224,7 +224,7 @@ namespace CharacterDataEditor.Helpers
             ImGui.Columns(1);
         }
 
-        public static void DrawSelectableComboInput(string label, string[] comboItems, ref int value, Action<int> selectAction, Action<int> changeAction)
+        public static void DrawSelectableComboInput(string label, string[] comboItems, ref int value, Action<int> selectAction, Action<int> changeAction, ref bool showingMove, ref int totalFrames, ref List<int> windows)
         {
             int initalValue = value;
 
@@ -232,6 +232,9 @@ namespace CharacterDataEditor.Helpers
             if (ImGui.Selectable(label.UpperCaseFirstLetter().AddSpacesToCamelCase()))
             {
                 selectAction(value);
+                showingMove = false;
+                totalFrames = 0;
+                windows.Clear();
             }
 
             ImGui.NextColumn();

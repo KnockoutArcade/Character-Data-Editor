@@ -2,6 +2,7 @@
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
 using System;
@@ -15,6 +16,7 @@ namespace CharacterDataEditor.Helpers
     public class SpriteDrawingHelper
     {
         private int currentAnimationFrame = 0;
+        private int currentTotalFrame = 0;
         private int frameCounter = 0;
         private int nextFrameAdvance = 0;
         private string previousSprite = string.Empty;
@@ -49,7 +51,7 @@ namespace CharacterDataEditor.Helpers
 
             if (currentAnimationFrame > spriteTextures.Count - 1)
             {
-                currentAnimationFrame = 0;
+                currentAnimationFrame = spriteTextures.Count - 1;
             }
 
             if (data.Flags.HasFlag(SpriteDrawFlags.NotAnimated))
@@ -181,139 +183,286 @@ namespace CharacterDataEditor.Helpers
             //return new Vector2(destinationRectangle.x, destinationRectangle.y);
             return new AnimatedSpriteReturnDataModel
             {
-                CurrentFrame = currentAnimationFrame,
+                CurrentFrame = currentTotalFrame,
                 DrawOrigin = new Vector2(destinationRectangle.x, destinationRectangle.y),
                 ScaledDrawSize = new Vector2(destinationRectangle.width, destinationRectangle.height)
             };
         }
 
-        public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDrawDataModel data)
+        public AnimatedSpriteReturnDataModel DrawSpecificFrameSpriteToScreen(SpriteDrawDataModel data, bool showingMove = false, int totalFrames = 0, List<int> windows = null, bool resetAnimation = false)
         {
             data.Origin = data.SpriteData != null ? new Vector2(data.SpriteData.Sequence.xorigin, data.SpriteData.Sequence.yorigin) : Vector2.Zero;
 
-
-            if (data.FrameAdvance == FrameAdvance.Forward)
+            if (!showingMove)
             {
-                currentAnimationFrame++;
-
-                if (currentAnimationFrame >= data.SpriteData.Frames.Count())
+                if (data.FrameAdvance == FrameAdvance.Forward)
                 {
-                    currentAnimationFrame = 0;
+                    currentAnimationFrame++;
+
+                    if (currentAnimationFrame >= data.SpriteData.Frames.Count())
+                    {
+                        currentAnimationFrame = 0;
+                    }
+                }
+                else if (data.FrameAdvance == FrameAdvance.Backward)
+                {
+                    currentAnimationFrame--;
+
+                    if (currentAnimationFrame < 0)
+                    {
+                        currentAnimationFrame = data.SpriteData.Frames.Count() - 1;
+                    }
                 }
             }
-            else if (data.FrameAdvance == FrameAdvance.Backward)
+            else
             {
-                currentAnimationFrame--;
-
-                if (currentAnimationFrame < 0)
+                if (resetAnimation)
                 {
-                    currentAnimationFrame = data.SpriteData.Frames.Count() - 1;
+                    currentAnimationFrame = 0;
+                    currentTotalFrame = 0;
+                }
+
+                if (data.FrameAdvance == FrameAdvance.Forward)
+                {
+                    currentAnimationFrame = windows[currentTotalFrame];
+                    currentTotalFrame++;
+
+                    if (currentTotalFrame >= totalFrames)
+                    {
+                        currentTotalFrame = 0;
+                    }
+                }
+                else if (data.FrameAdvance == FrameAdvance.Backward)
+                {
+                    currentAnimationFrame = windows[currentTotalFrame];
+                    currentTotalFrame--;
+
+                    if (currentTotalFrame < 0)
+                    {
+                        currentTotalFrame = totalFrames - 1;
+                    }
                 }
             }
 
             return DrawSprite(data);
         }
 
-        public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDrawDataModel data)
+        public AnimatedSpriteReturnDataModel DrawSpriteToScreen(SpriteDrawDataModel data, bool showingMove = false, int totalFrames = 0, List<int> windows = null, bool resetAnimation = false)
         {
             data.Origin = data.SpriteData != null ? new Vector2(data.SpriteData.Sequence.xorigin, data.SpriteData.Sequence.yorigin) : Vector2.Zero;
 
-            if (data.SpriteData == null)
+            if (!showingMove)
             {
-                if (spriteTextures == null)
+                if (data.SpriteData == null)
                 {
-                    spriteTextures = new List<LoadedTextureModel>();
-                }
+                    if (spriteTextures == null)
+                    {
+                        spriteTextures = new List<LoadedTextureModel>();
+                    }
 
-                var textureFullPath = Path.Combine(AppContext.BaseDirectory, data.DefaultTexture);
-                if (!spriteTextures.Any() || textureFullPath != spriteTextures.First().TexturePath)
+                    var textureFullPath = Path.Combine(AppContext.BaseDirectory, data.DefaultTexture);
+                    if (!spriteTextures.Any() || textureFullPath != spriteTextures.First().TexturePath)
+                    {
+                        spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
+                        currentAnimationFrame = 0;
+                        frameCounter = 0;
+                    }
+                }
+                else
                 {
-                    spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
-                    currentAnimationFrame = 0;
-                    frameCounter = 0;
+                    currentSprite = data.SpriteData.Name;
+
+                    if (previousSprite != currentSprite)
+                    {
+                        previousSprite = currentSprite;
+                        currentAnimationFrame = 0;
+                        frameCounter = 0;
+
+                        if (data.EnableFrameDataDraw)
+                        {
+                            nextFrameAdvance = data.FrameDrawData.GetFrameToDraw(frameCounter).Length;
+                        }
+                        else
+                        {
+                            nextFrameAdvance = (int)data.SpriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)data.SpriteData.Sequence.playbackSpeed;
+                        }
+                        frameCounter = 0;
+                        spriteTextures = new List<LoadedTextureModel>();
+
+                        //load all textures now...
+
+                        var spriteDataPathFragments = data.SpriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (var sequenceItem in data.SpriteData.Sequence.tracks[0].keyframes.Frames)
+                        {
+                            var spriteImagePath = data.SpriteData.FilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
+                            var frameData = data.SpriteData.Frames.Where(x => x.name == sequenceItem.Channels._0.Id.name).FirstOrDefault();
+
+                            if (frameData == null)
+                            {
+                                data.Logger.LogError($"Frame data not found for current frame {currentAnimationFrame}");
+                            }
+
+                            spriteImagePath = Path.Combine(spriteImagePath, frameData.name + ".png");
+
+                            if (!File.Exists(spriteImagePath))
+                            {
+                                data.Logger.LogError("unable to open file for frame data");
+                            }
+
+                            spriteTextures.Add(new LoadedTextureModel(spriteImagePath));
+                        }
+                    }
+
+                    if (!data.Flags.HasFlag(SpriteDrawFlags.Pause))
+                    {
+                        frameCounter++;
+
+                        if (frameCounter >= nextFrameAdvance)
+                        {
+                            if (data.EnableFrameDataDraw)
+                            {
+                                var frameDataToDraw = data.FrameDrawData.GetFrameToDraw(frameCounter);
+
+                                if (frameDataToDraw == null)
+                                {
+                                    var firstFrameData = data.FrameDrawData.OrderBy(x => x.ImageIndex).FirstOrDefault();
+
+                                    nextFrameAdvance = (firstFrameData == null) ? 1 : firstFrameData.Length;
+                                }
+                                else
+                                {
+                                    nextFrameAdvance = frameDataToDraw.Length;
+                                }
+                            }
+                            else
+                            {
+                                frameCounter = 0;
+                            }
+
+                            currentAnimationFrame++;
+
+                            if (currentAnimationFrame >= data.SpriteData.Frames.Count())
+                            {
+                                currentAnimationFrame = 0;
+
+                                if (data.EnableFrameDataDraw)
+                                {
+                                    frameCounter = 0;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             else
             {
-                currentSprite = data.SpriteData.Name;
-
-                if (previousSprite != currentSprite)
+                if (resetAnimation)
                 {
-                    previousSprite = currentSprite;
                     currentAnimationFrame = 0;
+                    currentTotalFrame = 0;
                     frameCounter = 0;
-
-                    if (data.EnableFrameDataDraw)
-                    {
-                        nextFrameAdvance = data.FrameDrawData.GetFrameToDraw(frameCounter).Length;
-                    }
-                    else
-                    {
-                        nextFrameAdvance = (int)data.SpriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)data.SpriteData.Sequence.playbackSpeed;
-                    }
-                    frameCounter = 0;
-                    spriteTextures = new List<LoadedTextureModel>();
-
-                    //load all textures now...
-
-                    var spriteDataPathFragments = data.SpriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
-
-                    foreach (var sequenceItem in data.SpriteData.Sequence.tracks[0].keyframes.Frames)
-                    {
-                        var spriteImagePath = data.SpriteData.FilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
-                        var frameData = data.SpriteData.Frames.Where(x => x.name == sequenceItem.Channels._0.Id.name).FirstOrDefault();
-
-                        if (frameData == null)
-                        {
-                            data.Logger.LogError($"Frame data not found for current frame {currentAnimationFrame}");
-                        }
-
-                        spriteImagePath = Path.Combine(spriteImagePath, frameData.name + ".png");
-
-                        if (!File.Exists(spriteImagePath))
-                        {
-                            data.Logger.LogError("unable to open file for frame data");
-                        }
-
-                        spriteTextures.Add(new LoadedTextureModel(spriteImagePath));
-                    }
                 }
 
-                if (!data.Flags.HasFlag(SpriteDrawFlags.Pause))
+                if (data.SpriteData == null)
                 {
-                    frameCounter++;
-
-                    if (frameCounter >= nextFrameAdvance)
+                    if (spriteTextures == null)
                     {
+                        spriteTextures = new List<LoadedTextureModel>();
+                    }
+
+                    var textureFullPath = Path.Combine(AppContext.BaseDirectory, data.DefaultTexture);
+                    if (!spriteTextures.Any() || textureFullPath != spriteTextures.First().TexturePath)
+                    {
+                        spriteTextures = new List<LoadedTextureModel> { new LoadedTextureModel(textureFullPath) };
+                        currentAnimationFrame = 0;
+                        currentTotalFrame = 0;
+                        frameCounter = 0;
+                    }
+                }
+                else
+                {
+                    currentSprite = data.SpriteData.Name;
+
+                    if (previousSprite != currentSprite)
+                    {
+                        previousSprite = currentSprite;
+                        currentAnimationFrame = 0;
+                        frameCounter = 0;
+
                         if (data.EnableFrameDataDraw)
                         {
-                            var frameDataToDraw = data.FrameDrawData.GetFrameToDraw(frameCounter);
-
-                            if (frameDataToDraw == null)
-                            {
-                                var firstFrameData = data.FrameDrawData.OrderBy(x => x.ImageIndex).FirstOrDefault();
-
-                                nextFrameAdvance = (firstFrameData == null) ? 1 : firstFrameData.Length;
-                            }
-                            else
-                            {
-                                nextFrameAdvance = frameDataToDraw.Length;
-                            }
+                            nextFrameAdvance = data.FrameDrawData.GetFrameToDraw(frameCounter).Length;
                         }
                         else
                         {
-                            frameCounter = 0;
+                            nextFrameAdvance = (int)data.SpriteData.Sequence.playbackSpeed == 0 ? 10 : 60 / (int)data.SpriteData.Sequence.playbackSpeed;
                         }
+                        frameCounter = 0;
+                        spriteTextures = new List<LoadedTextureModel>();
 
-                        currentAnimationFrame++;
+                        //load all textures now...
 
-                        if (currentAnimationFrame >= data.SpriteData.Frames.Count())
+                        var spriteDataPathFragments = data.SpriteData.FilePath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (var sequenceItem in data.SpriteData.Sequence.tracks[0].keyframes.Frames)
                         {
-                            currentAnimationFrame = 0;
+                            var spriteImagePath = data.SpriteData.FilePath.Replace(spriteDataPathFragments.Last(), string.Empty);
+                            var frameData = data.SpriteData.Frames.Where(x => x.name == sequenceItem.Channels._0.Id.name).FirstOrDefault();
 
+                            if (frameData == null)
+                            {
+                                data.Logger.LogError($"Frame data not found for current frame {currentAnimationFrame}");
+                            }
+
+                            spriteImagePath = Path.Combine(spriteImagePath, frameData.name + ".png");
+
+                            if (!File.Exists(spriteImagePath))
+                            {
+                                data.Logger.LogError("unable to open file for frame data");
+                            }
+
+                            spriteTextures.Add(new LoadedTextureModel(spriteImagePath));
+                        }
+                    }
+
+                    if (!data.Flags.HasFlag(SpriteDrawFlags.Pause))
+                    {
+                        frameCounter++;
+
+                        if (frameCounter >= nextFrameAdvance)
+                        {
                             if (data.EnableFrameDataDraw)
                             {
+                                var frameDataToDraw = data.FrameDrawData.GetFrameToDraw(frameCounter);
+
+                                if (frameDataToDraw == null)
+                                {
+                                    var firstFrameData = data.FrameDrawData.OrderBy(x => x.ImageIndex).FirstOrDefault();
+
+                                    nextFrameAdvance = (firstFrameData == null) ? 1 : firstFrameData.Length;
+                                }
+                                else
+                                {
+                                    nextFrameAdvance = frameDataToDraw.Length;
+                                }
+                            }
+                            else
+                            {
                                 frameCounter = 0;
+                            }
+
+                            currentAnimationFrame = windows[currentTotalFrame];
+                            currentTotalFrame++;
+
+                            if (currentTotalFrame >= totalFrames)
+                            {
+                                currentTotalFrame = 0;
+
+                                if (data.EnableFrameDataDraw)
+                                {
+                                    frameCounter = 0;
+                                }
                             }
                         }
                     }
