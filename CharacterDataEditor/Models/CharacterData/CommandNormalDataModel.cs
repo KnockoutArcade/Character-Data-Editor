@@ -5,6 +5,7 @@ namespace CharacterDataEditor.Models.CharacterData
 {
     public class CommandNormalDataModel
     {
+        //TODO: Make this an enum please
         public int NumpadDirection { get; set; } = 0;
         public CommandButton Button { get; set; } = CommandButton.Light; // Light
         public bool GroundOrAir { get; set; } = false;
