@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using CharacterDataEditor.Enums;
 using System;
-using SysIO = System.IO;
 
 namespace CharacterDataEditor.Extensions
 {
