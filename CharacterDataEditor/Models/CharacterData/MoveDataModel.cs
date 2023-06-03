@@ -103,7 +103,7 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                             {
                                                                                 if (objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto))
                                                                                 {
-                                                                                    if (objAsMoveData.SpecialData.Equals(SpecialData))
+                                                                                    if (objAsMoveData.SpecialData.SequenceEqual(SpecialData))
                                                                                     {
                                                                                         if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
                                                                                         {

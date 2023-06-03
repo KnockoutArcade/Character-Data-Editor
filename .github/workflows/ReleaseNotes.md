@@ -1,14 +1,10 @@
 ## What's Changed?
 
-* Added EnhanceMoveType enum for enhanced specials and rekkas.
-* Added SpecialData for special move data, such as motion inputs, starting and ending frames for the input window, etc.
-* Added CommandNormalData for command normal data, such as required direction, button, etc.
-* Fixed the move animations so they play at the proper speeds using each move's Window Data.
-* Changed the hitbox and hurtbox feature by adding a button to show them during runtime.
+* Hotfix: fixed some crashes that would've prevented the creation of new moves
 
 ## Known Bugs
 
-* None!
+* If a move is a command normal and command normal settings are set, and then the move is changed to a special move, it will retain the command normal data.
 
 ### Any other issues?
 

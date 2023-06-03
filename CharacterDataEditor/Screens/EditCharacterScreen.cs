@@ -363,7 +363,7 @@ namespace CharacterDataEditor.Screens
 
                             hurtboxRects[i].Clear();
                             int tempLifetime = 0;
-                            for (int j = 0; j < totalFrames; j++)
+                            for (int j = 0; j <= totalFrames; j++)
                             {
                                 if (j == attackDataItem.Start)
                                 {
@@ -420,7 +420,7 @@ namespace CharacterDataEditor.Screens
 
                             hitboxRects[i].Clear();
                             int tempLifetime = 0;
-                            for (int j = 0; j < totalFrames; j++)
+                            for (int j = 0; j <= totalFrames; j++)
                             {
                                 if (j == attackDataItem.Start)
                                 {
@@ -584,15 +584,15 @@ namespace CharacterDataEditor.Screens
             {
                 // Select the move
                 string[] allMoves = allMoveTypesList.ToArray();
-                if (moveInEditor.MoveType != MoveType.None)
-                {
-                    var moveTypeName = moveInEditor.MoveType.ToString();
-                    allMoveTypesListIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
-                }
-                else if (moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
+                if (moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
                 {
                     var moveTypeName = moveInEditor.EnhanceMoveType.ToString();
                     allMoveTypesListIndex = specialMoveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase()) + moveTypesList.Count - 1;
+                }
+                else if (moveInEditor.MoveType != MoveType.None)
+                {
+                    var moveTypeName = moveInEditor.MoveType.ToString();
+                    allMoveTypesListIndex = moveTypesList.IndexOf(moveTypeName.AddSpacesToCamelCase());
                 }
                 ImguiDrawingHelper.DrawComboInput("moveType", allMoves, ref allMoveTypesListIndex);
                 var selectedMoveTypeName = allMoveTypesList[allMoveTypesListIndex];
@@ -635,8 +635,12 @@ namespace CharacterDataEditor.Screens
                 }
 
                 int moveDuration = moveInEditor.Duration;
-                ImguiDrawingHelper.DrawIntInput("moveDuration", ref moveDuration, 0);
+                var adjustDuration = ImguiDrawingHelper.DrawIntInput("moveDuration", ref moveDuration, 0);
                 moveInEditor.Duration = moveDuration;
+                if (adjustDuration)
+                {
+                    animationPaused = true;
+                }
                 totalFrames = moveDuration;
 
                 bool isThrow = moveInEditor.IsThrow;
@@ -700,19 +704,22 @@ namespace CharacterDataEditor.Screens
                     int currentFrame = 0;
                     int frameLength = 0;
                     windows.Clear();
-                    for (int i = 0; i < totalFrames; i++)
+                    if (moveInEditor.FrameData.Count > 0)
                     {
-                        windows.Add(currentFrame);
-                        frameLength++;
+                        for (int i = 0; i < totalFrames; i++)
+                        {
+                            windows.Add(currentFrame);
+                            frameLength++;
 
-                        var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                        if (currentFrame < moveInEditor.FrameData.Count)
-                        {
-                            windowItem = moveInEditor.FrameData[currentFrame];
-                        }
-                        if (frameLength >= windowItem.Length - 1)
-                        {
-                            currentFrame++;
+                            var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                            if (currentFrame < moveInEditor.FrameData.Count)
+                            {
+                                windowItem = moveInEditor.FrameData[currentFrame];
+                            }
+                            if (frameLength >= windowItem.Length - 1)
+                            {
+                                currentFrame++;
+                            }
                         }
                     }
                 }
@@ -1943,6 +1950,7 @@ namespace CharacterDataEditor.Screens
 
                         character.MoveData.Add(moveInEditor);
                         editorMode = EditorMode.Move;
+                        showingMove = true;
                     }
                     ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
                     if (character.MoveData != null && character.MoveData.Count > 0)
@@ -1973,19 +1981,22 @@ namespace CharacterDataEditor.Screens
                                     int windowCurrentFrame = 0;
                                     int frameLength = 0;
                                     windows.Clear();
-                                    for (int i = 0; i < totalFrames; i++)
+                                    if (moveInEditor.FrameData.Count > 0)
                                     {
-                                        windows.Add(windowCurrentFrame);
-                                        frameLength++;
+                                        for (int i = 0; i < totalFrames; i++)
+                                        {
+                                            windows.Add(windowCurrentFrame);
+                                            frameLength++;
 
-                                        var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                                        if (windowCurrentFrame < moveInEditor.FrameData.Count)
-                                        {
-                                            windowItem = moveInEditor.FrameData[windowCurrentFrame];
-                                        }
-                                        if (frameLength >= windowItem.Length - 1)
-                                        {
-                                            windowCurrentFrame++;
+                                            var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                                            if (windowCurrentFrame < moveInEditor.FrameData.Count)
+                                            {
+                                                windowItem = moveInEditor.FrameData[windowCurrentFrame];
+                                            }
+                                            if (frameLength >= windowItem.Length - 1)
+                                            {
+                                                windowCurrentFrame++;
+                                            }
                                         }
                                     }
                                     resetAnimation = true;
@@ -2020,6 +2031,7 @@ namespace CharacterDataEditor.Screens
                                 //remove it here
                                 character.MoveData.RemoveAt(i);
                                 ChangeAnimatedSprite(allSprites[idleIndex], false); // Changes the sprite upon move deletion to prevent crashing
+                                showingMove = false;
                             }
                         }
                     }
