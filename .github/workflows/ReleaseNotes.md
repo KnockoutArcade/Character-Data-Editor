@@ -4,8 +4,7 @@
 
 ## Known Bugs
 
-* Saving enhanced specials and rekkas is broken. The data itself except for the Special Data will be saved, but the move types themselves won't. It still exports fine, so progress on the game can still continue.
-* Whenever you choose to export a file, it will export all of them at the same time. With the fact that saving enhanced specials is broken, this will easily result in accidentally creating broken json files. I suggest exporting the files when you are done with a character, deleting the other two from your git changes, and then pushing the one json file to the repo at a time.
+* If a move is a command normal and command normal settings are set, and then the move is changed to a special move, it will retain the command normal data.
 
 ### Any other issues?
 
