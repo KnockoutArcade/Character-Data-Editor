@@ -248,6 +248,8 @@ namespace CharacterDataEditor.Extensions
                 move.SpecialData = new List<SpecialDataModel>();
             }
 
+            previous.Version = VersionConstants.Ver111;
+
             return new UpgradeResults
             {
                 UpgradedCharacterData = previous,
