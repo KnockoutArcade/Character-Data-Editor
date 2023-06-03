@@ -1,14 +1,11 @@
 ## What's Changed?
 
-* Added EnhanceMoveType enum for enhanced specials and rekkas.
-* Added SpecialData for special move data, such as motion inputs, starting and ending frames for the input window, etc.
-* Added CommandNormalData for command normal data, such as required direction, button, etc.
-* Fixed the move animations so they play at the proper speeds using each move's Window Data.
-* Changed the hitbox and hurtbox feature by adding a button to show them during runtime.
+* Hotfix: fixed some crashes that would've prevented the creation of new moves
 
 ## Known Bugs
 
-* None!
+* Saving enhanced specials and rekkas is broken. The data itself except for the Special Data will be saved, but the move types themselves won't. It still exports fine, so progress on the game can still continue.
+* Whenever you choose to export a file, it will export all of them at the same time. With the fact that saving enhanced specials is broken, this will easily result in accidentally creating broken json files. I suggest exporting the files when you are done with a character, deleting the other two from your git changes, and then pushing the one json file to the repo at a time.
 
 ### Any other issues?
 
