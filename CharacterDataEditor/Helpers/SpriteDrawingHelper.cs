@@ -228,21 +228,27 @@ namespace CharacterDataEditor.Helpers
 
                 if (data.FrameAdvance == FrameAdvance.Forward)
                 {
-                    currentTotalFrame++;
-                    if (currentTotalFrame > totalFrames)
+                    if (windows.Count > 0)
                     {
-                        currentTotalFrame = 1;
+                        currentTotalFrame++;
+                        if (currentTotalFrame > totalFrames)
+                        {
+                            currentTotalFrame = 1;
+                        }
+                        currentAnimationFrame = windows[currentTotalFrame - 1];
                     }
-                    currentAnimationFrame = windows[currentTotalFrame - 1];
                 }
                 else if (data.FrameAdvance == FrameAdvance.Backward)
                 {
-                    currentTotalFrame--;
-                    if (currentTotalFrame <= 0)
+                    if (windows.Count > 0)
                     {
-                        currentTotalFrame = totalFrames;
+                        currentTotalFrame--;
+                        if (currentTotalFrame <= 0)
+                        {
+                            currentTotalFrame = totalFrames;
+                        }
+                        currentAnimationFrame = windows[currentTotalFrame - 1];
                     }
-                    currentAnimationFrame = windows[currentTotalFrame - 1];
                 }
             }
 
@@ -421,12 +427,13 @@ namespace CharacterDataEditor.Helpers
 
                     if (!data.Flags.HasFlag(SpriteDrawFlags.Pause))
                     {
-                        currentAnimationFrame = windows[currentTotalFrame - 1];
-                        currentTotalFrame++;
-
-                        if (currentTotalFrame > totalFrames)
+                        if (windows.Count > 0)
                         {
-                            currentTotalFrame = 1;
+                            currentTotalFrame++;
+                            if (currentTotalFrame > totalFrames)
+                            {
+                                currentTotalFrame = 1;
+                            }
                             currentAnimationFrame = windows[currentTotalFrame - 1];
                         }
                     }
