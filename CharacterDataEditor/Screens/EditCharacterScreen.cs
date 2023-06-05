@@ -666,11 +666,12 @@ namespace CharacterDataEditor.Screens
                 int moveDuration = moveInEditor.Duration;
                 var adjustDuration = ImguiDrawingHelper.DrawIntInput("moveDuration", ref moveDuration, 0);
                 moveInEditor.Duration = moveDuration;
+                totalFrames = moveDuration;
                 if (adjustDuration)
                 {
+                    ChangeWindowArray();
                     animationPaused = true;
                 }
-                totalFrames = moveDuration;
 
                 bool isThrow = moveInEditor.IsThrow;
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
@@ -730,27 +731,7 @@ namespace CharacterDataEditor.Screens
                     }
 
                     // Fill windows list with animation frame indexes for each frame
-                    int currentFrame = 0;
-                    int frameLength = 0;
-                    windows.Clear();
-                    if (moveInEditor.FrameData.Count > 0)
-                    {
-                        for (int i = 0; i < totalFrames; i++)
-                        {
-                            windows.Add(currentFrame);
-                            frameLength++;
-
-                            var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                            if (currentFrame < moveInEditor.FrameData.Count)
-                            {
-                                windowItem = moveInEditor.FrameData[currentFrame];
-                            }
-                            if (frameLength >= windowItem.Length - 1)
-                            {
-                                currentFrame++;
-                            }
-                        }
-                    }
+                    ChangeWindowArray();
                 }
 
                 if (character.MoveData == null)
@@ -2002,27 +1983,7 @@ namespace CharacterDataEditor.Screens
                                     totalFrames = moveInEditor.Duration;
                                     // Fill windows list with animation frame indexes for each frame
                                     currentFrame = 0;
-                                    int windowCurrentFrame = 0;
-                                    int frameLength = 0;
-                                    windows.Clear();
-                                    if (moveInEditor.FrameData.Count > 0)
-                                    {
-                                        for (int i = 0; i < totalFrames; i++)
-                                        {
-                                            windows.Add(windowCurrentFrame);
-                                            frameLength++;
-
-                                            var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                                            if (windowCurrentFrame < moveInEditor.FrameData.Count)
-                                            {
-                                                windowItem = moveInEditor.FrameData[windowCurrentFrame];
-                                            }
-                                            if (frameLength >= windowItem.Length - 1)
-                                            {
-                                                windowCurrentFrame++;
-                                            }
-                                        }
-                                    }
+                                    ChangeWindowArray();
                                     resetAnimation = true;
                                     showingMove = true;
 
@@ -2244,6 +2205,32 @@ namespace CharacterDataEditor.Screens
         {
             _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
             originalCharacter = character.Clone();
+        }
+
+        private void ChangeWindowArray()
+        {
+            // Fill windows list with animation frame indexes for each frame
+            int currentFrame = 0;
+            int frameLength = 0;
+            windows.Clear();
+            if (moveInEditor.FrameData.Count > 0)
+            {
+                for (int i = 0; i < totalFrames; i++)
+                {
+                    windows.Add(currentFrame);
+                    frameLength++;
+
+                    var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                    if (currentFrame < moveInEditor.FrameData.Count)
+                    {
+                        windowItem = moveInEditor.FrameData[currentFrame];
+                    }
+                    if (frameLength >= windowItem.Length - 1)
+                    {
+                        currentFrame++;
+                    }
+                }
+            }
         }
     }
 }
