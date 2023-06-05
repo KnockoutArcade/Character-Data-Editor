@@ -5,7 +5,7 @@ namespace CharacterDataEditor.Models.CharacterData
 {
     public class SpecialDataModel
     {
-        public int NumpadInput { get; set; } = 0;
+        public string NumpadInput { get; set; } = "0";
         public bool ButtonPressRequired { get; set; } = false;
         public int StartingFrame { get; set; } = 0;
         public int EndingFrame { get; set; } = 0;

@@ -1063,7 +1063,7 @@ namespace CharacterDataEditor.Screens
 
                                 if (ImGui.TreeNode($"Enhancement [{i}]"))
                                 {
-                                    int numpadInput = specialDataItem.NumpadInput;
+                                    string numpadInput = specialDataItem.NumpadInput;
                                     bool buttonPressRequired = specialDataItem.ButtonPressRequired;
                                     int startingFrame = specialDataItem.StartingFrame;
                                     int endingFrame = specialDataItem.EndingFrame;
@@ -1071,7 +1071,9 @@ namespace CharacterDataEditor.Screens
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
-                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput, int.MinValue, null, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
+                                    ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
+
+
                                     ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);

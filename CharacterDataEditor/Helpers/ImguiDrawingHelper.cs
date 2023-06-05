@@ -245,10 +245,15 @@ namespace CharacterDataEditor.Helpers
             }
         }
 
-        public static void DrawStringInput(string label, ref string value, uint maxLength = 255)
+        public static void DrawStringInput(string label, ref string value, uint maxLength = 255, string tooltip = "")
         {
             ImGui.Columns(2);
             ImGui.Text(label.UpperCaseFirstLetter().AddSpacesToCamelCase());
+            if (tooltip != "")
+            {
+                ImGui.SameLine();
+                DrawHelpMarker(tooltip);
+            }
 
             ImGui.NextColumn();
             ImGui.InputText($"##{label}", ref value, maxLength);
