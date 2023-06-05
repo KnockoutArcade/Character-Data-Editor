@@ -44,6 +44,8 @@ namespace CharacterDataEditor.Screens
         private int allMoveTypesListIndex;
         private List<string> attackTypesList = new List<string>();
         private List<string> spriteTypesList = new List<string>();
+        private List<string> directionsList = new List<string>();
+        private List<string> commandButtonsList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<ObjectDataModel> allProjectiles;
@@ -170,6 +172,33 @@ namespace CharacterDataEditor.Screens
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
                 spriteTypesList.Add(itemAsString);
+            }
+
+            var directionTypes = Enum.GetValues(typeof(DirectionType));
+            directionsList = new List<string>();
+
+            foreach (DirectionType item in directionTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                directionsList.Add(itemAsString);
+            }
+
+            var commandButtonTypes = Enum.GetValues(typeof(CommandButton));
+            commandButtonsList = new List<string>();
+
+            foreach (CommandButton item in commandButtonTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                commandButtonsList.Add(itemAsString);
+            }
+
+            foreach (EnhanceMoveType item in specialMoveTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                specialMoveTypesList.Add(itemAsString);
             }
 
             //init spritedrawposition
@@ -968,31 +997,22 @@ namespace CharacterDataEditor.Screens
                 {
                     if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
                     {
-                        int numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
-                        //TODO: Make this better please
-                        int button = (int)moveInEditor.CommandNormalData.Button;
+                        DirectionType numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
+                        CommandButton button = moveInEditor.CommandNormalData.Button;
                         bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
                         bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
 
-                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Enter in numpad notation.");
-                        // Makes sure the int is a valid input direction
-                        if (numpadDirection > 9)
-                        {
-                            numpadDirection = 9;
-                        }
+                        var directionName = numpadDirection.ToString();
+                        int directionIndex = directionsList.IndexOf(directionName.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("direction", directionsList.ToArray(), ref directionIndex);
+                        var selectedDirection = directionsList[directionIndex];
+                        numpadDirection = (DirectionType)Enum.Parse(typeof(DirectionType), selectedDirection.ToCamelCase());
 
-                        string[] buttons = { "Light", "Medium", "Heavy" };
-                        var buttonIndex = 0;
-                        for (int i = 0; i < buttons.Length; i++)
-                        {
-                            if (i + 1 == button)
-                            {
-                                buttonIndex = i;
-                                break;
-                            }
-                        }
-                        ImguiDrawingHelper.DrawComboInput("button", buttons, ref buttonIndex);
-                        button = buttonIndex + 1;
+                        var buttonName = button.ToString();
+                        int buttonIndex = commandButtonsList.IndexOf(buttonName.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("button", commandButtonsList.ToArray(), ref buttonIndex);
+                        var selectedButton = commandButtonsList[buttonIndex];
+                        button = (CommandButton)Enum.Parse(typeof(CommandButton), selectedButton.ToCamelCase());
 
                         ImguiDrawingHelper.DrawBoolInput("groundOrAir", ref groundOrAir, "Unchecked for ground, checked for air");
 
@@ -1006,8 +1026,7 @@ namespace CharacterDataEditor.Screens
                         }
 
                         moveInEditor.CommandNormalData.NumpadDirection = numpadDirection;
-                        //TODO: Make this better, please
-                        moveInEditor.CommandNormalData.Button = (CommandButton)button;
+                        moveInEditor.CommandNormalData.Button = button;
                         moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
                         moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
 
@@ -1016,6 +1035,10 @@ namespace CharacterDataEditor.Screens
                     else
                     {
                         ImGui.Text("Not a command normal!");
+                        moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
+                        moveInEditor.CommandNormalData.Button = CommandButton.Light;
+                        moveInEditor.CommandNormalData.GroundOrAir = false;
+                        moveInEditor.CommandNormalData.CancelWhenLanding = false;
                     }
                 }
 
@@ -1106,6 +1129,7 @@ namespace CharacterDataEditor.Screens
                     else
                     {
                         ImGui.Text("Not a special move!");
+                        moveInEditor.SpecialData.Clear();
                     }
                 }
 
