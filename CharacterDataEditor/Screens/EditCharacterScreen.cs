@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 
 namespace CharacterDataEditor.Screens
 {
@@ -44,6 +45,8 @@ namespace CharacterDataEditor.Screens
         private int allMoveTypesListIndex;
         private List<string> attackTypesList = new List<string>();
         private List<string> spriteTypesList = new List<string>();
+        private List<string> directionsList = new List<string>();
+        private List<string> commandButtonsList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<ObjectDataModel> allProjectiles;
@@ -170,6 +173,33 @@ namespace CharacterDataEditor.Screens
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
                 spriteTypesList.Add(itemAsString);
+            }
+
+            var directionTypes = Enum.GetValues(typeof(DirectionType));
+            directionsList = new List<string>();
+
+            foreach (DirectionType item in directionTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                directionsList.Add(itemAsString);
+            }
+
+            var commandButtonTypes = Enum.GetValues(typeof(CommandButton));
+            commandButtonsList = new List<string>();
+
+            foreach (CommandButton item in commandButtonTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                commandButtonsList.Add(itemAsString);
+            }
+
+            foreach (EnhanceMoveType item in specialMoveTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                specialMoveTypesList.Add(itemAsString);
             }
 
             //init spritedrawposition
@@ -637,11 +667,12 @@ namespace CharacterDataEditor.Screens
                 int moveDuration = moveInEditor.Duration;
                 var adjustDuration = ImguiDrawingHelper.DrawIntInput("moveDuration", ref moveDuration, 0);
                 moveInEditor.Duration = moveDuration;
+                totalFrames = moveDuration;
                 if (adjustDuration)
                 {
+                    ChangeWindowArray();
                     animationPaused = true;
                 }
-                totalFrames = moveDuration;
 
                 bool isThrow = moveInEditor.IsThrow;
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
@@ -701,27 +732,7 @@ namespace CharacterDataEditor.Screens
                     }
 
                     // Fill windows list with animation frame indexes for each frame
-                    int currentFrame = 0;
-                    int frameLength = 0;
-                    windows.Clear();
-                    if (moveInEditor.FrameData.Count > 0)
-                    {
-                        for (int i = 0; i < totalFrames; i++)
-                        {
-                            windows.Add(currentFrame);
-                            frameLength++;
-
-                            var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                            if (currentFrame < moveInEditor.FrameData.Count)
-                            {
-                                windowItem = moveInEditor.FrameData[currentFrame];
-                            }
-                            if (frameLength >= windowItem.Length - 1)
-                            {
-                                currentFrame++;
-                            }
-                        }
-                    }
+                    ChangeWindowArray();
                 }
 
                 if (character.MoveData == null)
@@ -968,31 +979,22 @@ namespace CharacterDataEditor.Screens
                 {
                     if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
                     {
-                        int numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
-                        //TODO: Make this better please
-                        int button = (int)moveInEditor.CommandNormalData.Button;
+                        DirectionType numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
+                        CommandButton button = moveInEditor.CommandNormalData.Button;
                         bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
                         bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
 
-                        ImguiDrawingHelper.DrawIntInput("inputDirection", ref numpadDirection, int.MinValue, null, "Enter in numpad notation.");
-                        // Makes sure the int is a valid input direction
-                        if (numpadDirection > 9)
-                        {
-                            numpadDirection = 9;
-                        }
+                        var directionName = numpadDirection.ToString();
+                        int directionIndex = directionsList.IndexOf(directionName.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("direction", directionsList.ToArray(), ref directionIndex);
+                        var selectedDirection = directionsList[directionIndex];
+                        numpadDirection = (DirectionType)Enum.Parse(typeof(DirectionType), selectedDirection.ToCamelCase());
 
-                        string[] buttons = { "Light", "Medium", "Heavy" };
-                        var buttonIndex = 0;
-                        for (int i = 0; i < buttons.Length; i++)
-                        {
-                            if (i + 1 == button)
-                            {
-                                buttonIndex = i;
-                                break;
-                            }
-                        }
-                        ImguiDrawingHelper.DrawComboInput("button", buttons, ref buttonIndex);
-                        button = buttonIndex + 1;
+                        var buttonName = button.ToString();
+                        int buttonIndex = commandButtonsList.IndexOf(buttonName.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("button", commandButtonsList.ToArray(), ref buttonIndex);
+                        var selectedButton = commandButtonsList[buttonIndex];
+                        button = (CommandButton)Enum.Parse(typeof(CommandButton), selectedButton.ToCamelCase());
 
                         ImguiDrawingHelper.DrawBoolInput("groundOrAir", ref groundOrAir, "Unchecked for ground, checked for air");
 
@@ -1006,8 +1008,7 @@ namespace CharacterDataEditor.Screens
                         }
 
                         moveInEditor.CommandNormalData.NumpadDirection = numpadDirection;
-                        //TODO: Make this better, please
-                        moveInEditor.CommandNormalData.Button = (CommandButton)button;
+                        moveInEditor.CommandNormalData.Button = button;
                         moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
                         moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
 
@@ -1016,6 +1017,10 @@ namespace CharacterDataEditor.Screens
                     else
                     {
                         ImGui.Text("Not a command normal!");
+                        moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
+                        moveInEditor.CommandNormalData.Button = CommandButton.Light;
+                        moveInEditor.CommandNormalData.GroundOrAir = false;
+                        moveInEditor.CommandNormalData.CancelWhenLanding = false;
                     }
                 }
 
@@ -1059,7 +1064,7 @@ namespace CharacterDataEditor.Screens
 
                                 if (ImGui.TreeNode($"Enhancement [{i}]"))
                                 {
-                                    int numpadInput = specialDataItem.NumpadInput;
+                                    string numpadInput = specialDataItem.NumpadInput;
                                     bool buttonPressRequired = specialDataItem.ButtonPressRequired;
                                     int startingFrame = specialDataItem.StartingFrame;
                                     int endingFrame = specialDataItem.EndingFrame;
@@ -1067,7 +1072,10 @@ namespace CharacterDataEditor.Screens
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
-                                    ImguiDrawingHelper.DrawIntInput("numpadInput", ref numpadInput, int.MinValue, null, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
+                                    ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
+                                    Regex regex = new Regex(@"[^\d]");
+                                    numpadInput = regex.Replace(numpadInput, "");
+
                                     ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
@@ -1106,6 +1114,7 @@ namespace CharacterDataEditor.Screens
                     else
                     {
                         ImGui.Text("Not a special move!");
+                        moveInEditor.SpecialData.Clear();
                     }
                 }
 
@@ -1978,27 +1987,7 @@ namespace CharacterDataEditor.Screens
                                     totalFrames = moveInEditor.Duration;
                                     // Fill windows list with animation frame indexes for each frame
                                     currentFrame = 0;
-                                    int windowCurrentFrame = 0;
-                                    int frameLength = 0;
-                                    windows.Clear();
-                                    if (moveInEditor.FrameData.Count > 0)
-                                    {
-                                        for (int i = 0; i < totalFrames; i++)
-                                        {
-                                            windows.Add(windowCurrentFrame);
-                                            frameLength++;
-
-                                            var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                                            if (windowCurrentFrame < moveInEditor.FrameData.Count)
-                                            {
-                                                windowItem = moveInEditor.FrameData[windowCurrentFrame];
-                                            }
-                                            if (frameLength >= windowItem.Length - 1)
-                                            {
-                                                windowCurrentFrame++;
-                                            }
-                                        }
-                                    }
+                                    ChangeWindowArray();
                                     resetAnimation = true;
                                     showingMove = true;
 
@@ -2220,6 +2209,32 @@ namespace CharacterDataEditor.Screens
         {
             _characterOperations.SaveCharacter(character, projectData.ProjectPathOnly);
             originalCharacter = character.Clone();
+        }
+
+        private void ChangeWindowArray()
+        {
+            // Fill windows list with animation frame indexes for each frame
+            int currentFrame = 0;
+            int frameLength = 0;
+            windows.Clear();
+            if (moveInEditor.FrameData.Count > 0)
+            {
+                for (int i = 0; i < totalFrames; i++)
+                {
+                    windows.Add(currentFrame);
+                    frameLength++;
+
+                    var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
+                    if (currentFrame < moveInEditor.FrameData.Count)
+                    {
+                        windowItem = moveInEditor.FrameData[currentFrame];
+                    }
+                    if (frameLength >= windowItem.Length - 1)
+                    {
+                        currentFrame++;
+                    }
+                }
+            }
         }
     }
 }
