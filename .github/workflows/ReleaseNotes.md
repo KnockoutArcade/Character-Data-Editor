@@ -1,10 +1,11 @@
 ## What's Changed?
 
-* Hotfix: fixed some crashes that would've prevented the creation of new moves
+* Hotfix: fixed some crashing bugs and made a few quality-of-life changes for the command normals.
+* Special move inputs are now read as strings.
 
 ## Known Bugs
 
-* If a move is a command normal and command normal settings are set, and then the move is changed to a special move, it will retain the command normal data.
+* None!
 
 ### Any other issues?
 
