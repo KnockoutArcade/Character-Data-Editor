@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 
 namespace CharacterDataEditor.Screens
 {
@@ -1072,7 +1073,8 @@ namespace CharacterDataEditor.Screens
                                     int transitionFrame = specialDataItem.TransitionFrame;
 
                                     ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
-
+                                    Regex regex = new Regex(@"[^\d]");
+                                    numpadInput = regex.Replace(numpadInput, "");
 
                                     ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
