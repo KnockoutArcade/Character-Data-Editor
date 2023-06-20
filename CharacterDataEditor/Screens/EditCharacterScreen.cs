@@ -42,6 +42,7 @@ namespace CharacterDataEditor.Screens
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
         private List<string> specialMoveTypesList = new List<string>();
+        private List<string> positionTypesList = new List<string>();
         private List<string> allMoveTypesList = new List<string>(); // Used for selecing the move type, combines both moveType enums
         private int allMoveTypesListIndex;
         private List<string> attackTypesList = new List<string>();
@@ -142,6 +143,8 @@ namespace CharacterDataEditor.Screens
             var specialMoveTypes = Enum.GetValues(typeof(EnhanceMoveType));
             specialMoveTypesList = new List<string>();
             allMoveTypesList = new List<string>();
+            var positionTypes = Enum.GetValues(typeof(PositionType));
+            positionTypesList = new List<string>();
 
             foreach (SpiritDataType item in spiritDataTypes)
             {
@@ -164,6 +167,13 @@ namespace CharacterDataEditor.Screens
             }
             allMoveTypesList = moveTypesList.Concat(specialMoveTypesList).ToList();
             allMoveTypesList.RemoveAt(moveTypesList.Count);
+
+            foreach (PositionType item in positionTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                positionTypesList.Add(itemAsString);
+            }
 
             var attackTypes = Enum.GetValues(typeof(AttackType));
             attackTypesList = new List<string>();
@@ -203,13 +213,6 @@ namespace CharacterDataEditor.Screens
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
                 commandButtonsList.Add(itemAsString);
-            }
-
-            foreach (EnhanceMoveType item in specialMoveTypes)
-            {
-                var itemAsString = item.ToString().AddSpacesToCamelCase();
-
-                specialMoveTypesList.Add(itemAsString);
             }
 
             //init spritedrawposition
@@ -1154,6 +1157,7 @@ namespace CharacterDataEditor.Screens
                                     EnhanceMoveType enhancementMove = specialDataItem.EnhancementMove;
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
+                                    PositionType requiredPosition = specialDataItem.RequiredPosition;
 
                                     ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
                                     Regex regex = new Regex(@"[^\d]");
@@ -1180,6 +1184,12 @@ namespace CharacterDataEditor.Screens
                                         transitionFrame = 0;
                                     }
 
+                                    var positionName = requiredPosition.ToString();
+                                    int selectedPositionIndex = positionTypesList.IndexOf(positionName.AddSpacesToCamelCase());
+                                    ImguiDrawingHelper.DrawComboInput("requiredPosition", positionTypesList.ToArray(), ref selectedPositionIndex);
+                                    var selectedPositionName = positionTypesList[selectedPositionIndex];
+                                    requiredPosition = (PositionType)Enum.Parse(typeof(PositionType), selectedPositionName.ToCamelCase());
+
                                     specialDataItem.NumpadInput = numpadInput;
                                     specialDataItem.ButtonPressRequired = buttonPressRequired;
                                     specialDataItem.StartingFrame = startingFrame;
@@ -1187,7 +1197,7 @@ namespace CharacterDataEditor.Screens
                                     specialDataItem.EnhancementMove = enhancementMove;
                                     specialDataItem.TransitionImmediately = transitionImmediately;
                                     specialDataItem.TransitionFrame = transitionFrame;
-
+                                    specialDataItem.RequiredPosition = requiredPosition;
 
                                     ImGui.TreePop();
                                 }
