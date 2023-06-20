@@ -1210,6 +1210,14 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawIntInput("hitboxToRepeat", ref rehitHitbox, 0);
                     ImguiDrawingHelper.DrawIntInput("numberOfRepeats", ref numberOfRepeats, 0);
 
+                    if (rehitHitbox < 1)
+                    {
+                        rehitHitbox = 1;
+                    }
+                    if (rehitHitbox > moveInEditor.NumberOfHitboxes)
+                    {
+                        rehitHitbox = moveInEditor.NumberOfHitboxes;
+                    }
                     if (numberOfRepeats < 0)
                     {
                         numberOfRepeats = 0;
