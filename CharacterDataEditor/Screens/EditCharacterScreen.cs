@@ -37,6 +37,7 @@ namespace CharacterDataEditor.Screens
         private Texture2D advanceOneFrameBackTexture;
         private Texture2D showHitboxesTexture;
 
+        private List<string> spiritDataList = new List<string>();
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
@@ -134,11 +135,20 @@ namespace CharacterDataEditor.Screens
             spriteDrawer = new SpriteDrawingHelper();
             frameCounter = 0;
 
+            var spiritDataTypes = Enum.GetValues(typeof(SpiritDataType));
+            spiritDataList = new List<string>();
             var moveTypes = Enum.GetValues(typeof(MoveType));
             moveTypesList = new List<string>();
             var specialMoveTypes = Enum.GetValues(typeof(EnhanceMoveType));
             specialMoveTypesList = new List<string>();
             allMoveTypesList = new List<string>();
+
+            foreach (SpiritDataType item in spiritDataTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                spiritDataList.Add(itemAsString);
+            }
 
             foreach (MoveType item in moveTypes)
             {
@@ -643,6 +653,23 @@ namespace CharacterDataEditor.Screens
                     var moveCancel = moveInEditor.MoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
                     moveInEditor.MoveCanCancelInto = moveCancel;
+                }
+
+                if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                {
+                    var inStandOn = moveInEditor.InStandOn;
+                    var toggleStance = moveInEditor.ToggleStance;
+
+                    ImguiDrawingHelper.DrawBoolInput("inStandOn", ref inStandOn);
+                    ImguiDrawingHelper.DrawBoolInput("toggleStandOn/StandOff", ref toggleStance);
+
+                    moveInEditor.InStandOn = inStandOn;
+                    moveInEditor.ToggleStance = toggleStance;
+                }
+                else
+                {
+                    moveInEditor.InStandOn = false;
+                    moveInEditor.ToggleStance = false;
                 }
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
@@ -1384,7 +1411,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                // Air movement data
+                // Air Movement Data dropdown
                 if (ImGui.CollapsingHeader("Air Movement Data"))
                 {
                     int movementDataCount = moveInEditor.AirMovementData.NumberOfWindows;
@@ -1941,6 +1968,29 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
 
                     idleIndex = idleSelected;
+                }
+
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+
+                if (ImGui.CollapsingHeader("Unique Data", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    int additionalMovesets = character.UniqueData.AdditionalMovesets;
+                    SpiritDataType spiritData = character.UniqueData.SpiritData;
+
+                    ImguiDrawingHelper.DrawIntInput("additionalMovesets", ref additionalMovesets);
+                    if (additionalMovesets < 0)
+                    {
+                        additionalMovesets = 0;
+                    }
+
+                    var dataType = spiritData.ToString();
+                    int spiritDataIndex = spiritDataList.IndexOf(dataType.AddSpacesToCamelCase());
+                    ImguiDrawingHelper.DrawComboInput("spiritData", spiritDataList.ToArray(), ref spiritDataIndex);
+                    var selectedData = spiritDataList[spiritDataIndex];
+                    spiritData = (SpiritDataType)Enum.Parse(typeof(SpiritDataType), selectedData.ToCamelCase());
+
+                    character.UniqueData.AdditionalMovesets = additionalMovesets;
+                    character.UniqueData.SpiritData = spiritData;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);

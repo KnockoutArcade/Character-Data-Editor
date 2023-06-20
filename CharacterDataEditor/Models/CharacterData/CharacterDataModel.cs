@@ -36,12 +36,14 @@ namespace CharacterDataEditor.Models.CharacterData
         public int NumberOfPalettes { get { return Palettes?.Count ?? 0; } }
         public List<PaletteModel> Palettes { get; set; } = new List<PaletteModel>();
         public List<MoveDataModel> MoveData { get; set; } = new List<MoveDataModel>();
+        public UniqueDataModel UniqueData { get; set; } = new UniqueDataModel();
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, WalkSpeed, BaseColor, Palettes, MoveData);
-            hash = HashCode.Combine(hash, RunSpeed, Traction, JumpSpeed, FallSpeed, BackDashDuration, BackDashInvincibility, BackDashSpeed);
-            hash = HashCode.Combine(hash, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate, MaxHitPoints);
+            var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, WalkSpeed, BaseColor, Palettes, UniqueData);
+            hash = HashCode.Combine(hash, MoveData, RunSpeed, Traction, JumpSpeed, FallSpeed, BackDashDuration, BackDashInvincibility);
+            hash = HashCode.Combine(hash, BackDashSpeed, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate);
+            hash = HashCode.Combine(hash, MaxHitPoints);
 
             return hash;
         }
@@ -66,33 +68,36 @@ namespace CharacterDataEditor.Models.CharacterData
                 {
                     if (objAsCharacterDataModel.Palettes.SequenceEqual(Palettes))
                     {
-                        if (objAsCharacterDataModel.MoveData.SequenceEqual(MoveData))
+                        if (objAsCharacterDataModel.UniqueData.Equals(UniqueData))
                         {
-                            if (objAsCharacterDataModel.HorizontalSpeed.Equals(HorizontalSpeed) &&
-                                objAsCharacterDataModel.VerticalSpeed.Equals(VerticalSpeed))
+                            if (objAsCharacterDataModel.MoveData.SequenceEqual(MoveData))
                             {
-                                if (objAsCharacterDataModel.EnvironmentalDisplacement.Equals(EnvironmentalDisplacement))
+                                if (objAsCharacterDataModel.HorizontalSpeed.Equals(HorizontalSpeed) &&
+                                    objAsCharacterDataModel.VerticalSpeed.Equals(VerticalSpeed))
                                 {
-                                    if (objAsCharacterDataModel.WalkSpeed.Equals(WalkSpeed) &&
-                                        objAsCharacterDataModel.RunSpeed.Equals(RunSpeed) &&
-                                        objAsCharacterDataModel.JumpSpeed.Equals(JumpSpeed) &&
-                                        objAsCharacterDataModel.FallSpeed.Equals(FallSpeed) &&
-                                        objAsCharacterDataModel.BackDashSpeed.Equals(BackDashSpeed) &&
-                                        objAsCharacterDataModel.FastFallSpeed.Equals(FastFallSpeed) &&
-                                        objAsCharacterDataModel.JumpHorizontalSpeed.Equals(JumpHorizontalSpeed))
+                                    if (objAsCharacterDataModel.EnvironmentalDisplacement.Equals(EnvironmentalDisplacement))
                                     {
-                                        if (objAsCharacterDataModel.Traction.Equals(Traction))
+                                        if (objAsCharacterDataModel.WalkSpeed.Equals(WalkSpeed) &&
+                                            objAsCharacterDataModel.RunSpeed.Equals(RunSpeed) &&
+                                            objAsCharacterDataModel.JumpSpeed.Equals(JumpSpeed) &&
+                                            objAsCharacterDataModel.FallSpeed.Equals(FallSpeed) &&
+                                            objAsCharacterDataModel.BackDashSpeed.Equals(BackDashSpeed) &&
+                                            objAsCharacterDataModel.FastFallSpeed.Equals(FastFallSpeed) &&
+                                            objAsCharacterDataModel.JumpHorizontalSpeed.Equals(JumpHorizontalSpeed))
                                         {
-                                            if (objAsCharacterDataModel.BackDashDuration.Equals(BackDashDuration) &&
-                                                objAsCharacterDataModel.BackDashInvincibility.Equals(BackDashInvincibility) &&
-                                                objAsCharacterDataModel.BackDashStartup.Equals(BackDashStartup) &&
-                                                objAsCharacterDataModel.JumpType.Equals(JumpType) &&
-                                                objAsCharacterDataModel.CharacterSprites.Equals(CharacterSprites) &&
-                                                objAsCharacterDataModel.SuperMeterBuildRate.Equals(SuperMeterBuildRate))
+                                            if (objAsCharacterDataModel.Traction.Equals(Traction))
                                             {
-                                                if (objAsCharacterDataModel.MaxHitPoints.Equals(MaxHitPoints))
+                                                if (objAsCharacterDataModel.BackDashDuration.Equals(BackDashDuration) &&
+                                                    objAsCharacterDataModel.BackDashInvincibility.Equals(BackDashInvincibility) &&
+                                                    objAsCharacterDataModel.BackDashStartup.Equals(BackDashStartup) &&
+                                                    objAsCharacterDataModel.JumpType.Equals(JumpType) &&
+                                                    objAsCharacterDataModel.CharacterSprites.Equals(CharacterSprites) &&
+                                                    objAsCharacterDataModel.SuperMeterBuildRate.Equals(SuperMeterBuildRate))
                                                 {
-                                                    return true;
+                                                    if (objAsCharacterDataModel.MaxHitPoints.Equals(MaxHitPoints))
+                                                    {
+                                                        return true;
+                                                    }
                                                 }
                                             }
                                         }
