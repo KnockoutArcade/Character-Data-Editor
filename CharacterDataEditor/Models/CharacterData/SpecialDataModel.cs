@@ -12,10 +12,11 @@ namespace CharacterDataEditor.Models.CharacterData
         public EnhanceMoveType EnhancementMove { get; set; } = EnhanceMoveType.EnhancedNeutral;
         public bool TransitionImmediately { get; set; } = false;
         public int TransitionFrame { get; set; } = 0;
+        public PositionType RequiredPosition { get; set; } = PositionType.Either;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(NumpadInput, ButtonPressRequired, StartingFrame, EndingFrame, EnhancementMove, TransitionImmediately, TransitionFrame);
+            var hash = HashCode.Combine(NumpadInput, ButtonPressRequired, StartingFrame, EndingFrame, EnhancementMove, TransitionImmediately, TransitionFrame, RequiredPosition);
 
             return hash;
         }
@@ -48,7 +49,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                 {
                                     if (objAsSpecialData.TransitionFrame == TransitionFrame)
                                     {
-                                        return true;
+                                        if (objAsSpecialData.RequiredPosition == RequiredPosition)
+                                        {
+                                            return true;
+                                        }
                                     }
                                 }
                             }
