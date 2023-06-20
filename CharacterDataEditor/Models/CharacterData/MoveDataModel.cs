@@ -14,6 +14,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public MoveType MoveCanCancelInto { get; set; } = MoveType.None;
         public EnhanceMoveType EnhanceMoveType { get; set; } = EnhanceMoveType.None;
         public EnhanceMoveType EnhanceMoveCanCancelInto { get; set; } = EnhanceMoveType.None;
+        public List<int> InMovesets { get; set; } = new List<int>();
+        public int SwitchToMoveset { get; set; } = 0;
         public string SpriteName { get; set; } = string.Empty;
         public int Duration { get; set; } = 0;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
@@ -46,9 +48,9 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, SpriteName, FrameData, AttackData, IsThrow, HurtboxData);
-            hash = HashCode.Combine(hash, RehitData, OpponentPositionData, CounterData, CommandNormalData, SpecialData, GroundMovementData, AirMovementData);
-            hash = HashCode.Combine(hash, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto, EnhanceMoveCanCancelInto);
+            var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchToMoveset, SpriteName, FrameData, AttackData);
+            hash = HashCode.Combine(hash, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData, SpecialData);
+            hash = HashCode.Combine(hash, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto, EnhanceMoveCanCancelInto);
 
             return hash;
         }
@@ -73,41 +75,47 @@ namespace CharacterDataEditor.Models.CharacterData
                 {
                     if (objAsMoveData.EnhanceMoveType == EnhanceMoveType)
                     {
-                        if (objAsMoveData.SpriteName == SpriteName)
+                        if (objAsMoveData.InMovesets.SequenceEqual(InMovesets))
                         {
-                            if (objAsMoveData.FrameData.SequenceEqual(FrameData))
+                            if (objAsMoveData.SwitchToMoveset.Equals(SwitchToMoveset))
                             {
-                                if (objAsMoveData.AttackData.SequenceEqual(AttackData))
+                                if (objAsMoveData.SpriteName == SpriteName)
                                 {
-                                    if (objAsMoveData.IsThrow == IsThrow)
+                                    if (objAsMoveData.FrameData.SequenceEqual(FrameData))
                                     {
-                                        if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
+                                        if (objAsMoveData.AttackData.SequenceEqual(AttackData))
                                         {
-                                            if (objAsMoveData.OpponentPositionData.Equals(OpponentPositionData))
+                                            if (objAsMoveData.IsThrow == IsThrow)
                                             {
-                                                if (objAsMoveData.RehitData.Equals(RehitData))
+                                                if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
                                                 {
-                                                    if (objAsMoveData.GroundMovementData.Equals(GroundMovementData))
+                                                    if (objAsMoveData.OpponentPositionData.Equals(OpponentPositionData))
                                                     {
-                                                        if (objAsMoveData.AirMovementData.Equals(AirMovementData))
+                                                        if (objAsMoveData.RehitData.Equals(RehitData))
                                                         {
-                                                            if (objAsMoveData.CounterData.SequenceEqual(CounterData))
+                                                            if (objAsMoveData.GroundMovementData.Equals(GroundMovementData))
                                                             {
-                                                                if (objAsMoveData.Duration.Equals(Duration))
+                                                                if (objAsMoveData.AirMovementData.Equals(AirMovementData))
                                                                 {
-                                                                    if (objAsMoveData.SupplimentaryScript.Equals(SupplimentaryScript))
+                                                                    if (objAsMoveData.CounterData.SequenceEqual(CounterData))
                                                                     {
-                                                                        if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
+                                                                        if (objAsMoveData.Duration.Equals(Duration))
                                                                         {
-                                                                            if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
+                                                                            if (objAsMoveData.SupplimentaryScript.Equals(SupplimentaryScript))
                                                                             {
-                                                                                if (objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto))
+                                                                                if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
                                                                                 {
-                                                                                    if (objAsMoveData.SpecialData.SequenceEqual(SpecialData))
+                                                                                    if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
                                                                                     {
-                                                                                        if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
+                                                                                        if (objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto))
                                                                                         {
-                                                                                            return true;
+                                                                                            if (objAsMoveData.SpecialData.SequenceEqual(SpecialData))
+                                                                                            {
+                                                                                                if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
+                                                                                                {
+                                                                                                    return true;
+                                                                                                }
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }

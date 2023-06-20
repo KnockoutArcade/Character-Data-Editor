@@ -113,6 +113,7 @@ namespace CharacterDataEditor.Screens
                             }
                         case VersionConstants.Ver110:
                         case VersionConstants.Ver111:
+                        case VersionConstants.Ver112:
                         default:
                             {
                                 results = characterNeedingUpgrade.Upgrade();

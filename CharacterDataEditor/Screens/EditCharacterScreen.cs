@@ -37,10 +37,12 @@ namespace CharacterDataEditor.Screens
         private Texture2D advanceOneFrameBackTexture;
         private Texture2D showHitboxesTexture;
 
+        private List<string> spiritDataList = new List<string>();
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
         private List<string> specialMoveTypesList = new List<string>();
+        private List<string> positionTypesList = new List<string>();
         private List<string> allMoveTypesList = new List<string>(); // Used for selecing the move type, combines both moveType enums
         private int allMoveTypesListIndex;
         private List<string> attackTypesList = new List<string>();
@@ -134,11 +136,22 @@ namespace CharacterDataEditor.Screens
             spriteDrawer = new SpriteDrawingHelper();
             frameCounter = 0;
 
+            var spiritDataTypes = Enum.GetValues(typeof(SpiritDataType));
+            spiritDataList = new List<string>();
             var moveTypes = Enum.GetValues(typeof(MoveType));
             moveTypesList = new List<string>();
             var specialMoveTypes = Enum.GetValues(typeof(EnhanceMoveType));
             specialMoveTypesList = new List<string>();
             allMoveTypesList = new List<string>();
+            var positionTypes = Enum.GetValues(typeof(PositionType));
+            positionTypesList = new List<string>();
+
+            foreach (SpiritDataType item in spiritDataTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                spiritDataList.Add(itemAsString);
+            }
 
             foreach (MoveType item in moveTypes)
             {
@@ -154,6 +167,13 @@ namespace CharacterDataEditor.Screens
             }
             allMoveTypesList = moveTypesList.Concat(specialMoveTypesList).ToList();
             allMoveTypesList.RemoveAt(moveTypesList.Count);
+
+            foreach (PositionType item in positionTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                positionTypesList.Add(itemAsString);
+            }
 
             var attackTypes = Enum.GetValues(typeof(AttackType));
             attackTypesList = new List<string>();
@@ -193,13 +213,6 @@ namespace CharacterDataEditor.Screens
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
                 commandButtonsList.Add(itemAsString);
-            }
-
-            foreach (EnhanceMoveType item in specialMoveTypes)
-            {
-                var itemAsString = item.ToString().AddSpacesToCamelCase();
-
-                specialMoveTypesList.Add(itemAsString);
             }
 
             //init spritedrawposition
@@ -645,6 +658,79 @@ namespace CharacterDataEditor.Screens
                     moveInEditor.MoveCanCancelInto = moveCancel;
                 }
 
+                if (character.UniqueData.AdditionalMovesets > 0)
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Usable in Movesets:");
+                    ImGui.Columns(1);
+
+                    var inMovesets = moveInEditor.InMovesets;
+                    var switchToMoveset = moveInEditor.SwitchToMoveset;
+
+                    // Shortens length of Movesets list
+                    while (inMovesets.Count > character.UniqueData.AdditionalMovesets + 1)
+                    {
+                        inMovesets.RemoveAt(inMovesets.Count - 1);
+                    }
+
+                    // Removes movesets that are out of the range of possible movesets
+                    int numberOfInvalidMovesets = 0;
+                    List<int> invalidMovesets = new List<int>();
+                    foreach (int moveset in inMovesets)
+                    {
+                        if (moveset > character.UniqueData.AdditionalMovesets + 1)
+                        {
+                            numberOfInvalidMovesets++;
+                            invalidMovesets.Add(moveset);
+                        }
+                    }
+                    while (numberOfInvalidMovesets > 0)
+                    {
+                        inMovesets.Remove(invalidMovesets[0]);
+                        invalidMovesets.RemoveAt(0);
+                        numberOfInvalidMovesets--;
+                    }
+
+                    // Create a list of checkboxes, one checkbox for each moveset
+                    for (int i = 0; i <= character.UniqueData.AdditionalMovesets; i++)
+                    {
+                        var isInMoveset = false;
+                        if (inMovesets.Contains(i + 1))
+                        {
+                            isInMoveset = true;
+                        }
+
+                        ImguiDrawingHelper.DrawBoolInput((i + 1).ToString(), ref isInMoveset);
+                        if (isInMoveset && !inMovesets.Contains(i + 1))
+                        {
+                            inMovesets.Add(i + 1);
+                        }
+                        else if (!isInMoveset && inMovesets.Contains(i + 1))
+                        {
+                            inMovesets.Remove(i + 1);
+                        }
+                    }
+                    inMovesets.Sort();
+
+                    ImguiDrawingHelper.DrawIntInput("switchToMoveset", ref switchToMoveset, int.MinValue, null, "You can also set this variable to the current moveset to keep the current moveset active. The name may be misleading.");
+                    if (switchToMoveset < 1)
+                    {
+                        switchToMoveset = 1;
+                    }
+                    if (switchToMoveset > character.UniqueData.AdditionalMovesets + 1)
+                    {
+                        switchToMoveset = character.UniqueData.AdditionalMovesets + 1;
+                    }
+
+                    moveInEditor.InMovesets = inMovesets;
+                    moveInEditor.SwitchToMoveset = switchToMoveset;
+                }
+                else
+                {
+                    moveInEditor.InMovesets.Clear();
+                    moveInEditor.SwitchToMoveset = 0;
+                }
+
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
                 ImguiDrawingHelper.DrawComboInput("sprite", allSprites.Select(x => x.Name).ToArray(), ref selectedSpriteIndex);
@@ -1071,6 +1157,7 @@ namespace CharacterDataEditor.Screens
                                     EnhanceMoveType enhancementMove = specialDataItem.EnhancementMove;
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
+                                    PositionType requiredPosition = specialDataItem.RequiredPosition;
 
                                     ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
                                     Regex regex = new Regex(@"[^\d]");
@@ -1097,6 +1184,12 @@ namespace CharacterDataEditor.Screens
                                         transitionFrame = 0;
                                     }
 
+                                    var positionName = requiredPosition.ToString();
+                                    int selectedPositionIndex = positionTypesList.IndexOf(positionName.AddSpacesToCamelCase());
+                                    ImguiDrawingHelper.DrawComboInput("requiredPosition", positionTypesList.ToArray(), ref selectedPositionIndex);
+                                    var selectedPositionName = positionTypesList[selectedPositionIndex];
+                                    requiredPosition = (PositionType)Enum.Parse(typeof(PositionType), selectedPositionName.ToCamelCase());
+
                                     specialDataItem.NumpadInput = numpadInput;
                                     specialDataItem.ButtonPressRequired = buttonPressRequired;
                                     specialDataItem.StartingFrame = startingFrame;
@@ -1104,7 +1197,7 @@ namespace CharacterDataEditor.Screens
                                     specialDataItem.EnhancementMove = enhancementMove;
                                     specialDataItem.TransitionImmediately = transitionImmediately;
                                     specialDataItem.TransitionFrame = transitionFrame;
-
+                                    specialDataItem.RequiredPosition = requiredPosition;
 
                                     ImGui.TreePop();
                                 }
@@ -1127,6 +1220,14 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawIntInput("hitboxToRepeat", ref rehitHitbox, 0);
                     ImguiDrawingHelper.DrawIntInput("numberOfRepeats", ref numberOfRepeats, 0);
 
+                    if (rehitHitbox < 1)
+                    {
+                        rehitHitbox = 1;
+                    }
+                    if (rehitHitbox > moveInEditor.NumberOfHitboxes)
+                    {
+                        rehitHitbox = moveInEditor.NumberOfHitboxes;
+                    }
                     if (numberOfRepeats < 0)
                     {
                         numberOfRepeats = 0;
@@ -1384,7 +1485,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                // Air movement data
+                // Air Movement Data dropdown
                 if (ImGui.CollapsingHeader("Air Movement Data"))
                 {
                     int movementDataCount = moveInEditor.AirMovementData.NumberOfWindows;
@@ -1941,6 +2042,29 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
 
                     idleIndex = idleSelected;
+                }
+
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+
+                if (ImGui.CollapsingHeader("Unique Data", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    int additionalMovesets = character.UniqueData.AdditionalMovesets;
+                    SpiritDataType spiritData = character.UniqueData.SpiritData;
+
+                    ImguiDrawingHelper.DrawIntInput("additionalMovesets", ref additionalMovesets);
+                    if (additionalMovesets < 0)
+                    {
+                        additionalMovesets = 0;
+                    }
+
+                    var dataType = spiritData.ToString();
+                    int spiritDataIndex = spiritDataList.IndexOf(dataType.AddSpacesToCamelCase());
+                    ImguiDrawingHelper.DrawComboInput("spiritData", spiritDataList.ToArray(), ref spiritDataIndex);
+                    var selectedData = spiritDataList[spiritDataIndex];
+                    spiritData = (SpiritDataType)Enum.Parse(typeof(SpiritDataType), selectedData.ToCamelCase());
+
+                    character.UniqueData.AdditionalMovesets = additionalMovesets;
+                    character.UniqueData.SpiritData = spiritData;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);

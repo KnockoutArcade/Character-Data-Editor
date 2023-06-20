@@ -1,7 +1,9 @@
 ## What's Changed?
 
-* Hotfix: fixed some crashing bugs and made a few quality-of-life changes for the command normals.
-* Special move inputs are now read as strings.
+* Added Unique Data for specific character gimmicks.
+  * Characters can now have additional movesets, and each move can change which moveset the player is currently using.
+  * Data has been created for Spirits (for Jay specifically), but nothing is implemented for it yet.
+* Special moves and enhancements now have an option for if the move should only be performed on the ground, in the air, or either.
 
 ## Known Bugs
 
