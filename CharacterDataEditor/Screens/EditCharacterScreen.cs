@@ -659,21 +659,35 @@ namespace CharacterDataEditor.Screens
                 {
                     ImGui.Columns(2);
                     ImGui.Text("Usable in Movesets:");
-                    ImGui.NextColumn();
                     ImGui.Columns(1);
 
                     var inMovesets = moveInEditor.InMovesets;
                     var switchToMoveset = moveInEditor.SwitchToMoveset;
 
-                    // Removes extra movesets from the Moveset list
-                    if (inMovesets.Count > character.UniqueData.AdditionalMovesets)
+                    // Shortens length of Movesets list
+                    while (inMovesets.Count > character.UniqueData.AdditionalMovesets + 1)
                     {
-                        while (inMovesets.Count > character.UniqueData.AdditionalMovesets)
+                        inMovesets.RemoveAt(inMovesets.Count - 1);
+                    }
+
+                    // Removes movesets that are out of the range of possible movesets
+                    int numberOfInvalidMovesets = 0;
+                    List<int> invalidMovesets = new List<int>();
+                    foreach (int moveset in inMovesets)
+                    {
+                        if (moveset > character.UniqueData.AdditionalMovesets + 1)
                         {
-                            inMovesets.RemoveAt(inMovesets.Count - 1);
+                            numberOfInvalidMovesets++;
+                            invalidMovesets.Add(moveset);
                         }
                     }
-                    
+                    while (numberOfInvalidMovesets > 0)
+                    {
+                        inMovesets.Remove(invalidMovesets[0]);
+                        invalidMovesets.RemoveAt(0);
+                        numberOfInvalidMovesets--;
+                    }
+
                     // Create a list of checkboxes, one checkbox for each moveset
                     for (int i = 0; i <= character.UniqueData.AdditionalMovesets; i++)
                     {
@@ -695,12 +709,15 @@ namespace CharacterDataEditor.Screens
                     }
                     inMovesets.Sort();
 
-                    //string[] switchOptions = { "No Change" };
-                    //for (int i = 0; i < character.UniqueData.AdditionalMovesets; i++)
-                    //{
-                    //    switchOptions[i + 1] = (i + 1).ToString();
-                    //}
-                    //ImguiDrawingHelper.DrawComboInput("switchToMoveset", switchOptions, ref );
+                    ImguiDrawingHelper.DrawIntInput("switchToMoveset", ref switchToMoveset, int.MinValue, null, "You can also set this variable to the current moveset to keep the current moveset active. The name may be misleading.");
+                    if (switchToMoveset < 1)
+                    {
+                        switchToMoveset = 1;
+                    }
+                    if (switchToMoveset > character.UniqueData.AdditionalMovesets + 1)
+                    {
+                        switchToMoveset = character.UniqueData.AdditionalMovesets + 1;
+                    }
 
                     moveInEditor.InMovesets = inMovesets;
                     moveInEditor.SwitchToMoveset = switchToMoveset;
