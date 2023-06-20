@@ -665,6 +665,7 @@ namespace CharacterDataEditor.Screens
                     ImGui.Columns(1);
 
                     var inMovesets = moveInEditor.InMovesets;
+                    var switchMoveset = moveInEditor.SwitchMoveset;
                     var switchToMoveset = moveInEditor.SwitchToMoveset;
 
                     // Shortens length of Movesets list
@@ -691,6 +692,12 @@ namespace CharacterDataEditor.Screens
                         numberOfInvalidMovesets--;
                     }
 
+                    // Failsafe to prevent the move from not being used in any movesets
+                    if (inMovesets.Count <= 0)
+                    {
+                        inMovesets.Add(1);
+                    }
+
                     // Create a list of checkboxes, one checkbox for each moveset
                     for (int i = 0; i <= character.UniqueData.AdditionalMovesets; i++)
                     {
@@ -708,21 +715,35 @@ namespace CharacterDataEditor.Screens
                         else if (!isInMoveset && inMovesets.Contains(i + 1))
                         {
                             inMovesets.Remove(i + 1);
+                            if (inMovesets.Count <= 0)
+                            {
+                                inMovesets.Add(i + 1);
+                            }
                         }
                     }
                     inMovesets.Sort();
 
-                    ImguiDrawingHelper.DrawIntInput("switchToMoveset", ref switchToMoveset, int.MinValue, null, "You can also set this variable to the current moveset to keep the current moveset active. The name may be misleading.");
-                    if (switchToMoveset < 1)
+                    ImguiDrawingHelper.DrawBoolInput("switchMoveset", ref switchMoveset);
+
+                    if (switchMoveset)
                     {
-                        switchToMoveset = 1;
+                        ImguiDrawingHelper.DrawIntInput("switchToMoveset", ref switchToMoveset);
+                        if (switchToMoveset < 1)
+                        {
+                            switchToMoveset = 1;
+                        }
+                        if (switchToMoveset > character.UniqueData.AdditionalMovesets + 1)
+                        {
+                            switchToMoveset = character.UniqueData.AdditionalMovesets + 1;
+                        }
                     }
-                    if (switchToMoveset > character.UniqueData.AdditionalMovesets + 1)
+                    else
                     {
-                        switchToMoveset = character.UniqueData.AdditionalMovesets + 1;
+                        switchToMoveset = 0;
                     }
 
                     moveInEditor.InMovesets = inMovesets;
+                    moveInEditor.SwitchMoveset = switchMoveset;
                     moveInEditor.SwitchToMoveset = switchToMoveset;
                 }
                 else
