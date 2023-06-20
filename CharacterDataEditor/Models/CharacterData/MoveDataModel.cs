@@ -14,8 +14,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public MoveType MoveCanCancelInto { get; set; } = MoveType.None;
         public EnhanceMoveType EnhanceMoveType { get; set; } = EnhanceMoveType.None;
         public EnhanceMoveType EnhanceMoveCanCancelInto { get; set; } = EnhanceMoveType.None;
-        public bool InStandOn { get; set; } = false;
-        public bool ToggleStance { get; set; } = false;
+        public List<int> InMovesets { get; set; } = new List<int>();
+        public int SwitchToMoveset { get; set; } = 0;
         public string SpriteName { get; set; } = string.Empty;
         public int Duration { get; set; } = 0;
         public int NumberOfFrames { get { return FrameData?.Count ?? 0; } }
@@ -48,7 +48,7 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InStandOn, ToggleStance, SpriteName, FrameData, AttackData);
+            var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchToMoveset, SpriteName, FrameData, AttackData);
             hash = HashCode.Combine(hash, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData, SpecialData);
             hash = HashCode.Combine(hash, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto, EnhanceMoveCanCancelInto);
 
@@ -75,9 +75,9 @@ namespace CharacterDataEditor.Models.CharacterData
                 {
                     if (objAsMoveData.EnhanceMoveType == EnhanceMoveType)
                     {
-                        if (objAsMoveData.InStandOn.Equals(InStandOn))
+                        if (objAsMoveData.InMovesets.SequenceEqual(InMovesets))
                         {
-                            if (objAsMoveData.ToggleStance.Equals(ToggleStance))
+                            if (objAsMoveData.SwitchToMoveset.Equals(SwitchToMoveset))
                             {
                                 if (objAsMoveData.SpriteName == SpriteName)
                                 {

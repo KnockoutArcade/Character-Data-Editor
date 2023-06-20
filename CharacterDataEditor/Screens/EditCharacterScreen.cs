@@ -655,21 +655,60 @@ namespace CharacterDataEditor.Screens
                     moveInEditor.MoveCanCancelInto = moveCancel;
                 }
 
-                if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                if (character.UniqueData.AdditionalMovesets > 0)
                 {
-                    var inStandOn = moveInEditor.InStandOn;
-                    var toggleStance = moveInEditor.ToggleStance;
+                    ImGui.Columns(2);
+                    ImGui.Text("Usable in Movesets:");
+                    ImGui.NextColumn();
+                    ImGui.Columns(1);
 
-                    ImguiDrawingHelper.DrawBoolInput("inStandOn", ref inStandOn);
-                    ImguiDrawingHelper.DrawBoolInput("toggleStandOn/StandOff", ref toggleStance);
+                    var inMovesets = moveInEditor.InMovesets;
+                    var switchToMoveset = moveInEditor.SwitchToMoveset;
 
-                    moveInEditor.InStandOn = inStandOn;
-                    moveInEditor.ToggleStance = toggleStance;
+                    // Removes extra movesets from the Moveset list
+                    if (inMovesets.Count > character.UniqueData.AdditionalMovesets)
+                    {
+                        while (inMovesets.Count > character.UniqueData.AdditionalMovesets)
+                        {
+                            inMovesets.RemoveAt(inMovesets.Count - 1);
+                        }
+                    }
+                    
+                    // Create a list of checkboxes, one checkbox for each moveset
+                    for (int i = 0; i <= character.UniqueData.AdditionalMovesets; i++)
+                    {
+                        var isInMoveset = false;
+                        if (inMovesets.Contains(i + 1))
+                        {
+                            isInMoveset = true;
+                        }
+
+                        ImguiDrawingHelper.DrawBoolInput((i + 1).ToString(), ref isInMoveset);
+                        if (isInMoveset && !inMovesets.Contains(i + 1))
+                        {
+                            inMovesets.Add(i + 1);
+                        }
+                        else if (!isInMoveset && inMovesets.Contains(i + 1))
+                        {
+                            inMovesets.Remove(i + 1);
+                        }
+                    }
+                    inMovesets.Sort();
+
+                    //string[] switchOptions = { "No Change" };
+                    //for (int i = 0; i < character.UniqueData.AdditionalMovesets; i++)
+                    //{
+                    //    switchOptions[i + 1] = (i + 1).ToString();
+                    //}
+                    //ImguiDrawingHelper.DrawComboInput("switchToMoveset", switchOptions, ref );
+
+                    moveInEditor.InMovesets = inMovesets;
+                    moveInEditor.SwitchToMoveset = switchToMoveset;
                 }
                 else
                 {
-                    moveInEditor.InStandOn = false;
-                    moveInEditor.ToggleStance = false;
+                    moveInEditor.InMovesets.Clear();
+                    moveInEditor.SwitchToMoveset = 0;
                 }
 
                 var spriteId = moveInEditor.SpriteName ?? string.Empty;
