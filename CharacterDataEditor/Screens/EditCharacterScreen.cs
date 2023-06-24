@@ -687,6 +687,10 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
                     moveInEditor.MoveCanCancelInto = moveCancel;
                 }
+                else
+                {
+                    moveInEditor.MoveCanCancelInto = 0;
+                }
 
                 // If the character has more than one moveset
                 if (character.UniqueData.AdditionalMovesets > 0)
@@ -1115,7 +1119,8 @@ namespace CharacterDataEditor.Screens
                 // Command Normal dropdown
                 if (ImGui.CollapsingHeader("Command Normal Data"))
                 {
-                    if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
+                    if ((moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3) && 
+                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                     {
                         DirectionType numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
                         CommandButton button = moveInEditor.CommandNormalData.Button;
@@ -1149,8 +1154,14 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.CommandNormalData.Button = button;
                         moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
                         moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
-
-
+                    }
+                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                    {
+                        ImGui.Text("Character is a spirit!");
+                        moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
+                        moveInEditor.CommandNormalData.Button = CommandButton.Light;
+                        moveInEditor.CommandNormalData.GroundOrAir = false;
+                        moveInEditor.CommandNormalData.CancelWhenLanding = false;
                     }
                     else
                     {
@@ -1165,8 +1176,9 @@ namespace CharacterDataEditor.Screens
                 // Special Data dropdown
                 if (ImGui.CollapsingHeader("Special Data"))
                 {
-                    if (moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
-                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
+                    if ((moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None) && 
+                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
                         ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
@@ -1255,6 +1267,11 @@ namespace CharacterDataEditor.Screens
                                 }
                             }
                         }
+                    }
+                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                    {
+                        ImGui.Text("Character is a spirit!");
+                        moveInEditor.SpecialData.Clear();
                     }
                     else
                     {
@@ -1685,55 +1702,73 @@ namespace CharacterDataEditor.Screens
                     if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
                     {
                         bool toggleState = moveInEditor.SpiritData.ToggleState;
-                        MoveType spiritAttack = moveInEditor.SpiritData.SpiritAttack;
-                        bool startAtCurrent = moveInEditor.SpiritData.StartAtCurrent;
-                        int startXOffset = moveInEditor.SpiritData.StartXOffset;
-                        int startYOffset = moveInEditor.SpiritData.StartYOffset;
+                        bool performAttack = moveInEditor.SpiritData.PerformAttack;
+                        bool returnToPlayer = moveInEditor.SpiritData.ReturnToPlayer;
 
                         ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState);
+                        ImguiDrawingHelper.DrawBoolInput("performCorrespondingAttack", ref performAttack);
 
-                        var attackName = spiritAttack.ToString();
-                        int selectedAttackIndex = moveTypesList.IndexOf(attackName.AddSpacesToCamelCase());
-                        ImguiDrawingHelper.DrawComboInput("spiritAttack", moveTypesList.ToArray(), ref selectedAttackIndex);
-                        var selectedAttackName = moveTypesList[selectedAttackIndex];
-                        spiritAttack = (MoveType)Enum.Parse(typeof(MoveType), selectedAttackName.ToCamelCase());
-
-                        ImguiDrawingHelper.DrawBoolInput("startAtCurrentPosition", ref startAtCurrent);
-
-                        if (!startAtCurrent)
+                        if (performAttack)
                         {
-                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset);
-                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset);
+                            bool startAtCurrent = moveInEditor.SpiritData.StartAtCurrent;
+                            int startXOffset = moveInEditor.SpiritData.StartXOffset;
+                            int startYOffset = moveInEditor.SpiritData.StartYOffset;
+
+                            ImguiDrawingHelper.DrawBoolInput("startAtCurrentPosition", ref startAtCurrent);
+
+                            if (!startAtCurrent)
+                            {
+                                ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset);
+                                ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset);
+                            }
+                            else
+                            {
+                                startXOffset = 0;
+                                startYOffset = 0;
+                            }
+
+                            moveInEditor.SpiritData.StartAtCurrent = startAtCurrent;
+                            moveInEditor.SpiritData.StartXOffset = startXOffset;
+                            moveInEditor.SpiritData.StartYOffset = startYOffset;
                         }
                         else
                         {
-                            startXOffset = 0;
-                            startYOffset = 0;
+                            moveInEditor.SpiritData.StartAtCurrent = false;
+                            moveInEditor.SpiritData.StartXOffset = 0;
+                            moveInEditor.SpiritData.StartYOffset = 0;
                         }
 
+                        ImguiDrawingHelper.DrawBoolInput("returnToPlayer", ref returnToPlayer);
+
                         moveInEditor.SpiritData.ToggleState = toggleState;
-                        moveInEditor.SpiritData.SpiritAttack = spiritAttack;
-                        moveInEditor.SpiritData.StartAtCurrent = startAtCurrent;
-                        moveInEditor.SpiritData.StartXOffset = startXOffset;
-                        moveInEditor.SpiritData.StartYOffset = startYOffset;
+                        moveInEditor.SpiritData.PerformAttack = performAttack;
+                        moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
+
+                        moveInEditor.SpiritData.MaintainPosition = false;
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
-                        ImGui.Text("Character is a spirit, therefore can't have a spirit!");
+                        bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
+                        ImguiDrawingHelper.DrawBoolInput("maintainPositionAfterAttack", ref maintainPosition);
+                        moveInEditor.SpiritData.MaintainPosition = maintainPosition;
+
                         moveInEditor.SpiritData.ToggleState = false;
-                        moveInEditor.SpiritData.SpiritAttack = MoveType.None;
+                        moveInEditor.SpiritData.PerformAttack = false;
                         moveInEditor.SpiritData.StartAtCurrent = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
+                        moveInEditor.SpiritData.ReturnToPlayer = false;
                     }
                     else
                     {
-                        ImGui.Text("Character doesn't have a spirit!");
+                        ImGui.Text("Character doesn't have a spirit and isn't a spirit!");
                         moveInEditor.SpiritData.ToggleState = false;
-                        moveInEditor.SpiritData.SpiritAttack = MoveType.None;
+                        moveInEditor.SpiritData.PerformAttack = false;
                         moveInEditor.SpiritData.StartAtCurrent = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
+                        moveInEditor.SpiritData.ReturnToPlayer = false;
+                        moveInEditor.SpiritData.MaintainPosition = false;
                     }
 
                     ImGui.TreePop();

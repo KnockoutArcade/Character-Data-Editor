@@ -10,14 +10,16 @@ namespace CharacterDataEditor.Models.CharacterData
     public class SpiritDataModel
     {
         public bool ToggleState { get; set; } = false;
-        public MoveType SpiritAttack { get; set; } = MoveType.None; 
+        public bool PerformAttack { get; set; } = false; 
         public bool StartAtCurrent { get; set; } = false;
         public int StartXOffset { get; set; } = 0;
         public int StartYOffset { get; set; } = 0;
+        public bool ReturnToPlayer { get; set; } = false;
+        public bool MaintainPosition { get; set; } = false;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(ToggleState, SpiritAttack, StartAtCurrent, StartXOffset, StartYOffset);
+            var hash = HashCode.Combine(ToggleState, PerformAttack, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer, MaintainPosition);
 
             return hash;
         }
@@ -38,7 +40,7 @@ namespace CharacterDataEditor.Models.CharacterData
 
             if (objAsSpiritData.ToggleState.Equals(ToggleState))
             {
-                if (objAsSpiritData.SpiritAttack.Equals(SpiritAttack))
+                if (objAsSpiritData.PerformAttack.Equals(PerformAttack))
                 {
                     if (objAsSpiritData.StartAtCurrent.Equals(StartAtCurrent))
                     {
@@ -46,7 +48,13 @@ namespace CharacterDataEditor.Models.CharacterData
                         {
                             if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
                             {
-                                return true;
+                                if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
+                                {
+                                    if (objAsSpiritData.MaintainPosition.Equals(MaintainPosition))
+                                    {
+                                        return true;
+                                    }
+                                }
                             }
                         }
                     }
