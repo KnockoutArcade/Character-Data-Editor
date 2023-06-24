@@ -1,9 +1,9 @@
-﻿using CharacterDataEditor.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Xml.Linq;
+using CharacterDataEditor.Enums;
+using Newtonsoft.Json;
 
 namespace CharacterDataEditor.Models.CharacterData
 {
@@ -28,7 +28,7 @@ namespace CharacterDataEditor.Models.CharacterData
                 return false;
             }
 
-            if (obj.GetType() != typeof(SpecialDataModel))
+            if (obj.GetType() != typeof(SpiritDataModel))
             {
                 return false;
             }

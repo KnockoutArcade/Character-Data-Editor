@@ -11,6 +11,7 @@ using Raylib_cs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -1646,6 +1647,44 @@ namespace CharacterDataEditor.Screens
                             }
                         }
                     }
+                }
+
+                // Spirit Data dropdown
+                if (ImGui.CollapsingHeader("Spirit Data"))
+                {
+                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                    {
+                        bool toggleState = moveInEditor.SpiritData.ToggleState;
+                        MoveType spiritAttack = moveInEditor.SpiritData.SpiritAttack;
+                        int startXOffset = moveInEditor.SpiritData.StartXOffset;
+                        int startYOffset = moveInEditor.SpiritData.StartYOffset;
+
+                        ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState);
+
+                        var attackName = spiritAttack.ToString();
+                        int selectedAttackIndex = moveTypesList.IndexOf(attackName.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("spiritAttack", moveTypesList.ToArray(), ref selectedAttackIndex);
+                        var selectedAttackName = moveTypesList[selectedAttackIndex];
+                        spiritAttack = (MoveType)Enum.Parse(typeof(MoveType), selectedAttackName.ToCamelCase());
+
+                        ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset);
+                        ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset);
+
+                        moveInEditor.SpiritData.ToggleState = toggleState;
+                        moveInEditor.SpiritData.SpiritAttack = spiritAttack;
+                        moveInEditor.SpiritData.StartXOffset = startXOffset;
+                        moveInEditor.SpiritData.StartYOffset = startYOffset;
+                    }
+                    else
+                    {
+                        ImGui.Text("Character doesn't have a spirit!");
+                        moveInEditor.SpiritData.ToggleState = false;
+                        moveInEditor.SpiritData.SpiritAttack = MoveType.None;
+                        moveInEditor.SpiritData.StartXOffset = 0;
+                        moveInEditor.SpiritData.StartYOffset = 0;
+                    }
+
+                    ImGui.TreePop();
                 }
             }
         }
