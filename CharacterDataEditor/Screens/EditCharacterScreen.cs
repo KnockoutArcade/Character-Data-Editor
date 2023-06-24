@@ -39,6 +39,7 @@ namespace CharacterDataEditor.Screens
         private Texture2D showHitboxesTexture;
 
         private List<string> spiritDataList = new List<string>();
+        private List<CharacterDataModel> spiritCharacters;
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
@@ -117,6 +118,20 @@ namespace CharacterDataEditor.Screens
             character = action == "edit" ? screenData.character : new CharacterDataModel();
             //copies the data from character into original character
             originalCharacter = character.Clone();
+
+            spiritCharacters = _characterOperations.GetCharactersFromProject<CharacterDataModel>(projectData.ProjectPathOnly);
+            List<CharacterDataModel> spiritsToRemove = new List<CharacterDataModel>();
+            foreach (var spiritCharacter in spiritCharacters)
+            {
+                if (spiritCharacter.UniqueData.SpiritData != SpiritDataType.IsSpirit)
+                {
+                    spiritsToRemove.Add(spiritCharacter);
+                }
+            }
+            foreach (var spiritToRemove in spiritsToRemove)
+            {
+                spiritCharacters.Remove(spiritToRemove);
+            }
 
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
@@ -652,7 +667,7 @@ namespace CharacterDataEditor.Screens
                 }
 
                 // Select what moves to cancel into
-                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None)
+                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None && character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                 {
                     var moveCancel = moveInEditor.MoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
@@ -1507,184 +1522,202 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                // Air Movement Data dropdown
-                if (ImGui.CollapsingHeader("Air Movement Data"))
+                if (character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                 {
-                    int movementDataCount = moveInEditor.AirMovementData.NumberOfWindows;
-                    float gravityScale = moveInEditor.AirMovementData.GravityScale;
-                    float fallScale = moveInEditor.AirMovementData.FallScale;
-
-                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
-                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
-
-                    moveInEditor.AirMovementData.FallScale = fallScale;
-                    moveInEditor.AirMovementData.GravityScale = gravityScale;
-
-                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
-
-                    if (movementDataCount < 0)
+                    // Air Movement Data dropdown
+                    if (ImGui.CollapsingHeader("Air Movement Data"))
                     {
-                        movementDataCount = 0;
-                    }
+                        int movementDataCount = moveInEditor.AirMovementData.NumberOfWindows;
+                        float gravityScale = moveInEditor.AirMovementData.GravityScale;
+                        float fallScale = moveInEditor.AirMovementData.FallScale;
 
-                    if (movementDataCount < moveInEditor.AirMovementData.NumberOfWindows)
-                    {
-                        while (movementDataCount < moveInEditor.AirMovementData.NumberOfWindows)
+                        ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
+                        ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
+
+                        moveInEditor.AirMovementData.FallScale = fallScale;
+                        moveInEditor.AirMovementData.GravityScale = gravityScale;
+
+                        ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
+
+                        if (movementDataCount < 0)
                         {
-                            moveInEditor.AirMovementData.Windows.RemoveAt(moveInEditor.AirMovementData.NumberOfWindows - 1);
+                            movementDataCount = 0;
                         }
-                    }
-                    else
-                    {
-                        while (movementDataCount > moveInEditor.AirMovementData.NumberOfWindows)
-                        {
-                            moveInEditor.AirMovementData.Windows.Add(new MovementDataModel());
-                        }
-                    }
 
-                    if (movementDataCount == 0)
-                    {
-                        ImGui.Text("No air movement data frames");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < moveInEditor.AirMovementData.NumberOfWindows; i++)
+                        if (movementDataCount < moveInEditor.AirMovementData.NumberOfWindows)
                         {
-                            if (ImGui.TreeNode($"Air Move Window [{i}]"))
+                            while (movementDataCount < moveInEditor.AirMovementData.NumberOfWindows)
                             {
-                                var currentMovementData = moveInEditor.AirMovementData.Windows[i];
+                                moveInEditor.AirMovementData.Windows.RemoveAt(moveInEditor.AirMovementData.NumberOfWindows - 1);
+                            }
+                        }
+                        else
+                        {
+                            while (movementDataCount > moveInEditor.AirMovementData.NumberOfWindows)
+                            {
+                                moveInEditor.AirMovementData.Windows.Add(new MovementDataModel());
+                            }
+                        }
 
-                                int startFrame = currentMovementData.StartingFrame;
-                                float horizontalSpeed = currentMovementData.HorizontalSpeed;
-                                float verticalSpeed = currentMovementData.VerticalSpeed;
-                                bool overwriteVSpeed = currentMovementData.OverwriteVerticalSpeed;
-                                bool overwriteHSpeed = currentMovementData.OverwriteHorizontalSpeed;
+                        if (movementDataCount == 0)
+                        {
+                            ImGui.Text("No air movement data frames");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < moveInEditor.AirMovementData.NumberOfWindows; i++)
+                            {
+                                if (ImGui.TreeNode($"Air Move Window [{i}]"))
+                                {
+                                    var currentMovementData = moveInEditor.AirMovementData.Windows[i];
 
-                                ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
-                                ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
-                                ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
-                                ImguiDrawingHelper.DrawBoolInput("overwriteHorizontalSpeed", ref overwriteHSpeed);
-                                ImguiDrawingHelper.DrawBoolInput("overwriteVerticalSpeed", ref overwriteVSpeed);
+                                    int startFrame = currentMovementData.StartingFrame;
+                                    float horizontalSpeed = currentMovementData.HorizontalSpeed;
+                                    float verticalSpeed = currentMovementData.VerticalSpeed;
+                                    bool overwriteVSpeed = currentMovementData.OverwriteVerticalSpeed;
+                                    bool overwriteHSpeed = currentMovementData.OverwriteHorizontalSpeed;
 
-                                currentMovementData.StartingFrame = startFrame;
-                                currentMovementData.HorizontalSpeed = horizontalSpeed;
-                                currentMovementData.VerticalSpeed = verticalSpeed;
-                                currentMovementData.OverwriteVerticalSpeed = overwriteVSpeed;
-                                currentMovementData.OverwriteHorizontalSpeed = overwriteHSpeed;
+                                    ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
+                                    ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                                    ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                                    ImguiDrawingHelper.DrawBoolInput("overwriteHorizontalSpeed", ref overwriteHSpeed);
+                                    ImguiDrawingHelper.DrawBoolInput("overwriteVerticalSpeed", ref overwriteVSpeed);
 
-                                ImGui.TreePop();
+                                    currentMovementData.StartingFrame = startFrame;
+                                    currentMovementData.HorizontalSpeed = horizontalSpeed;
+                                    currentMovementData.VerticalSpeed = verticalSpeed;
+                                    currentMovementData.OverwriteVerticalSpeed = overwriteVSpeed;
+                                    currentMovementData.OverwriteHorizontalSpeed = overwriteHSpeed;
+
+                                    ImGui.TreePop();
+                                }
                             }
                         }
                     }
-                }
 
-                // Ground Movement Data dropdown
-                if (ImGui.CollapsingHeader("Ground Movement Data"))
-                {
-                    int movementDataCount = moveInEditor.GroundMovementData.NumberOfWindows;
-                    float gravityScale = moveInEditor.GroundMovementData.GravityScale;
-                    float fallScale = moveInEditor.GroundMovementData.FallScale;
-
-                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
-                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
-
-                    moveInEditor.GroundMovementData.FallScale = fallScale;
-                    moveInEditor.GroundMovementData.GravityScale = gravityScale;
-
-                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
-
-                    if (movementDataCount < 0)
+                    // Ground Movement Data dropdown
+                    if (ImGui.CollapsingHeader("Ground Movement Data"))
                     {
-                        movementDataCount = 0;
-                    }
+                        int movementDataCount = moveInEditor.GroundMovementData.NumberOfWindows;
+                        float gravityScale = moveInEditor.GroundMovementData.GravityScale;
+                        float fallScale = moveInEditor.GroundMovementData.FallScale;
 
-                    if (movementDataCount < moveInEditor.GroundMovementData.NumberOfWindows)
-                    {
-                        while (movementDataCount < moveInEditor.GroundMovementData.NumberOfWindows)
+                        ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
+                        ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
+
+                        moveInEditor.GroundMovementData.FallScale = fallScale;
+                        moveInEditor.GroundMovementData.GravityScale = gravityScale;
+
+                        ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
+
+                        if (movementDataCount < 0)
                         {
-                            moveInEditor.GroundMovementData.Windows.RemoveAt(moveInEditor.GroundMovementData.NumberOfWindows - 1);
+                            movementDataCount = 0;
                         }
-                    }
-                    else
-                    {
-                        while (movementDataCount > moveInEditor.GroundMovementData.NumberOfWindows)
-                        {
-                            moveInEditor.GroundMovementData.Windows.Add(new MovementDataModel());
-                        }
-                    }
 
-                    if (movementDataCount == 0)
-                    {
-                        ImGui.Text("No ground movement data frames");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < moveInEditor.GroundMovementData.NumberOfWindows; i++)
+                        if (movementDataCount < moveInEditor.GroundMovementData.NumberOfWindows)
                         {
-                            if (ImGui.TreeNode($"Ground Move Window [{i}]"))
+                            while (movementDataCount < moveInEditor.GroundMovementData.NumberOfWindows)
                             {
-                                var currentMovementData = moveInEditor.GroundMovementData.Windows[i];
+                                moveInEditor.GroundMovementData.Windows.RemoveAt(moveInEditor.GroundMovementData.NumberOfWindows - 1);
+                            }
+                        }
+                        else
+                        {
+                            while (movementDataCount > moveInEditor.GroundMovementData.NumberOfWindows)
+                            {
+                                moveInEditor.GroundMovementData.Windows.Add(new MovementDataModel());
+                            }
+                        }
 
-                                int startFrame = currentMovementData.StartingFrame;
-                                float horizontalSpeed = currentMovementData.HorizontalSpeed;
-                                float verticalSpeed = currentMovementData.VerticalSpeed;
-                                bool overwriteVSpeed = currentMovementData.OverwriteVerticalSpeed;
-                                bool overwriteHSpeed = currentMovementData.OverwriteHorizontalSpeed;
+                        if (movementDataCount == 0)
+                        {
+                            ImGui.Text("No ground movement data frames");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < moveInEditor.GroundMovementData.NumberOfWindows; i++)
+                            {
+                                if (ImGui.TreeNode($"Ground Move Window [{i}]"))
+                                {
+                                    var currentMovementData = moveInEditor.GroundMovementData.Windows[i];
 
-                                ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
-                                ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
-                                ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
-                                ImguiDrawingHelper.DrawBoolInput("overwriteHorizontalSpeed", ref overwriteHSpeed);
-                                ImguiDrawingHelper.DrawBoolInput("overwriteVerticalSpeed", ref overwriteVSpeed);
+                                    int startFrame = currentMovementData.StartingFrame;
+                                    float horizontalSpeed = currentMovementData.HorizontalSpeed;
+                                    float verticalSpeed = currentMovementData.VerticalSpeed;
+                                    bool overwriteVSpeed = currentMovementData.OverwriteVerticalSpeed;
+                                    bool overwriteHSpeed = currentMovementData.OverwriteHorizontalSpeed;
 
-                                currentMovementData.StartingFrame = startFrame;
-                                currentMovementData.HorizontalSpeed = horizontalSpeed;
-                                currentMovementData.VerticalSpeed = verticalSpeed;
-                                currentMovementData.OverwriteVerticalSpeed = overwriteVSpeed;
-                                currentMovementData.OverwriteHorizontalSpeed = overwriteHSpeed;
+                                    ImguiDrawingHelper.DrawIntInput("startingFrame", ref startFrame);
+                                    ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                                    ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                                    ImguiDrawingHelper.DrawBoolInput("overwriteHorizontalSpeed", ref overwriteHSpeed);
+                                    ImguiDrawingHelper.DrawBoolInput("overwriteVerticalSpeed", ref overwriteVSpeed);
 
-                                ImGui.TreePop();
+                                    currentMovementData.StartingFrame = startFrame;
+                                    currentMovementData.HorizontalSpeed = horizontalSpeed;
+                                    currentMovementData.VerticalSpeed = verticalSpeed;
+                                    currentMovementData.OverwriteVerticalSpeed = overwriteVSpeed;
+                                    currentMovementData.OverwriteHorizontalSpeed = overwriteHSpeed;
+
+                                    ImGui.TreePop();
+                                }
                             }
                         }
                     }
+
+                    // Spirit Data dropdown
+                    if (ImGui.CollapsingHeader("Spirit Data"))
+                    {
+                        if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                        {
+                            bool toggleState = moveInEditor.SpiritData.ToggleState;
+                            MoveType spiritAttack = moveInEditor.SpiritData.SpiritAttack;
+                            int startXOffset = moveInEditor.SpiritData.StartXOffset;
+                            int startYOffset = moveInEditor.SpiritData.StartYOffset;
+
+                            ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState);
+
+                            var attackName = spiritAttack.ToString();
+                            int selectedAttackIndex = moveTypesList.IndexOf(attackName.AddSpacesToCamelCase());
+                            ImguiDrawingHelper.DrawComboInput("spiritAttack", moveTypesList.ToArray(), ref selectedAttackIndex);
+                            var selectedAttackName = moveTypesList[selectedAttackIndex];
+                            spiritAttack = (MoveType)Enum.Parse(typeof(MoveType), selectedAttackName.ToCamelCase());
+
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset);
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset);
+
+                            moveInEditor.SpiritData.ToggleState = toggleState;
+                            moveInEditor.SpiritData.SpiritAttack = spiritAttack;
+                            moveInEditor.SpiritData.StartXOffset = startXOffset;
+                            moveInEditor.SpiritData.StartYOffset = startYOffset;
+                        }
+                        else
+                        {
+                            ImGui.Text("Character doesn't have a spirit!");
+                            moveInEditor.SpiritData.ToggleState = false;
+                            moveInEditor.SpiritData.SpiritAttack = MoveType.None;
+                            moveInEditor.SpiritData.StartXOffset = 0;
+                            moveInEditor.SpiritData.StartYOffset = 0;
+                        }
+
+                        ImGui.TreePop();
+                    }
                 }
-
-                // Spirit Data dropdown
-                if (ImGui.CollapsingHeader("Spirit Data"))
+                else
                 {
-                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
-                    {
-                        bool toggleState = moveInEditor.SpiritData.ToggleState;
-                        MoveType spiritAttack = moveInEditor.SpiritData.SpiritAttack;
-                        int startXOffset = moveInEditor.SpiritData.StartXOffset;
-                        int startYOffset = moveInEditor.SpiritData.StartYOffset;
+                    moveInEditor.AirMovementData.Windows.Clear();
+                    moveInEditor.AirMovementData.GravityScale = 0.0f;
+                    moveInEditor.AirMovementData.FallScale = 0.0f;
 
-                        ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState);
+                    moveInEditor.GroundMovementData.Windows.Clear();
+                    moveInEditor.GroundMovementData.GravityScale = 0.0f;
+                    moveInEditor.GroundMovementData.FallScale = 0.0f;
 
-                        var attackName = spiritAttack.ToString();
-                        int selectedAttackIndex = moveTypesList.IndexOf(attackName.AddSpacesToCamelCase());
-                        ImguiDrawingHelper.DrawComboInput("spiritAttack", moveTypesList.ToArray(), ref selectedAttackIndex);
-                        var selectedAttackName = moveTypesList[selectedAttackIndex];
-                        spiritAttack = (MoveType)Enum.Parse(typeof(MoveType), selectedAttackName.ToCamelCase());
-
-                        ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset);
-                        ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset);
-
-                        moveInEditor.SpiritData.ToggleState = toggleState;
-                        moveInEditor.SpiritData.SpiritAttack = spiritAttack;
-                        moveInEditor.SpiritData.StartXOffset = startXOffset;
-                        moveInEditor.SpiritData.StartYOffset = startYOffset;
-                    }
-                    else
-                    {
-                        ImGui.Text("Character doesn't have a spirit!");
-                        moveInEditor.SpiritData.ToggleState = false;
-                        moveInEditor.SpiritData.SpiritAttack = MoveType.None;
-                        moveInEditor.SpiritData.StartXOffset = 0;
-                        moveInEditor.SpiritData.StartYOffset = 0;
-                    }
-
-                    ImGui.TreePop();
+                    moveInEditor.SpiritData.ToggleState = false;
+                    moveInEditor.SpiritData.SpiritAttack = MoveType.None;
+                    moveInEditor.SpiritData.StartXOffset = 0;
+                    moveInEditor.SpiritData.StartYOffset = 0;
                 }
             }
         }
@@ -1947,62 +1980,77 @@ namespace CharacterDataEditor.Screens
                     ImGui.EndTable();
 
                     var maxHitPoints = character.MaxHitPoints;
-                    var horizontalSpeed = character.HorizontalSpeed;
-                    var verticalSpeed = character.VerticalSpeed;
-                    var envDisplacement = character.EnvironmentalDisplacement;
-                    var walkSpeed = character.WalkSpeed;
-                    var runSpeed = character.RunSpeed;
-                    var traction = character.Traction;
-                    var jumpSpeed = character.JumpSpeed;
-                    var fallSpeed = character.FallSpeed;
-                    var backDashDuration = character.BackDashDuration;
-                    var backDashInvincibility = character.BackDashInvincibility;
-                    var backDashSpeed = character.BackDashSpeed;
-                    var backDashStartup = character.BackDashStartup;
-                    var fastFallSpeed = character.FastFallSpeed;
-                    var jumpType = character.JumpType;
-                    var jumpHorizontalSpeed = character.JumpHorizontalSpeed;
-                    var superMeterBuildRate = character.SuperMeterBuildRate;
-                    var spriteCollection = character.CharacterSprites;
-
                     ImguiDrawingHelper.DrawIntInput("maxHitPoints", ref maxHitPoints);
-                    ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
-                    ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
-                    ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
-                    ImguiDrawingHelper.DrawDecimalInput("walkSpeed", ref walkSpeed);
-                    ImguiDrawingHelper.DrawDecimalInput("runSpeed", ref runSpeed);
-                    ImguiDrawingHelper.DrawDecimalInput("traction", ref traction);
-                    ImguiDrawingHelper.DrawDecimalInput("jumpSpeed", ref jumpSpeed);
-                    ImguiDrawingHelper.DrawDecimalInput("fallSpeed", ref fallSpeed);
-                    ImguiDrawingHelper.DrawIntInput("backDashDuration", ref backDashDuration);
-                    ImguiDrawingHelper.DrawIntInput("backDashInvincibility", ref backDashInvincibility);
-                    ImguiDrawingHelper.DrawDecimalInput("backDashSpeed", ref backDashSpeed);
-                    ImguiDrawingHelper.DrawDecimalInput("backDashStartup", ref backDashStartup);
-                    ImguiDrawingHelper.DrawDecimalInput("fastFallSpeed", ref fastFallSpeed);
-
-                    ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
-
-                    ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
-                    ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
-
                     character.MaxHitPoints = maxHitPoints;
-                    character.HorizontalSpeed = horizontalSpeed;
-                    character.VerticalSpeed = verticalSpeed;
-                    character.EnvironmentalDisplacement = envDisplacement;
-                    character.WalkSpeed = walkSpeed;
-                    character.RunSpeed = runSpeed;
-                    character.Traction = traction;
-                    character.JumpSpeed = jumpSpeed;
-                    character.FallSpeed = fallSpeed;
-                    character.BackDashDuration = backDashDuration;
-                    character.BackDashInvincibility = backDashInvincibility;
-                    character.BackDashSpeed = backDashSpeed;
-                    character.BackDashStartup = backDashStartup;
-                    character.FastFallSpeed = fastFallSpeed;
-                    character.JumpType = jumpType;
-                    character.JumpHorizontalSpeed = jumpHorizontalSpeed;
-                    character.SuperMeterBuildRate = superMeterBuildRate;
-                    character.CharacterSprites = spriteCollection;
+
+                    if (character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
+                    {
+                        var horizontalSpeed = character.HorizontalSpeed;
+                        var verticalSpeed = character.VerticalSpeed;
+                        var envDisplacement = character.EnvironmentalDisplacement;
+                        var walkSpeed = character.WalkSpeed;
+                        var runSpeed = character.RunSpeed;
+                        var traction = character.Traction;
+                        var jumpSpeed = character.JumpSpeed;
+                        var fallSpeed = character.FallSpeed;
+                        var backDashDuration = character.BackDashDuration;
+                        var backDashInvincibility = character.BackDashInvincibility;
+                        var backDashSpeed = character.BackDashSpeed;
+                        var backDashStartup = character.BackDashStartup;
+                        var fastFallSpeed = character.FastFallSpeed;
+                        var jumpType = character.JumpType;
+                        var jumpHorizontalSpeed = character.JumpHorizontalSpeed;
+                        var superMeterBuildRate = character.SuperMeterBuildRate;
+                        var spriteCollection = character.CharacterSprites;
+
+                        ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                        ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                        ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
+                        ImguiDrawingHelper.DrawDecimalInput("walkSpeed", ref walkSpeed);
+                        ImguiDrawingHelper.DrawDecimalInput("runSpeed", ref runSpeed);
+                        ImguiDrawingHelper.DrawDecimalInput("traction", ref traction);
+                        ImguiDrawingHelper.DrawDecimalInput("jumpSpeed", ref jumpSpeed);
+                        ImguiDrawingHelper.DrawDecimalInput("fallSpeed", ref fallSpeed);
+                        ImguiDrawingHelper.DrawIntInput("backDashDuration", ref backDashDuration);
+                        ImguiDrawingHelper.DrawIntInput("backDashInvincibility", ref backDashInvincibility);
+                        ImguiDrawingHelper.DrawDecimalInput("backDashSpeed", ref backDashSpeed);
+                        ImguiDrawingHelper.DrawDecimalInput("backDashStartup", ref backDashStartup);
+                        ImguiDrawingHelper.DrawDecimalInput("fastFallSpeed", ref fastFallSpeed);
+
+                        ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
+
+                        ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
+                        ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
+
+                        character.HorizontalSpeed = horizontalSpeed;
+                        character.VerticalSpeed = verticalSpeed;
+                        character.EnvironmentalDisplacement = envDisplacement;
+                        character.WalkSpeed = walkSpeed;
+                        character.RunSpeed = runSpeed;
+                        character.Traction = traction;
+                        character.JumpSpeed = jumpSpeed;
+                        character.FallSpeed = fallSpeed;
+                        character.BackDashDuration = backDashDuration;
+                        character.BackDashInvincibility = backDashInvincibility;
+                        character.BackDashSpeed = backDashSpeed;
+                        character.BackDashStartup = backDashStartup;
+                        character.FastFallSpeed = fastFallSpeed;
+                        character.JumpType = jumpType;
+                        character.JumpHorizontalSpeed = jumpHorizontalSpeed;
+                        character.SuperMeterBuildRate = superMeterBuildRate;
+                        character.CharacterSprites = spriteCollection;
+                    }
+                    else
+                    {
+                        var regenSpeed = character.RegenSpeed;
+                        var koRegenSpeed = character.KORegenSpeed;
+
+                        ImguiDrawingHelper.DrawIntInput("regenSpeed", ref regenSpeed);
+                        ImguiDrawingHelper.DrawIntInput("noHealthRegenSpeed", ref koRegenSpeed);
+
+                        character.RegenSpeed = regenSpeed;
+                        character.KORegenSpeed = koRegenSpeed;
+                    }
                 }
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
 
@@ -2108,23 +2156,58 @@ namespace CharacterDataEditor.Screens
 
                 if (ImGui.CollapsingHeader("Unique Data", ImGuiTreeNodeFlags.DefaultOpen))
                 {
-                    int additionalMovesets = character.UniqueData.AdditionalMovesets;
-                    SpiritDataType spiritData = character.UniqueData.SpiritData;
-
-                    ImguiDrawingHelper.DrawIntInput("additionalMovesets", ref additionalMovesets);
-                    if (additionalMovesets < 0)
+                    if (character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                     {
-                        additionalMovesets = 0;
+                        int additionalMovesets = character.UniqueData.AdditionalMovesets;
+
+                        ImguiDrawingHelper.DrawIntInput("additionalMovesets", ref additionalMovesets);
+                        if (additionalMovesets < 0)
+                        {
+                            additionalMovesets = 0;
+                        }
+
+                        character.UniqueData.AdditionalMovesets = additionalMovesets;
                     }
+
+                    SpiritDataType spiritData = character.UniqueData.SpiritData;
 
                     var dataType = spiritData.ToString();
                     int spiritDataIndex = spiritDataList.IndexOf(dataType.AddSpacesToCamelCase());
                     ImguiDrawingHelper.DrawComboInput("spiritData", spiritDataList.ToArray(), ref spiritDataIndex);
                     var selectedData = spiritDataList[spiritDataIndex];
                     spiritData = (SpiritDataType)Enum.Parse(typeof(SpiritDataType), selectedData.ToCamelCase());
-
-                    character.UniqueData.AdditionalMovesets = additionalMovesets;
+                    
                     character.UniqueData.SpiritData = spiritData;
+
+                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                    {
+                        var spirit = character.UniqueData.Spirit;
+
+                        List<string> spiritNames = new List<string>();
+                        spiritNames.Add("None");
+                        foreach (var spiritCharacter in spiritCharacters)
+                        {
+                            spiritNames.Add(spiritCharacter.Name);
+                        }
+
+                        int spiritCharacterIndex = spiritNames.IndexOf(spirit.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("spirit", spiritNames.ToArray(), ref spiritCharacterIndex);
+                        var selectedSpiritCharacter = spiritNames[spiritCharacterIndex];
+                        foreach (var spiritCharacter in spiritCharacters)
+                        {
+                            if (spiritCharacter.Name == selectedSpiritCharacter)
+                            {
+                                spirit = spiritCharacter.Name;
+                                break;
+                            }
+                        }
+
+                        character.UniqueData.Spirit = spirit;
+                    }
+                    else
+                    {
+                        character.UniqueData.Spirit = "None";
+                    }
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);

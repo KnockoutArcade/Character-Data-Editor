@@ -10,7 +10,7 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public int AdditionalMovesets { get; set; } = 0;
         public SpiritDataType SpiritData { get; set; } = SpiritDataType.None;
-        public int Spirit { get; set; } = 0; // Get a list of the characters in the project with IsSpirit selected
+        public string Spirit { get; set; } = "None"; // I originally wanted to store the entire CharacterDataModel but that's too taxing on the program
 
         public override int GetHashCode()
         {
