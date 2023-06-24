@@ -37,6 +37,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public string SupplimentaryScript { get; set; } = string.Empty;
+        public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
 
         public MoveDataModel GetDuplicate()
         {
@@ -52,7 +53,7 @@ namespace CharacterDataEditor.Models.CharacterData
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
             hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto);
-            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto);
+            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, SpiritData);
 
             return hash;
         }
@@ -117,7 +118,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                 {
                                                                                                     if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
                                                                                                     {
-                                                                                                        return true;
+                                                                                                        if (objAsMoveData.SpiritData.Equals(SpiritData))
+                                                                                                        {
+                                                                                                            return true;
+                                                                                                        }
                                                                                                     }
                                                                                                 }
                                                                                             }

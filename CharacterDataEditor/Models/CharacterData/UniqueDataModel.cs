@@ -10,10 +10,11 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public int AdditionalMovesets { get; set; } = 0;
         public SpiritDataType SpiritData { get; set; } = SpiritDataType.None;
+        public int Spirit { get; set; } = 0; // Get a list of the characters in the project with IsSpirit selected
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(AdditionalMovesets, SpiritData);
+            var hash = HashCode.Combine(AdditionalMovesets, SpiritData, Spirit);
 
             return hash;
         }
@@ -36,7 +37,10 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsUniqueData.SpiritData.Equals(SpiritData))
                 {
-                    return true;
+                    if (objAsUniqueData.Spirit.Equals(Spirit))
+                    {
+                        return true;
+                    }
                 }
             }
 

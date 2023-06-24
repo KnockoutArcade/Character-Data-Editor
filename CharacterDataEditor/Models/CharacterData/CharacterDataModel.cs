@@ -10,7 +10,10 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public string Name { get; set; } = string.Empty;
         #region Base Stats
+        // health
         public int MaxHitPoints { get; set; } = 100;
+        public int RegenSpeed { get; set; } = 0;
+        public int KORegenSpeed { get; set; } = 0;
         // movement
         public float HorizontalSpeed { get; set; } = 0.0f;
         public float VerticalSpeed { get; set; } = 0.0f;
@@ -43,7 +46,7 @@ namespace CharacterDataEditor.Models.CharacterData
             var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, WalkSpeed, BaseColor, Palettes, UniqueData);
             hash = HashCode.Combine(hash, MoveData, RunSpeed, Traction, JumpSpeed, FallSpeed, BackDashDuration, BackDashInvincibility);
             hash = HashCode.Combine(hash, BackDashSpeed, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate);
-            hash = HashCode.Combine(hash, MaxHitPoints);
+            hash = HashCode.Combine(hash, MaxHitPoints, RegenSpeed, KORegenSpeed);
 
             return hash;
         }
@@ -94,7 +97,9 @@ namespace CharacterDataEditor.Models.CharacterData
                                                     objAsCharacterDataModel.CharacterSprites.Equals(CharacterSprites) &&
                                                     objAsCharacterDataModel.SuperMeterBuildRate.Equals(SuperMeterBuildRate))
                                                 {
-                                                    if (objAsCharacterDataModel.MaxHitPoints.Equals(MaxHitPoints))
+                                                    if (objAsCharacterDataModel.MaxHitPoints.Equals(MaxHitPoints) &&
+                                                        objAsCharacterDataModel.RegenSpeed.Equals(RegenSpeed) &&
+                                                        objAsCharacterDataModel.KORegenSpeed.Equals(KORegenSpeed))
                                                     {
                                                         return true;
                                                     }
