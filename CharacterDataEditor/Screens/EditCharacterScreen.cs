@@ -39,7 +39,8 @@ namespace CharacterDataEditor.Screens
         private Texture2D showHitboxesTexture;
 
         private List<string> spiritDataList = new List<string>();
-        private List<CharacterDataModel> spiritCharacters;
+        private List<CharacterDataModel> spiritCharacters = new List<CharacterDataModel>();
+        private List<string> spiritNames = new List<string>();
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
@@ -119,8 +120,10 @@ namespace CharacterDataEditor.Screens
             //copies the data from character into original character
             originalCharacter = character.Clone();
 
+            // Add every character to this list
             spiritCharacters = _characterOperations.GetCharactersFromProject<CharacterDataModel>(projectData.ProjectPathOnly);
             List<CharacterDataModel> spiritsToRemove = new List<CharacterDataModel>();
+            // Find which character need to be removed from this list
             foreach (var spiritCharacter in spiritCharacters)
             {
                 if (spiritCharacter.UniqueData.SpiritData != SpiritDataType.IsSpirit)
@@ -128,9 +131,17 @@ namespace CharacterDataEditor.Screens
                     spiritsToRemove.Add(spiritCharacter);
                 }
             }
+            // Remove the unwanted characters
             foreach (var spiritToRemove in spiritsToRemove)
             {
                 spiritCharacters.Remove(spiritToRemove);
+            }
+            // Add the names of the remaining characters to another list
+            spiritNames.Clear();
+            spiritNames.Add("None");
+            foreach (var spiritCharacter in spiritCharacters)
+            {
+                spiritNames.Add(spiritCharacter.Name);
             }
 
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
@@ -405,153 +416,156 @@ namespace CharacterDataEditor.Screens
             Color hitboxDrawColor = Color.RED;
             Color hurtboxDrawColor = Color.BLUE;
 
-            var spriteFinalScale = spriteDrawData.ScaledDrawSize.X / spriteData.Width;
-
-            //draw the box
-            switch (boxDrawMode)
+            if (spriteData != null)
             {
-                case BoxDrawMode.Both:
-                    if (showingMove)
-                    {
-                        hurtboxRects.Clear();
-                        for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
+                var spriteFinalScale = spriteDrawData.ScaledDrawSize.X / spriteData.Width;
+
+                //draw the box
+                switch (boxDrawMode)
+                {
+                    case BoxDrawMode.Both:
+                        if (showingMove)
                         {
-                            hurtboxRects.Add(new List<Rectangle>());
-
-                            var attackDataItem = moveInEditor.HurtboxData[i];
-
-                            hurtboxRects[i].Clear();
-                            int tempLifetime = 0;
-                            for (int j = 0; j <= totalFrames; j++)
+                            hurtboxRects.Clear();
+                            for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
                             {
-                                if (j == attackDataItem.Start)
+                                hurtboxRects.Add(new List<Rectangle>());
+
+                                var attackDataItem = moveInEditor.HurtboxData[i];
+
+                                hurtboxRects[i].Clear();
+                                int tempLifetime = 0;
+                                for (int j = 0; j <= totalFrames; j++)
                                 {
-                                    tempLifetime = attackDataItem.Lifetime;
-                                }
-
-                                if (tempLifetime <= 0)
-                                {
-                                    hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-                                }
-                                else
-                                {
-                                    hurtboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
-                                }
-
-                                tempLifetime--;
-                            }
-                            hurtboxRects[i].RemoveAt(0);
-                            hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-
-                            //adjust height and width to triple then multiply by scale
-                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
-                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
-
-                            var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                            var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
-
-                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
-                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                            var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                            var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
-
-                            yDrawPos -= yOffsetAdjusted;
-                            xDrawPos += xOffsetAdjusted;
-
-                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
-
-                            var destRect = new Rectangle(
-                                xDrawPos,
-                                yDrawPos,
-                                finalWidth,
-                                finalHeight);
-
-                            // draw the hurtbox
-                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hurtboxDrawColor);
-                        }
-
-                        hitboxRects.Clear();
-                        for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
-                        {
-                            hitboxRects.Add(new List<Rectangle>());
-
-                            var attackDataItem = moveInEditor.AttackData[i];
-
-                            hitboxRects[i].Clear();
-                            int tempLifetime = 0;
-                            for (int j = 0; j <= totalFrames; j++)
-                            {
-                                if (j == attackDataItem.Start)
-                                {
-                                    tempLifetime = attackDataItem.Lifetime;
-                                }
-
-                                if (tempLifetime <= 0)
-                                {
-                                    bool foundRehitHitbox = false;
-                                    for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                    if (j == attackDataItem.Start)
                                     {
-                                        if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
-                                        {
-                                            foundRehitHitbox = true;
-                                            break;
-                                        }
+                                        tempLifetime = attackDataItem.Lifetime;
                                     }
-                                    if (foundRehitHitbox)
+
+                                    if (tempLifetime <= 0)
                                     {
-                                        var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
-                                        hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                        hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
                                     }
                                     else
                                     {
-                                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                        hurtboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
                                     }
-                                }
-                                else
-                                {
-                                    hitboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
-                                }
 
-                                tempLifetime--;
+                                    tempLifetime--;
+                                }
+                                hurtboxRects[i].RemoveAt(0);
+                                hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                                //adjust height and width to triple then multiply by scale
+                                var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                                var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                                var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                                var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                                var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                                var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                                var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                                var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                                yDrawPos -= yOffsetAdjusted;
+                                xDrawPos += xOffsetAdjusted;
+
+                                yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                                var destRect = new Rectangle(
+                                    xDrawPos,
+                                    yDrawPos,
+                                    finalWidth,
+                                    finalHeight);
+
+                                // draw the hurtbox
+                                Raylib.DrawRectangleLinesEx(destRect, 3.0f, hurtboxDrawColor);
                             }
-                            hitboxRects[i].RemoveAt(0);
-                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
 
-                            //adjust height and width to triple then multiply by scale
-                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
-                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
-
-                            var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                            var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
-
-                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
-                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                            var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                            var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
-
-                            yDrawPos -= yOffsetAdjusted;
-                            xDrawPos += xOffsetAdjusted;
-
-                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
-
-                            if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+                            hitboxRects.Clear();
+                            for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
                             {
-                                xDrawPos += (0.5f * spriteFinalScale);
+                                hitboxRects.Add(new List<Rectangle>());
+
+                                var attackDataItem = moveInEditor.AttackData[i];
+
+                                hitboxRects[i].Clear();
+                                int tempLifetime = 0;
+                                for (int j = 0; j <= totalFrames; j++)
+                                {
+                                    if (j == attackDataItem.Start)
+                                    {
+                                        tempLifetime = attackDataItem.Lifetime;
+                                    }
+
+                                    if (tempLifetime <= 0)
+                                    {
+                                        bool foundRehitHitbox = false;
+                                        for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                        {
+                                            if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
+                                            {
+                                                foundRehitHitbox = true;
+                                                break;
+                                            }
+                                        }
+                                        if (foundRehitHitbox)
+                                        {
+                                            var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
+                                            hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                        }
+                                        else
+                                        {
+                                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        hitboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
+                                    }
+
+                                    tempLifetime--;
+                                }
+                                hitboxRects[i].RemoveAt(0);
+                                hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                                //adjust height and width to triple then multiply by scale
+                                var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                                var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                                var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                                var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                                var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                                var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                                var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                                var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                                yDrawPos -= yOffsetAdjusted;
+                                xDrawPos += xOffsetAdjusted;
+
+                                yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                                if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+                                {
+                                    xDrawPos += (0.5f * spriteFinalScale);
+                                }
+
+                                var destRect = new Rectangle(
+                                    xDrawPos,
+                                    yDrawPos,
+                                    finalWidth,
+                                    finalHeight);
+
+                                // draw the hitbox
+                                Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
                             }
-
-                            var destRect = new Rectangle(
-                                xDrawPos,
-                                yDrawPos,
-                                finalWidth,
-                                finalHeight);
-
-                            // draw the hitbox
-                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
                         }
-                    }
-                    break;
-                case BoxDrawMode.None:
-                    break;
+                        break;
+                    case BoxDrawMode.None:
+                        break;
+                }
             }
         }
 
@@ -2179,27 +2193,27 @@ namespace CharacterDataEditor.Screens
                     
                     character.UniqueData.SpiritData = spiritData;
 
-                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit && spiritNames.Contains(character.UniqueData.Spirit))
                     {
                         var spirit = character.UniqueData.Spirit;
 
-                        List<string> spiritNames = new List<string>();
-                        spiritNames.Add("None");
-                        foreach (var spiritCharacter in spiritCharacters)
-                        {
-                            spiritNames.Add(spiritCharacter.Name);
-                        }
-
-                        int spiritCharacterIndex = spiritNames.IndexOf(spirit.AddSpacesToCamelCase());
+                        int spiritCharacterIndex = spiritNames.IndexOf(spirit);
                         ImguiDrawingHelper.DrawComboInput("spirit", spiritNames.ToArray(), ref spiritCharacterIndex);
                         var selectedSpiritCharacter = spiritNames[spiritCharacterIndex];
-                        foreach (var spiritCharacter in spiritCharacters)
+                        if (selectedSpiritCharacter != "None")
                         {
-                            if (spiritCharacter.Name == selectedSpiritCharacter)
+                            foreach (var spiritCharacter in spiritCharacters)
                             {
-                                spirit = spiritCharacter.Name;
-                                break;
+                                if (spiritCharacter.Name == selectedSpiritCharacter)
+                                {
+                                    spirit = spiritCharacter.Name;
+                                    break;
+                                }
                             }
+                        }
+                        else
+                        {
+                            spirit = "None";
                         }
 
                         character.UniqueData.Spirit = spirit;
