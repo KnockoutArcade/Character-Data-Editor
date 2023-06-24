@@ -11,12 +11,13 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public bool ToggleState { get; set; } = false;
         public MoveType SpiritAttack { get; set; } = MoveType.None; 
+        public bool StartAtCurrent { get; set; } = false;
         public int StartXOffset { get; set; } = 0;
         public int StartYOffset { get; set; } = 0;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(ToggleState, SpiritAttack, StartXOffset, StartYOffset);
+            var hash = HashCode.Combine(ToggleState, SpiritAttack, StartAtCurrent, StartXOffset, StartYOffset);
 
             return hash;
         }
@@ -39,11 +40,14 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsSpiritData.SpiritAttack.Equals(SpiritAttack))
                 {
-                    if (objAsSpiritData.StartXOffset.Equals(StartXOffset))
+                    if (objAsSpiritData.StartAtCurrent.Equals(StartAtCurrent))
                     {
-                        if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
+                        if (objAsSpiritData.StartXOffset.Equals(StartXOffset))
                         {
-                            return true;
+                            if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
+                            {
+                                return true;
+                            }
                         }
                     }
                 }

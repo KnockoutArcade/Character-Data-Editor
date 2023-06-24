@@ -12,8 +12,8 @@ namespace CharacterDataEditor.Models.CharacterData
         #region Base Stats
         // health
         public int MaxHitPoints { get; set; } = 100;
-        public int RegenSpeed { get; set; } = 0;
-        public int KORegenSpeed { get; set; } = 0;
+        public float RegenSpeed { get; set; } = 0.0f;
+        public float KORegenSpeed { get; set; } = 0.0f;
         // movement
         public float HorizontalSpeed { get; set; } = 0.0f;
         public float VerticalSpeed { get; set; } = 0.0f;
