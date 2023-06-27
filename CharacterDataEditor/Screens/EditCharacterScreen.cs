@@ -51,6 +51,7 @@ namespace CharacterDataEditor.Screens
         private List<string> commandButtonsList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
+        private List<SoundDataModel> allSounds;
         private List<ObjectDataModel> allProjectiles;
 
         private string spriteToDraw;
@@ -119,6 +120,7 @@ namespace CharacterDataEditor.Screens
 
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
+            allSounds = _characterOperations.GetAllGameData<SoundDataModel>(projectData.ProjectPathOnly);
             allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
@@ -784,6 +786,23 @@ namespace CharacterDataEditor.Screens
                 bool isThrow = moveInEditor.IsThrow;
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
                 moveInEditor.IsThrow = isThrow;
+
+                var soundId = moveInEditor.SoundEffect ?? string.Empty;
+                var selectedSoundIndex = soundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == moveInEditor.SoundEffect)) : -1;
+                ImguiDrawingHelper.DrawComboInput("soundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedSoundIndex);
+                moveInEditor.SoundEffect = selectedSoundIndex != -1 ? allSounds[selectedScriptIndex].Name : string.Empty;
+
+                int sfxPlayFrame = moveInEditor.SFXPlayFrame;
+                ImguiDrawingHelper.DrawIntInput("soundPlayFrame", ref sfxPlayFrame);
+                if (sfxPlayFrame < 1)
+                {
+                    sfxPlayFrame = 1;
+                }
+                if (sfxPlayFrame > moveInEditor.Duration)
+                {
+                    sfxPlayFrame = moveInEditor.Duration;
+                }
+                moveInEditor.SFXPlayFrame = sfxPlayFrame;
 
                 // Windows dropdown
                 if (ImGui.CollapsingHeader("Windows"))

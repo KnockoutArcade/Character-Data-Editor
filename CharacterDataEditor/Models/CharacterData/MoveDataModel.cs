@@ -37,6 +37,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public string SupplimentaryScript { get; set; } = string.Empty;
+        public string SoundEffect { get; set; } = string.Empty;
+        public int SFXPlayFrame { get; set; } = 0;
 
         public MoveDataModel GetDuplicate()
         {
@@ -52,7 +54,7 @@ namespace CharacterDataEditor.Models.CharacterData
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
             hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto);
-            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto);
+            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, SoundEffect, SFXPlayFrame);
 
             return hash;
         }
@@ -117,7 +119,13 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                 {
                                                                                                     if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
                                                                                                     {
-                                                                                                        return true;
+                                                                                                        if (objAsMoveData.SoundEffect.Equals(SoundEffect))
+                                                                                                        {
+                                                                                                            if (objAsMoveData.SFXPlayFrame.Equals(SFXPlayFrame))
+                                                                                                            {
+                                                                                                                return true;
+                                                                                                            }
+                                                                                                        }
                                                                                                     }
                                                                                                 }
                                                                                             }
