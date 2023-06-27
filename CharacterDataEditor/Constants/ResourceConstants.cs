@@ -8,6 +8,7 @@
         public const string AdvanceOneFrameButtonPath = "Resources/AdvanceFrame.png";
         public const string AdvanceOneFrameBackButtonPath = "Resources/AdvanceFrameBack.png";
         public const string ShowHitboxes = "Resources/ShowHitboxes.png";
+        public const string HideHitboxes = "Resources/HideHitboxes.png";
         public const string SoundPlay = "Resources/SoundPlay.png";
         public const string SoundMute = "Resources/SoundMute.png";
         public const string BlankPath = "Resources/blank.png";

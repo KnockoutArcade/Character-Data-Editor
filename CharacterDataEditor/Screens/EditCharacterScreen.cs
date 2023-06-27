@@ -38,6 +38,7 @@ namespace CharacterDataEditor.Screens
         private Texture2D advanceOneFrameForwardTexture;
         private Texture2D advanceOneFrameBackTexture;
         private Texture2D showHitboxesTexture;
+        private Texture2D hideHitboxesTexture;
         private Texture2D soundPlayTexture;
         private Texture2D soundMuteTexture;
 
@@ -156,6 +157,7 @@ namespace CharacterDataEditor.Screens
             advanceOneFrameForwardTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameButtonPath));
             advanceOneFrameBackTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameBackButtonPath));
             showHitboxesTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.ShowHitboxes));
+            hideHitboxesTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.HideHitboxes));
             soundPlayTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundPlay));
             soundMuteTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundMute));
 
@@ -1956,7 +1958,7 @@ namespace CharacterDataEditor.Screens
 
                 var imageButtonSize = new Vector2((advanceOneFrameBackTexture.width / 2) * scale, (advanceOneFrameBackTexture.height / 2) * scale);
 
-                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 10.0f, (315 * scale) - imageButtonSize.Y);
+                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 7.5f, (315 * scale) - imageButtonSize.Y);
 
                 ImGui.SetCursorPos(cursorPos);
 
@@ -1964,13 +1966,15 @@ namespace CharacterDataEditor.Screens
                 {
                     if (ImGui.ImageButton("##ShowHitboxes", (IntPtr)showHitboxesTexture.id, imageButtonSize))
                     {
+                        boxDrawMode = BoxDrawMode.None;
                         showHitHurtboxes = false;
                     }
                 }
                 else
                 {
-                    if (ImGui.ImageButton("##HideHitboxes", (IntPtr)showHitboxesTexture.id, imageButtonSize)) // TODO: Make a new texture for hiding hitboxes
+                    if (ImGui.ImageButton("##HideHitboxes", (IntPtr)hideHitboxesTexture.id, imageButtonSize))
                     {
+                        boxDrawMode = BoxDrawMode.Both;
                         showHitHurtboxes = true;
                     }
                 }
@@ -1985,16 +1989,19 @@ namespace CharacterDataEditor.Screens
                 
                 ImGui.SameLine();
                 
-                if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.id, imageButtonSize))
+                if (animationPaused)
                 {
-                    animationPaused = false;
+                    if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.id, imageButtonSize))
+                    {
+                        animationPaused = false;
+                    }
                 }
-                
-                ImGui.SameLine();
-
-                if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.id, imageButtonSize))
+                else
                 {
-                    animationPaused = true;
+                    if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.id, imageButtonSize))
+                    {
+                        animationPaused = true;
+                    }
                 }
                 
                 ImGui.SameLine();
