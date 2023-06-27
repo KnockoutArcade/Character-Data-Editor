@@ -90,8 +90,8 @@ namespace CharacterDataEditor.Screens
         private bool unsaved;
         private bool exiting;
 
-        private SoundPlayer sound; // Used for attack sounds and footsteps
-        private SoundPlayer hitSound;
+        private SoundPlayer soundPlayer; // Used for attack sounds and footsteps
+        private SoundPlayer hitSoundPlayer;
 
         private const int buttonSpacing = 8;
 
@@ -138,8 +138,8 @@ namespace CharacterDataEditor.Screens
             allSounds = _characterOperations.GetAllGameData<SoundDataModel>(projectData.ProjectPathOnly);
             allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
 
-            sound = new SoundPlayer();
-            hitSound = new SoundPlayer();
+            soundPlayer = new SoundPlayer();
+            hitSoundPlayer = new SoundPlayer();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
@@ -814,17 +814,17 @@ namespace CharacterDataEditor.Screens
                 if (moveInEditor.SoundEffect != string.Empty)
                 {
                     string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
-                    if (!Directory.Exists(filePath))
+                    if (!File.Exists(filePath))
                     {
-                        _logger.LogError($"Path {filePath} does not exist or is not accessable.");
+                        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                         moveInEditor.SoundEffect = "";
                     }
                     else
                     {
-                        string currentPath = sound.SoundLocation;
+                        string currentPath = soundPlayer.SoundLocation;
                         if (currentPath != filePath)
                         {
-                            sound = new SoundPlayer(filePath);
+                            soundPlayer = new SoundPlayer(filePath);
                         }
                     }
                 }
@@ -1018,6 +1018,23 @@ namespace CharacterDataEditor.Screens
                                 var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
                                 ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
                                 hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
+                                if (moveInEditor.SoundEffect != string.Empty)
+                                {
+                                    string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
+                                    if (!File.Exists(filePath))
+                                    {
+                                        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                        moveInEditor.SoundEffect = "";
+                                    }
+                                    else
+                                    {
+                                        string currentPath = hitSoundPlayer.SoundLocation;
+                                        if (currentPath != filePath)
+                                        {
+                                            hitSoundPlayer = new SoundPlayer(filePath);
+                                        }
+                                    }
+                                }
 
                                 attackDataItem.Start = start;
                                 attackDataItem.Lifetime = lifetime;
