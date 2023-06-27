@@ -16,6 +16,8 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+// TODO: Find a different audio player that supports more than just Windows.
+using System.Media; // This only works for Windows
 
 namespace CharacterDataEditor.Screens
 {
@@ -88,7 +90,8 @@ namespace CharacterDataEditor.Screens
         private bool unsaved;
         private bool exiting;
 
-        
+        private SoundPlayer sound; // Used for attack sounds and footsteps
+        private SoundPlayer hitSound;
 
         private const int buttonSpacing = 8;
 
@@ -134,6 +137,9 @@ namespace CharacterDataEditor.Screens
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
             allSounds = _characterOperations.GetAllGameData<SoundDataModel>(projectData.ProjectPathOnly);
             allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
+
+            sound = new SoundPlayer();
+            hitSound = new SoundPlayer();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
@@ -805,6 +811,23 @@ namespace CharacterDataEditor.Screens
                 var selectedSoundIndex = soundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == moveInEditor.SoundEffect)) : -1;
                 ImguiDrawingHelper.DrawComboInput("soundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedSoundIndex);
                 moveInEditor.SoundEffect = selectedSoundIndex != -1 ? allSounds[selectedSoundIndex].Name : string.Empty;
+                if (moveInEditor.SoundEffect != string.Empty)
+                {
+                    string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
+                    if (!Directory.Exists(filePath))
+                    {
+                        _logger.LogError($"Path {filePath} does not exist or is not accessable.");
+                        moveInEditor.SoundEffect = "";
+                    }
+                    else
+                    {
+                        string currentPath = sound.SoundLocation;
+                        if (currentPath != filePath)
+                        {
+                            sound = new SoundPlayer(filePath);
+                        }
+                    }
+                }
 
                 int sfxPlayFrame = moveInEditor.SFXPlayFrame;
                 ImguiDrawingHelper.DrawIntInput("soundPlayFrame", ref sfxPlayFrame);
