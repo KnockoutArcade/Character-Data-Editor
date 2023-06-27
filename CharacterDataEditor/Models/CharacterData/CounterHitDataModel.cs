@@ -23,12 +23,13 @@ namespace CharacterDataEditor.Models.CharacterData
         public float LaunchKnockbackHorizontal { get; set; } = 0.0f;
         public float ComboScaling { get; set; } = 0.0f;
         public bool CausesWallbounce { get; set; } = false;
+        public string HitSound { get; set; } = "";
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(CounterHitLevel, Group, Damage, MeterGain, AttackHitStop, AttackHitStun, KnockBack, AirKnockbackVertical);
             hash = HashCode.Combine(hash, AirKnockbackHorizontal, Pushback, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, Launches);
-            hash = HashCode.Combine(hash, LaunchKnockbackVertical, LaunchKnockbackHorizontal, ComboScaling, CausesWallbounce);
+            hash = HashCode.Combine(hash, LaunchKnockbackVertical, LaunchKnockbackHorizontal, ComboScaling, CausesWallbounce, HitSound);
 
             return hash;
         }
@@ -85,7 +86,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                 {
                                                                                     if (CausesWallbounce == objAsCounterHitData.CausesWallbounce)
                                                                                     {
-                                                                                        return true;
+                                                                                        if (HitSound == objAsCounterHitData.HitSound)
+                                                                                        {
+                                                                                            return true;
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             }

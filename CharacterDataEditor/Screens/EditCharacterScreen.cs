@@ -82,6 +82,8 @@ namespace CharacterDataEditor.Screens
         private bool unsaved;
         private bool exiting;
 
+        
+
         private const int buttonSpacing = 8;
 
         private string editorWindowTitle;
@@ -790,7 +792,7 @@ namespace CharacterDataEditor.Screens
                 var soundId = moveInEditor.SoundEffect ?? string.Empty;
                 var selectedSoundIndex = soundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == moveInEditor.SoundEffect)) : -1;
                 ImguiDrawingHelper.DrawComboInput("soundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedSoundIndex);
-                moveInEditor.SoundEffect = selectedSoundIndex != -1 ? allSounds[selectedScriptIndex].Name : string.Empty;
+                moveInEditor.SoundEffect = selectedSoundIndex != -1 ? allSounds[selectedSoundIndex].Name : string.Empty;
 
                 int sfxPlayFrame = moveInEditor.SFXPlayFrame;
                 ImguiDrawingHelper.DrawIntInput("soundPlayFrame", ref sfxPlayFrame);
@@ -940,6 +942,7 @@ namespace CharacterDataEditor.Screens
                                 float comboScaling = attackDataItem.ComboScaling;
                                 float meterGain = attackDataItem.MeterGain;
                                 bool causesWallbounce = attackDataItem.CausesWallbounce;
+                                string hitSound = attackDataItem.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
@@ -976,6 +979,11 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
 
+                                var hitSoundId = attackDataItem.HitSound ?? string.Empty;
+                                var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
+                                ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
+                                hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
+
                                 attackDataItem.Start = start;
                                 attackDataItem.Lifetime = lifetime;
                                 attackDataItem.AttackWidth = attackWidth;
@@ -1004,6 +1012,7 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.ComboScaling = comboScaling;
                                 attackDataItem.MeterGain = meterGain;
                                 attackDataItem.CausesWallbounce = causesWallbounce;
+                                attackDataItem.HitSound = hitSound;
 
                                 ImGui.TreePop();
                             }
@@ -1045,6 +1054,7 @@ namespace CharacterDataEditor.Screens
                                 float LaunchKnockbackHorizontal = currentCounterData.LaunchKnockbackHorizontal;
                                 float ComboScaling = currentCounterData.ComboScaling;
                                 bool CausesWallbounce = currentCounterData.CausesWallbounce;
+                                string HitSound = currentCounterData.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("counterHitLevel", ref CounterHitLevel);
                                 ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
@@ -1072,6 +1082,11 @@ namespace CharacterDataEditor.Screens
 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref ParticleDuration);
 
+                                var hitSoundId = currentCounterData.HitSound ?? string.Empty;
+                                var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == currentCounterData.HitSound)) : -1;
+                                ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
+                                HitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
+
                                 currentCounterData.CounterHitLevel = CounterHitLevel;
                                 currentCounterData.Group = Group;
                                 currentCounterData.Damage = Damage;
@@ -1091,6 +1106,7 @@ namespace CharacterDataEditor.Screens
                                 currentCounterData.LaunchKnockbackVertical = LaunchKnockbackVertical;
                                 currentCounterData.LaunchKnockbackHorizontal= LaunchKnockbackHorizontal;
                                 currentCounterData.CausesWallbounce = CausesWallbounce;
+                                currentCounterData.HitSound = HitSound;
 
                                 ImGui.TreePop();
                             }
@@ -1137,8 +1153,6 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.CommandNormalData.Button = button;
                         moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
                         moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
-
-
                     }
                     else
                     {
