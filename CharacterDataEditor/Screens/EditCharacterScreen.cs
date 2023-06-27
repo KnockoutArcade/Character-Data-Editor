@@ -1991,14 +1991,14 @@ namespace CharacterDataEditor.Screens
                 
                 if (animationPaused)
                 {
-                    if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.id, imageButtonSize))
                     {
                         animationPaused = false;
                     }
                 }
                 else
                 {
-                    if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.id, imageButtonSize))
                     {
                         animationPaused = true;
                     }
