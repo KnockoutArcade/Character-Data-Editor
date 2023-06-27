@@ -418,15 +418,12 @@ namespace CharacterDataEditor.Screens
                 }
                 else if (spriteData == walkForwardSprite || spriteData == walkBackwardSprite || spriteData == runForwardSprite || spriteData == runBackwardSprite)
                 {
-                    for (int i = 0; i < spriteData.Frames.Count; i++)
-                    {
-                        if ((spriteData == walkForwardSprite && character.NonmoveSoundData.WalkForwardFootsteps.Contains(currentFrame)) ||
+                    if ((spriteData == walkForwardSprite && character.NonmoveSoundData.WalkForwardFootsteps.Contains(currentFrame)) ||
                             (spriteData == walkBackwardSprite && character.NonmoveSoundData.WalkBackwardFootsteps.Contains(currentFrame)) ||
                             (spriteData == runForwardSprite && character.NonmoveSoundData.RunForwardFootsteps.Contains(currentFrame)) ||
                             (spriteData == runBackwardSprite && character.NonmoveSoundData.RunBackwardFootsteps.Contains(currentFrame)))
-                        {
-                            soundPlayer.Play();
-                        }
+                    {
+                        soundPlayer.Play();
                     }
                 }
             }
