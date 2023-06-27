@@ -36,6 +36,8 @@ namespace CharacterDataEditor.Screens
         private Texture2D advanceOneFrameForwardTexture;
         private Texture2D advanceOneFrameBackTexture;
         private Texture2D showHitboxesTexture;
+        private Texture2D soundPlayTexture;
+        private Texture2D soundMuteTexture;
 
         private List<string> spiritDataList = new List<string>();
         private MoveDataModel moveInEditor;
@@ -57,6 +59,10 @@ namespace CharacterDataEditor.Screens
         private string spriteToDraw;
         private string prevSpriteToDraw;
         private SpriteDataModel spriteData;
+        private SpriteDataModel walkForwardSprite;
+        private SpriteDataModel walkBackwardSprite;
+        private SpriteDataModel runForwardSprite;
+        private SpriteDataModel runBackwardSprite;
         private PaletteModel paletteData;
         private SpriteDrawingHelper spriteDrawer;
         private Vector2 spriteDrawPosition;
@@ -106,6 +112,10 @@ namespace CharacterDataEditor.Screens
             spriteToDraw = string.Empty;
             prevSpriteToDraw = string.Empty;
             spriteData = null;
+            walkForwardSprite = null;
+            walkBackwardSprite = null;
+            runForwardSprite = null;
+            runBackwardSprite = null;
             editorMode = EditorMode.None;
 
             moveInEditor = null;
@@ -136,6 +146,8 @@ namespace CharacterDataEditor.Screens
             advanceOneFrameForwardTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameButtonPath));
             advanceOneFrameBackTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameBackButtonPath));
             showHitboxesTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.ShowHitboxes));
+            soundPlayTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundPlay));
+            soundMuteTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundMute));
 
             spriteDrawer = new SpriteDrawingHelper();
             frameCounter = 0;
@@ -2096,6 +2108,261 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
 
                     idleIndex = idleSelected;
+
+                    walkForwardSprite = allSprites[walkForwardSelected];
+                    walkBackwardSprite = allSprites[walkBackwardSelected];
+                    runForwardSprite = allSprites[runForwardSelected];
+                    runBackwardSprite = allSprites[runBackwardSelected];
+                }
+
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+
+                if (ImGui.CollapsingHeader("Sound Data", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    var walkingSoundEffect = character.NonmoveSoundData.WalkingSoundEffect;
+                    var runningSoundEffect = character.NonmoveSoundData.RunningSoundEffect;
+                    var walkForwardFootsteps = character.NonmoveSoundData.WalkForwardFootsteps;
+                    var walkBackwardFootsteps = character.NonmoveSoundData.WalkBackwardFootsteps;
+                    var runForwardFootsteps = character.NonmoveSoundData.RunForwardFootsteps;
+                    var runBackwardFootsteps = character.NonmoveSoundData.RunBackwardFootsteps;
+
+                    var walkSoundId = character.NonmoveSoundData.WalkingSoundEffect ?? string.Empty;
+                    var selectedWalkSoundIndex = walkSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == character.NonmoveSoundData.WalkingSoundEffect)) : -1;
+                    ImguiDrawingHelper.DrawComboInput("walkFootstep", allSounds.Select(x => x.Name).ToArray(), ref selectedWalkSoundIndex);
+                    walkingSoundEffect = selectedWalkSoundIndex != -1 ? allSounds[selectedWalkSoundIndex].Name : string.Empty;
+
+                    var runSoundId = character.NonmoveSoundData.RunningSoundEffect ?? string.Empty;
+                    var selectedRunSoundIndex = runSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == character.NonmoveSoundData.RunningSoundEffect)) : -1;
+                    ImguiDrawingHelper.DrawComboInput("runFootstep", allSounds.Select(x => x.Name).ToArray(), ref selectedRunSoundIndex);
+                    runningSoundEffect = selectedRunSoundIndex != -1 ? allSounds[selectedRunSoundIndex].Name : string.Empty;
+
+                    if (spriteData == walkForwardSprite && walkForwardSprite.Frames.Count > 0)
+                    {
+                        // Create list of checkboxes for walking forward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (walkForwardFootsteps.Count > walkForwardSprite.Frames.Count)
+                        {
+                            walkForwardFootsteps.RemoveAt(walkForwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of possible sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in walkForwardFootsteps)
+                        {
+                            if (frame > walkForwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            walkForwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < walkForwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (walkForwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !walkForwardFootsteps.Contains(i + 1))
+                            {
+                                walkForwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && walkForwardFootsteps.Contains(i + 1))
+                            {
+                                walkForwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        walkForwardFootsteps.Sort();
+                    }
+                    else if (spriteData == walkBackwardSprite && walkBackwardSprite.Frames.Count > 0)
+                    {
+                        // Create list of checkboxes for walking backward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (walkBackwardFootsteps.Count > walkBackwardSprite.Frames.Count)
+                        {
+                            walkBackwardFootsteps.RemoveAt(walkBackwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in walkBackwardFootsteps)
+                        {
+                            if (frame > walkBackwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            walkBackwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < walkBackwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (walkBackwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !walkBackwardFootsteps.Contains(i + 1))
+                            {
+                                walkBackwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && walkBackwardFootsteps.Contains(i + 1))
+                            {
+                                walkBackwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        walkBackwardFootsteps.Sort();
+                    }
+                    else if (spriteData == runForwardSprite && runForwardSprite.Frames.Count > 0)
+                    {
+                        // Create list of checkboxes for running forward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (runForwardFootsteps.Count > runForwardSprite.Frames.Count)
+                        {
+                            runForwardFootsteps.RemoveAt(runForwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of possible sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in runForwardFootsteps)
+                        {
+                            if (frame > runForwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            runForwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < runForwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (runForwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !runForwardFootsteps.Contains(i + 1))
+                            {
+                                runForwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && runForwardFootsteps.Contains(i + 1))
+                            {
+                                runForwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        runForwardFootsteps.Sort();
+                    }
+                    else if (spriteData == runBackwardSprite && runBackwardSprite.Frames.Count > 0)
+                    {
+                        // Create list of checkboxes for running backward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (runBackwardFootsteps.Count > runBackwardSprite.Frames.Count)
+                        {
+                            runBackwardFootsteps.RemoveAt(runBackwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in runBackwardFootsteps)
+                        {
+                            if (frame > runBackwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            runBackwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < runBackwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (runBackwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !runBackwardFootsteps.Contains(i + 1))
+                            {
+                                runBackwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && runBackwardFootsteps.Contains(i + 1))
+                            {
+                                runBackwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        runBackwardFootsteps.Sort();
+                    }
+                    else
+                    {
+                        ImGui.Text("Choose a walking or running sprite.");
+                    }
+
+                    character.NonmoveSoundData.WalkingSoundEffect = walkingSoundEffect;
+                    character.NonmoveSoundData.WalkForwardFootsteps = walkForwardFootsteps;
+                    character.NonmoveSoundData.WalkBackwardFootsteps = walkBackwardFootsteps;
+                    character.NonmoveSoundData.RunningSoundEffect = runningSoundEffect;
+                    character.NonmoveSoundData.RunForwardFootsteps = runForwardFootsteps;
+                    character.NonmoveSoundData.RunBackwardFootsteps = runBackwardFootsteps;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
