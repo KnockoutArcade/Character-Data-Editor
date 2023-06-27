@@ -26,6 +26,8 @@
     <None Remove="Resources\Pause.png" />
     <None Remove="Resources\Play.png" />
     <None Remove="Resources\ShowHitboxes.png" />
+    <None Remove="Resources\SoundMute.png" />
+    <None Remove="Resources\SoundPlay.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +58,12 @@
     </Content>
 	<Content Include="Resources\Pause.png">
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
+	<Content Include="Resources\SoundMute.png">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
+	<Content Include="Resources\SoundPlay.png">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	</Content>
   </ItemGroup>
 

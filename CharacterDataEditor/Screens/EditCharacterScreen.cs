@@ -61,6 +61,7 @@ namespace CharacterDataEditor.Screens
         private string spriteToDraw;
         private string prevSpriteToDraw;
         private SpriteDataModel spriteData;
+        private SpriteDataModel moveSprite;
         private SpriteDataModel walkForwardSprite;
         private SpriteDataModel walkBackwardSprite;
         private SpriteDataModel runForwardSprite;
@@ -90,6 +91,7 @@ namespace CharacterDataEditor.Screens
         private bool unsaved;
         private bool exiting;
 
+        private bool playSound;
         private SoundPlayer soundPlayer; // Used for attack sounds and footsteps
         private SoundPlayer hitSoundPlayer;
 
@@ -115,6 +117,7 @@ namespace CharacterDataEditor.Screens
             spriteToDraw = string.Empty;
             prevSpriteToDraw = string.Empty;
             spriteData = null;
+            moveSprite = null;
             walkForwardSprite = null;
             walkBackwardSprite = null;
             runForwardSprite = null;
@@ -138,6 +141,7 @@ namespace CharacterDataEditor.Screens
             allSounds = _characterOperations.GetAllGameData<SoundDataModel>(projectData.ProjectPathOnly);
             allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
 
+            playSound = false;
             soundPlayer = new SoundPlayer();
             hitSoundPlayer = new SoundPlayer();
 
@@ -404,6 +408,28 @@ namespace CharacterDataEditor.Screens
                 spriteDrawData = frameData;
                 resetAnimation = false;
             }
+
+            // Handle playing sound effect
+            if (!animationPaused && playSound)
+            {
+                if (spriteData == moveSprite && currentFrame == moveInEditor.SFXPlayFrame)
+                {
+                    soundPlayer.Play();
+                }
+                else if (spriteData == walkForwardSprite || spriteData == walkBackwardSprite || spriteData == runForwardSprite || spriteData == runBackwardSprite)
+                {
+                    for (int i = 0; i < spriteData.Frames.Count; i++)
+                    {
+                        if ((spriteData == walkForwardSprite && character.NonmoveSoundData.WalkForwardFootsteps.Contains(currentFrame)) ||
+                            (spriteData == walkBackwardSprite && character.NonmoveSoundData.WalkBackwardFootsteps.Contains(currentFrame)) ||
+                            (spriteData == runForwardSprite && character.NonmoveSoundData.RunForwardFootsteps.Contains(currentFrame)) ||
+                            (spriteData == runBackwardSprite && character.NonmoveSoundData.RunBackwardFootsteps.Contains(currentFrame)))
+                        {
+                            soundPlayer.Play();
+                        }
+                    }
+                }
+            }
         }
 
         private void RenderHitHurtBox(float scale)
@@ -411,153 +437,156 @@ namespace CharacterDataEditor.Screens
             Color hitboxDrawColor = Color.RED;
             Color hurtboxDrawColor = Color.BLUE;
 
-            var spriteFinalScale = spriteDrawData.ScaledDrawSize.X / spriteData.Width;
-
-            //draw the box
-            switch (boxDrawMode)
+            if (spriteData != null)
             {
-                case BoxDrawMode.Both:
-                    if (showingMove)
-                    {
-                        hurtboxRects.Clear();
-                        for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
+                var spriteFinalScale = spriteDrawData.ScaledDrawSize.X / spriteData.Width;
+
+                //draw the box
+                switch (boxDrawMode)
+                {
+                    case BoxDrawMode.Both:
+                        if (showingMove)
                         {
-                            hurtboxRects.Add(new List<Rectangle>());
-
-                            var attackDataItem = moveInEditor.HurtboxData[i];
-
-                            hurtboxRects[i].Clear();
-                            int tempLifetime = 0;
-                            for (int j = 0; j <= totalFrames; j++)
+                            hurtboxRects.Clear();
+                            for (int i = 0; i < moveInEditor.NumberOfHurtboxes; i++)
                             {
-                                if (j == attackDataItem.Start)
+                                hurtboxRects.Add(new List<Rectangle>());
+
+                                var attackDataItem = moveInEditor.HurtboxData[i];
+
+                                hurtboxRects[i].Clear();
+                                int tempLifetime = 0;
+                                for (int j = 0; j <= totalFrames; j++)
                                 {
-                                    tempLifetime = attackDataItem.Lifetime;
-                                }
-
-                                if (tempLifetime <= 0)
-                                {
-                                    hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-                                }
-                                else
-                                {
-                                    hurtboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
-                                }
-
-                                tempLifetime--;
-                            }
-                            hurtboxRects[i].RemoveAt(0);
-                            hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-
-                            //adjust height and width to triple then multiply by scale
-                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
-                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
-
-                            var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                            var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
-
-                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
-                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                            var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                            var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
-
-                            yDrawPos -= yOffsetAdjusted;
-                            xDrawPos += xOffsetAdjusted;
-
-                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
-
-                            var destRect = new Rectangle(
-                                xDrawPos,
-                                yDrawPos,
-                                finalWidth,
-                                finalHeight);
-
-                            // draw the hurtbox
-                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hurtboxDrawColor);
-                        }
-
-                        hitboxRects.Clear();
-                        for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
-                        {
-                            hitboxRects.Add(new List<Rectangle>());
-
-                            var attackDataItem = moveInEditor.AttackData[i];
-
-                            hitboxRects[i].Clear();
-                            int tempLifetime = 0;
-                            for (int j = 0; j <= totalFrames; j++)
-                            {
-                                if (j == attackDataItem.Start)
-                                {
-                                    tempLifetime = attackDataItem.Lifetime;
-                                }
-
-                                if (tempLifetime <= 0)
-                                {
-                                    bool foundRehitHitbox = false;
-                                    for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                    if (j == attackDataItem.Start)
                                     {
-                                        if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
-                                        {
-                                            foundRehitHitbox = true;
-                                            break;
-                                        }
+                                        tempLifetime = attackDataItem.Lifetime;
                                     }
-                                    if (foundRehitHitbox)
+
+                                    if (tempLifetime <= 0)
                                     {
-                                        var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
-                                        hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                        hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
                                     }
                                     else
                                     {
-                                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                        hurtboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
                                     }
-                                }
-                                else
-                                {
-                                    hitboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
-                                }
 
-                                tempLifetime--;
+                                    tempLifetime--;
+                                }
+                                hurtboxRects[i].RemoveAt(0);
+                                hurtboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                                //adjust height and width to triple then multiply by scale
+                                var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                                var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                                var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                                var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                                var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                                var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                                var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                                var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                                yDrawPos -= yOffsetAdjusted;
+                                xDrawPos += xOffsetAdjusted;
+
+                                yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                                var destRect = new Rectangle(
+                                    xDrawPos,
+                                    yDrawPos,
+                                    finalWidth,
+                                    finalHeight);
+
+                                // draw the hurtbox
+                                Raylib.DrawRectangleLinesEx(destRect, 3.0f, hurtboxDrawColor);
                             }
-                            hitboxRects[i].RemoveAt(0);
-                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
 
-                            //adjust height and width to triple then multiply by scale
-                            var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
-                            var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
-
-                            var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                            var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
-
-                            var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
-                            var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                            var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                            var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
-
-                            yDrawPos -= yOffsetAdjusted;
-                            xDrawPos += xOffsetAdjusted;
-
-                            yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
-
-                            if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+                            hitboxRects.Clear();
+                            for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
                             {
-                                xDrawPos += (0.5f * spriteFinalScale);
+                                hitboxRects.Add(new List<Rectangle>());
+
+                                var attackDataItem = moveInEditor.AttackData[i];
+
+                                hitboxRects[i].Clear();
+                                int tempLifetime = 0;
+                                for (int j = 0; j <= totalFrames; j++)
+                                {
+                                    if (j == attackDataItem.Start)
+                                    {
+                                        tempLifetime = attackDataItem.Lifetime;
+                                    }
+
+                                    if (tempLifetime <= 0)
+                                    {
+                                        bool foundRehitHitbox = false;
+                                        for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                        {
+                                            if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
+                                            {
+                                                foundRehitHitbox = true;
+                                                break;
+                                            }
+                                        }
+                                        if (foundRehitHitbox)
+                                        {
+                                            var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
+                                            hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
+                                        }
+                                        else
+                                        {
+                                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        hitboxRects[i].Add(new Rectangle(attackDataItem.WidthOffset, attackDataItem.HeightOffset, attackDataItem.AttackWidth, attackDataItem.AttackHeight));
+                                    }
+
+                                    tempLifetime--;
+                                }
+                                hitboxRects[i].RemoveAt(0);
+                                hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
+
+                                //adjust height and width to triple then multiply by scale
+                                var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                                var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                                var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                                var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                                var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                                var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                                var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                                var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
+
+                                yDrawPos -= yOffsetAdjusted;
+                                xDrawPos += xOffsetAdjusted;
+
+                                yDrawPos -= finalHeight; //because hitboxes are drawn upside-down for some reason in GMS?
+
+                                if (boxDrawMode == BoxDrawMode.Hitbox) //hitboxes add a 0.5 magic number to them for some reason
+                                {
+                                    xDrawPos += (0.5f * spriteFinalScale);
+                                }
+
+                                var destRect = new Rectangle(
+                                    xDrawPos,
+                                    yDrawPos,
+                                    finalWidth,
+                                    finalHeight);
+
+                                // draw the hitbox
+                                Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
                             }
-
-                            var destRect = new Rectangle(
-                                xDrawPos,
-                                yDrawPos,
-                                finalWidth,
-                                finalHeight);
-
-                            // draw the hitbox
-                            Raylib.DrawRectangleLinesEx(destRect, 3.0f, hitboxDrawColor);
                         }
-                    }
-                    break;
-                case BoxDrawMode.None:
-                    break;
+                        break;
+                    case BoxDrawMode.None:
+                        break;
+                }
             }
         }
 
@@ -811,22 +840,34 @@ namespace CharacterDataEditor.Screens
                 var selectedSoundIndex = soundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == moveInEditor.SoundEffect)) : -1;
                 ImguiDrawingHelper.DrawComboInput("soundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedSoundIndex);
                 moveInEditor.SoundEffect = selectedSoundIndex != -1 ? allSounds[selectedSoundIndex].Name : string.Empty;
-                if (moveInEditor.SoundEffect != string.Empty)
+                if (moveInEditor.SoundEffect != string.Empty &&
+                    spriteData != walkForwardSprite &&
+                    spriteData != walkBackwardSprite &&
+                    spriteData != runForwardSprite &&
+                    spriteData != runBackwardSprite)
                 {
                     string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
                     if (!File.Exists(filePath))
                     {
                         _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                         moveInEditor.SoundEffect = "";
+                        soundPlayer.SoundLocation = "";
                     }
                     else
                     {
                         string currentPath = soundPlayer.SoundLocation;
                         if (currentPath != filePath)
                         {
-                            soundPlayer = new SoundPlayer(filePath);
+                            soundPlayer.SoundLocation = filePath;
                         }
                     }
+                }
+                else if (spriteData != walkForwardSprite &&
+                            spriteData != walkBackwardSprite &&
+                            spriteData != runForwardSprite &&
+                            spriteData != runBackwardSprite)
+                {
+                    soundPlayer.SoundLocation = "";
                 }
 
                 int sfxPlayFrame = moveInEditor.SFXPlayFrame;
@@ -1018,22 +1059,34 @@ namespace CharacterDataEditor.Screens
                                 var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
                                 ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
                                 hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
-                                if (moveInEditor.SoundEffect != string.Empty)
+                                if (moveInEditor.SoundEffect != string.Empty &&
+                                    spriteData != walkForwardSprite &&
+                                    spriteData != walkBackwardSprite &&
+                                    spriteData != runForwardSprite &&
+                                    spriteData != runBackwardSprite)
                                 {
                                     string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
                                     if (!File.Exists(filePath))
                                     {
                                         _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                                         moveInEditor.SoundEffect = "";
+                                        hitSoundPlayer.SoundLocation = "";
                                     }
                                     else
                                     {
                                         string currentPath = hitSoundPlayer.SoundLocation;
                                         if (currentPath != filePath)
                                         {
-                                            hitSoundPlayer = new SoundPlayer(filePath);
+                                            hitSoundPlayer.SoundLocation = filePath;
                                         }
                                     }
+                                }
+                                else if (spriteData != walkForwardSprite &&
+                                            spriteData != walkBackwardSprite &&
+                                            spriteData != runForwardSprite &&
+                                            spriteData != runBackwardSprite)
+                                {
+                                    hitSoundPlayer.SoundLocation = "";
                                 }
 
                                 attackDataItem.Start = start;
@@ -1906,9 +1959,26 @@ namespace CharacterDataEditor.Screens
 
                 var imageButtonSize = new Vector2((advanceOneFrameBackTexture.width / 2) * scale, (advanceOneFrameBackTexture.height / 2) * scale);
 
-                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 7.5f, (315 * scale) - imageButtonSize.Y);
+                cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 10.0f, (315 * scale) - imageButtonSize.Y);
 
                 ImGui.SetCursorPos(cursorPos);
+
+                if (showHitHurtboxes)
+                {
+                    if (ImGui.ImageButton("##ShowHitboxes", (IntPtr)showHitboxesTexture.id, imageButtonSize))
+                    {
+                        showHitHurtboxes = false;
+                    }
+                }
+                else
+                {
+                    if (ImGui.ImageButton("##HideHitboxes", (IntPtr)showHitboxesTexture.id, imageButtonSize)) // TODO: Make a new texture for hiding hitboxes
+                    {
+                        showHitHurtboxes = true;
+                    }
+                }
+
+                ImGui.SameLine();
 
                 if (ImGui.ImageButton("##ADVBack", (IntPtr)advanceOneFrameBackTexture.id, imageButtonSize))
                 {
@@ -1940,17 +2010,18 @@ namespace CharacterDataEditor.Screens
 
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton("##Show", (IntPtr)showHitboxesTexture.id, imageButtonSize))
+                if (playSound)
                 {
-                    if (!showHitHurtboxes)
+                    if (ImGui.ImageButton("##PlaySound", (IntPtr)soundPlayTexture.id, imageButtonSize))
                     {
-                        boxDrawMode = BoxDrawMode.Both;
-                        showHitHurtboxes = true;
+                        playSound = false;
                     }
-                    else
+                }
+                else
+                {
+                    if (ImGui.ImageButton("##MuteSound", (IntPtr)soundMuteTexture.id, imageButtonSize))
                     {
-                        boxDrawMode = BoxDrawMode.None;
-                        showHitHurtboxes = false;
+                        playSound = true;
                     }
                 }
 
@@ -2178,6 +2249,29 @@ namespace CharacterDataEditor.Screens
 
                     if (spriteData == walkForwardSprite && walkForwardSprite.Frames.Count > 0)
                     {
+                        if (walkingSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                walkingSoundEffect = "";
+                                soundPlayer.SoundLocation = "";
+                            }
+                            else
+                            {
+                                string currentPath = soundPlayer.SoundLocation;
+                                if (currentPath != filePath)
+                                {
+                                    soundPlayer.SoundLocation = filePath;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            soundPlayer.SoundLocation = "";
+                        }
+
                         // Create list of checkboxes for walking forward footsteps
                         ImGui.Columns(2);
                         ImGui.Text("Footstep Frames:");
@@ -2232,6 +2326,29 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (spriteData == walkBackwardSprite && walkBackwardSprite.Frames.Count > 0)
                     {
+                        if (walkingSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                walkingSoundEffect = "";
+                                soundPlayer.SoundLocation = "";
+                            }
+                            else
+                            {
+                                string currentPath = soundPlayer.SoundLocation;
+                                if (currentPath != filePath)
+                                {
+                                    soundPlayer.SoundLocation = filePath;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            soundPlayer.SoundLocation = "";
+                        }
+
                         // Create list of checkboxes for walking backward footsteps
                         ImGui.Columns(2);
                         ImGui.Text("Footstep Frames:");
@@ -2286,6 +2403,29 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (spriteData == runForwardSprite && runForwardSprite.Frames.Count > 0)
                     {
+                        if (runningSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                runningSoundEffect = "";
+                                soundPlayer.SoundLocation = "";
+                            }
+                            else
+                            {
+                                string currentPath = soundPlayer.SoundLocation;
+                                if (currentPath != filePath)
+                                {
+                                    soundPlayer.SoundLocation = filePath;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            soundPlayer.SoundLocation = "";
+                        }
+
                         // Create list of checkboxes for running forward footsteps
                         ImGui.Columns(2);
                         ImGui.Text("Footstep Frames:");
@@ -2340,6 +2480,29 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (spriteData == runBackwardSprite && runBackwardSprite.Frames.Count > 0)
                     {
+                        if (runningSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                runningSoundEffect = "";
+                                soundPlayer.SoundLocation = "";
+                            }
+                            else
+                            {
+                                string currentPath = soundPlayer.SoundLocation;
+                                if (currentPath != filePath)
+                                {
+                                    soundPlayer.SoundLocation = filePath;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            soundPlayer.SoundLocation = "";
+                        }
+
                         // Create list of checkboxes for running backward footsteps
                         ImGui.Columns(2);
                         ImGui.Text("Footstep Frames:");
@@ -2482,6 +2645,7 @@ namespace CharacterDataEditor.Screens
                                     if (moveSpriteIndex > -1)
                                     {
                                         var sprite = allSprites[moveSpriteIndex];
+                                        moveSprite = sprite;
                                         ChangeAnimatedSprite(sprite, true);
                                     }
                                 }, () =>
