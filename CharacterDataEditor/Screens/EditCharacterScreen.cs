@@ -414,16 +414,24 @@ namespace CharacterDataEditor.Screens
             // Handle playing sound effect
             if (!animationPaused && playSound)
             {
-                if (spriteData == moveSprite && currentFrame == moveInEditor.SFXPlayFrame)
+                if (moveInEditor != null)
                 {
-                    soundPlayer.Play();
+                    if (spriteData == moveSprite && currentFrame == moveInEditor.SFXPlayFrame && moveInEditor.SoundEffect != string.Empty)
+                    {
+                        soundPlayer.Play();
+                    }
                 }
-                else if (spriteData == walkForwardSprite || spriteData == walkBackwardSprite || spriteData == runForwardSprite || spriteData == runBackwardSprite)
+                
+                if (spriteData == walkForwardSprite || spriteData == walkBackwardSprite || spriteData == runForwardSprite || spriteData == runBackwardSprite)
                 {
-                    if ((spriteData == walkForwardSprite && character.NonmoveSoundData.WalkForwardFootsteps.Contains(currentFrame)) ||
-                            (spriteData == walkBackwardSprite && character.NonmoveSoundData.WalkBackwardFootsteps.Contains(currentFrame)) ||
-                            (spriteData == runForwardSprite && character.NonmoveSoundData.RunForwardFootsteps.Contains(currentFrame)) ||
-                            (spriteData == runBackwardSprite && character.NonmoveSoundData.RunBackwardFootsteps.Contains(currentFrame)))
+                    if (character.NonmoveSoundData.WalkForwardFootsteps.Count > 0 && currentFrame == 4)
+                    {
+                        playSound = true; // Used to set breakpoints
+                    }
+                    if ((spriteData == walkForwardSprite && character.NonmoveSoundData.WalkForwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.WalkingSoundEffect != string.Empty) ||
+                            (spriteData == walkBackwardSprite && character.NonmoveSoundData.WalkBackwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.WalkingSoundEffect != string.Empty) ||
+                            (spriteData == runForwardSprite && character.NonmoveSoundData.RunForwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.RunningSoundEffect != string.Empty) ||
+                            (spriteData == runBackwardSprite && character.NonmoveSoundData.RunBackwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.RunningSoundEffect != string.Empty))
                     {
                         soundPlayer.Play();
                     }
@@ -850,7 +858,6 @@ namespace CharacterDataEditor.Screens
                     {
                         _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                         moveInEditor.SoundEffect = "";
-                        soundPlayer.SoundLocation = "";
                     }
                     else
                     {
@@ -858,15 +865,9 @@ namespace CharacterDataEditor.Screens
                         if (currentPath != filePath)
                         {
                             soundPlayer.SoundLocation = filePath;
+                            soundPlayer.LoadAsync();
                         }
                     }
-                }
-                else if (spriteData != walkForwardSprite &&
-                            spriteData != walkBackwardSprite &&
-                            spriteData != runForwardSprite &&
-                            spriteData != runBackwardSprite)
-                {
-                    soundPlayer.SoundLocation = "";
                 }
 
                 int sfxPlayFrame = moveInEditor.SFXPlayFrame;
@@ -1069,7 +1070,6 @@ namespace CharacterDataEditor.Screens
                                     {
                                         _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                                         moveInEditor.SoundEffect = "";
-                                        hitSoundPlayer.SoundLocation = "";
                                     }
                                     else
                                     {
@@ -1077,15 +1077,9 @@ namespace CharacterDataEditor.Screens
                                         if (currentPath != filePath)
                                         {
                                             hitSoundPlayer.SoundLocation = filePath;
+                                            hitSoundPlayer.LoadAsync();
                                         }
                                     }
-                                }
-                                else if (spriteData != walkForwardSprite &&
-                                            spriteData != walkBackwardSprite &&
-                                            spriteData != runForwardSprite &&
-                                            spriteData != runBackwardSprite)
-                                {
-                                    hitSoundPlayer.SoundLocation = "";
                                 }
 
                                 attackDataItem.Start = start;
@@ -2260,7 +2254,6 @@ namespace CharacterDataEditor.Screens
                             {
                                 _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                                 walkingSoundEffect = "";
-                                soundPlayer.SoundLocation = "";
                             }
                             else
                             {
@@ -2268,12 +2261,9 @@ namespace CharacterDataEditor.Screens
                                 if (currentPath != filePath)
                                 {
                                     soundPlayer.SoundLocation = filePath;
+                                    soundPlayer.LoadAsync();
                                 }
                             }
-                        }
-                        else
-                        {
-                            soundPlayer.SoundLocation = "";
                         }
 
                         // Create list of checkboxes for walking forward footsteps
@@ -2337,7 +2327,6 @@ namespace CharacterDataEditor.Screens
                             {
                                 _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                                 walkingSoundEffect = "";
-                                soundPlayer.SoundLocation = "";
                             }
                             else
                             {
@@ -2345,12 +2334,9 @@ namespace CharacterDataEditor.Screens
                                 if (currentPath != filePath)
                                 {
                                     soundPlayer.SoundLocation = filePath;
+                                    soundPlayer.LoadAsync();
                                 }
                             }
-                        }
-                        else
-                        {
-                            soundPlayer.SoundLocation = "";
                         }
 
                         // Create list of checkboxes for walking backward footsteps
@@ -2414,7 +2400,6 @@ namespace CharacterDataEditor.Screens
                             {
                                 _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                                 runningSoundEffect = "";
-                                soundPlayer.SoundLocation = "";
                             }
                             else
                             {
@@ -2422,12 +2407,9 @@ namespace CharacterDataEditor.Screens
                                 if (currentPath != filePath)
                                 {
                                     soundPlayer.SoundLocation = filePath;
+                                    soundPlayer.LoadAsync();
                                 }
                             }
-                        }
-                        else
-                        {
-                            soundPlayer.SoundLocation = "";
                         }
 
                         // Create list of checkboxes for running forward footsteps
@@ -2491,7 +2473,6 @@ namespace CharacterDataEditor.Screens
                             {
                                 _logger.LogError($"File path {filePath} does not exist or is not accessable.");
                                 runningSoundEffect = "";
-                                soundPlayer.SoundLocation = "";
                             }
                             else
                             {
@@ -2499,12 +2480,9 @@ namespace CharacterDataEditor.Screens
                                 if (currentPath != filePath)
                                 {
                                     soundPlayer.SoundLocation = filePath;
+                                    soundPlayer.LoadAsync();
                                 }
                             }
-                        }
-                        else
-                        {
-                            soundPlayer.SoundLocation = "";
                         }
 
                         // Create list of checkboxes for running backward footsteps
