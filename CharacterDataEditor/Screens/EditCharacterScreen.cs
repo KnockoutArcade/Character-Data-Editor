@@ -18,6 +18,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 // TODO: Find a different audio player that supports more than just Windows.
 using System.Media; // This only works for Windows
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace CharacterDataEditor.Screens
 {
@@ -93,8 +95,10 @@ namespace CharacterDataEditor.Screens
         private bool exiting;
 
         private bool playSound;
-        private SoundPlayer soundPlayer; // Used for attack sounds and footsteps
-        private SoundPlayer hitSoundPlayer;
+        private DirectSoundOut soundPlayer; // Used for attack sounds and footsteps
+        private AudioFileReader soundPlayerFile;
+        private DirectSoundOut hitSoundPlayer;
+        private AudioFileReader hitSoundPlayerFile;
 
         private const int buttonSpacing = 8;
 
@@ -143,8 +147,8 @@ namespace CharacterDataEditor.Screens
             allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
 
             playSound = false;
-            soundPlayer = new SoundPlayer();
-            hitSoundPlayer = new SoundPlayer();
+            soundPlayer = new DirectSoundOut();
+            hitSoundPlayer = new DirectSoundOut();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
@@ -861,11 +865,19 @@ namespace CharacterDataEditor.Screens
                     }
                     else
                     {
-                        string currentPath = soundPlayer.SoundLocation;
-                        if (currentPath != filePath)
+                        if (soundPlayerFile != null)
                         {
-                            soundPlayer.SoundLocation = filePath;
-                            soundPlayer.LoadAsync();
+                            string currentPath = soundPlayerFile.FileName;
+                            if (currentPath != filePath)
+                            {
+                                soundPlayerFile = new AudioFileReader(filePath);
+                                soundPlayer.Init(soundPlayerFile);
+                            }
+                        }
+                        else
+                        {
+                            soundPlayerFile = new AudioFileReader(filePath);
+                            soundPlayer.Init(soundPlayerFile);
                         }
                     }
                 }
@@ -1059,28 +1071,28 @@ namespace CharacterDataEditor.Screens
                                 var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
                                 ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
                                 hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
-                                if (moveInEditor.SoundEffect != string.Empty &&
-                                    spriteData != walkForwardSprite &&
-                                    spriteData != walkBackwardSprite &&
-                                    spriteData != runForwardSprite &&
-                                    spriteData != runBackwardSprite)
-                                {
-                                    string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
-                                    if (!File.Exists(filePath))
-                                    {
-                                        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                        moveInEditor.SoundEffect = "";
-                                    }
-                                    else
-                                    {
-                                        string currentPath = hitSoundPlayer.SoundLocation;
-                                        if (currentPath != filePath)
-                                        {
-                                            hitSoundPlayer.SoundLocation = filePath;
-                                            hitSoundPlayer.LoadAsync();
-                                        }
-                                    }
-                                }
+                                //if (moveInEditor.SoundEffect != string.Empty &&
+                                //    spriteData != walkForwardSprite &&
+                                //    spriteData != walkBackwardSprite &&
+                                //    spriteData != runForwardSprite &&
+                                //    spriteData != runBackwardSprite)
+                                //{
+                                //    string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
+                                //    if (!File.Exists(filePath))
+                                //    {
+                                //        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                //        moveInEditor.SoundEffect = "";
+                                //    }
+                                //    else
+                                //    {
+                                //        string currentPath = hitSoundPlayer.SoundLocation;
+                                //        if (currentPath != filePath)
+                                //        {
+                                //            hitSoundPlayer.SoundLocation = filePath;
+                                //            hitSoundPlayer.LoadAsync();
+                                //        }
+                                //    }
+                                //}
 
                                 attackDataItem.Start = start;
                                 attackDataItem.Lifetime = lifetime;
@@ -2247,24 +2259,24 @@ namespace CharacterDataEditor.Screens
 
                     if (spriteData == walkForwardSprite && walkForwardSprite.Frames.Count > 0)
                     {
-                        if (walkingSoundEffect != string.Empty)
-                        {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
-                            {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                walkingSoundEffect = "";
-                            }
-                            else
-                            {
-                                string currentPath = soundPlayer.SoundLocation;
-                                if (currentPath != filePath)
-                                {
-                                    soundPlayer.SoundLocation = filePath;
-                                    soundPlayer.LoadAsync();
-                                }
-                            }
-                        }
+                        //if (walkingSoundEffect != string.Empty)
+                        //{
+                        //    string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                        //    if (!File.Exists(filePath))
+                        //    {
+                        //        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                        //        walkingSoundEffect = "";
+                        //    }
+                        //    else
+                        //    {
+                        //        string currentPath = soundPlayer.SoundLocation;
+                        //        if (currentPath != filePath)
+                        //        {
+                        //            soundPlayer.SoundLocation = filePath;
+                        //            soundPlayer.LoadAsync();
+                        //        }
+                        //    }
+                        //}
 
                         // Create list of checkboxes for walking forward footsteps
                         ImGui.Columns(2);
@@ -2320,24 +2332,24 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (spriteData == walkBackwardSprite && walkBackwardSprite.Frames.Count > 0)
                     {
-                        if (walkingSoundEffect != string.Empty)
-                        {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
-                            {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                walkingSoundEffect = "";
-                            }
-                            else
-                            {
-                                string currentPath = soundPlayer.SoundLocation;
-                                if (currentPath != filePath)
-                                {
-                                    soundPlayer.SoundLocation = filePath;
-                                    soundPlayer.LoadAsync();
-                                }
-                            }
-                        }
+                        //if (walkingSoundEffect != string.Empty)
+                        //{
+                        //    string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                        //    if (!File.Exists(filePath))
+                        //    {
+                        //        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                        //        walkingSoundEffect = "";
+                        //    }
+                        //    else
+                        //    {
+                        //        string currentPath = soundPlayer.SoundLocation;
+                        //        if (currentPath != filePath)
+                        //        {
+                        //            soundPlayer.SoundLocation = filePath;
+                        //            soundPlayer.LoadAsync();
+                        //        }
+                        //    }
+                        //}
 
                         // Create list of checkboxes for walking backward footsteps
                         ImGui.Columns(2);
@@ -2393,24 +2405,24 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (spriteData == runForwardSprite && runForwardSprite.Frames.Count > 0)
                     {
-                        if (runningSoundEffect != string.Empty)
-                        {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
-                            {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                runningSoundEffect = "";
-                            }
-                            else
-                            {
-                                string currentPath = soundPlayer.SoundLocation;
-                                if (currentPath != filePath)
-                                {
-                                    soundPlayer.SoundLocation = filePath;
-                                    soundPlayer.LoadAsync();
-                                }
-                            }
-                        }
+                        //if (runningSoundEffect != string.Empty)
+                        //{
+                        //    string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                        //    if (!File.Exists(filePath))
+                        //    {
+                        //        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                        //        runningSoundEffect = "";
+                        //    }
+                        //    else
+                        //    {
+                        //        string currentPath = soundPlayer.SoundLocation;
+                        //        if (currentPath != filePath)
+                        //        {
+                        //            soundPlayer.SoundLocation = filePath;
+                        //            soundPlayer.LoadAsync();
+                        //        }
+                        //    }
+                        //}
 
                         // Create list of checkboxes for running forward footsteps
                         ImGui.Columns(2);
@@ -2466,24 +2478,24 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (spriteData == runBackwardSprite && runBackwardSprite.Frames.Count > 0)
                     {
-                        if (runningSoundEffect != string.Empty)
-                        {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
-                            {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                runningSoundEffect = "";
-                            }
-                            else
-                            {
-                                string currentPath = soundPlayer.SoundLocation;
-                                if (currentPath != filePath)
-                                {
-                                    soundPlayer.SoundLocation = filePath;
-                                    soundPlayer.LoadAsync();
-                                }
-                            }
-                        }
+                        //if (runningSoundEffect != string.Empty)
+                        //{
+                        //    string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                        //    if (!File.Exists(filePath))
+                        //    {
+                        //        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                        //        runningSoundEffect = "";
+                        //    }
+                        //    else
+                        //    {
+                        //        string currentPath = soundPlayer.SoundLocation;
+                        //        if (currentPath != filePath)
+                        //        {
+                        //            soundPlayer.SoundLocation = filePath;
+                        //            soundPlayer.LoadAsync();
+                        //        }
+                        //    }
+                        //}
 
                         // Create list of checkboxes for running backward footsteps
                         ImGui.Columns(2);
