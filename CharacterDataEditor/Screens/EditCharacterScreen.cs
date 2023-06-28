@@ -436,10 +436,6 @@ namespace CharacterDataEditor.Screens
                 
                 if (spriteData == walkForwardSprite || spriteData == walkBackwardSprite || spriteData == runForwardSprite || spriteData == runBackwardSprite)
                 {
-                    if (character.NonmoveSoundData.WalkForwardFootsteps.Count > 0 && currentFrame == 4)
-                    {
-                        playSound = true; // Used to set breakpoints
-                    }
                     if ((spriteData == walkForwardSprite && character.NonmoveSoundData.WalkForwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.WalkingSoundEffect != string.Empty) ||
                             (spriteData == walkBackwardSprite && character.NonmoveSoundData.WalkBackwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.WalkingSoundEffect != string.Empty) ||
                             (spriteData == runForwardSprite && character.NonmoveSoundData.RunForwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.RunningSoundEffect != string.Empty) ||
