@@ -418,6 +418,14 @@ namespace CharacterDataEditor.Screens
                     {
                         AudioPlaybackEngine.Instance.PlaySound(soundPlayer);
                     }
+
+                    for (int i = 0; i < moveInEditor.AttackData.Count; i++)
+                    {
+                        if (spriteData == moveSprite && currentFrame == moveInEditor.AttackData[0].Start)
+                        {
+                            AudioPlaybackEngine.Instance.PlaySound(hitSoundPlayer);
+                        }
+                    }
                 }
                 
                 if (spriteData == walkForwardSprite || spriteData == walkBackwardSprite || spriteData == runForwardSprite || spriteData == runBackwardSprite)
