@@ -26,6 +26,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver112:
+                    return (originalCharacter as CharacterDataModel).Upgrade112to113();
                 case VersionConstants.Ver111:
                     return (originalCharacter as CharacterDataModel).Upgrade111to112();
                 case VersionConstants.Ver110:
@@ -272,6 +274,26 @@ namespace CharacterDataEditor.Extensions
             }
 
             previous.Version = VersionConstants.Ver112;
+
+            return new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            };
+        }
+
+        private static UpgradeResults Upgrade112to113(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            previous.NonmoveSoundData = new NonmoveSoundDataModel();
+
+            foreach (var move in previous.MoveData)
+            {
+                move.MoveSoundData = new List<MoveSoundDataModel>();
+            }
+
+            previous.Version = VersionConstants.Ver113;
 
             return new UpgradeResults
             {
