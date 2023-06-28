@@ -37,8 +37,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public string SupplimentaryScript { get; set; } = string.Empty;
-        public string SoundEffect { get; set; } = string.Empty;
-        public int SFXPlayFrame { get; set; } = 0;
+        public int NumberOfSounds { get { return MoveSoundData?.Count ?? 0; } }
+        public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
 
         public MoveDataModel GetDuplicate()
         {
@@ -54,7 +54,7 @@ namespace CharacterDataEditor.Models.CharacterData
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
             hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto);
-            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, SoundEffect, SFXPlayFrame);
+            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData);
 
             return hash;
         }
@@ -119,9 +119,9 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                 {
                                                                                                     if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
                                                                                                     {
-                                                                                                        if (objAsMoveData.SoundEffect.Equals(SoundEffect))
+                                                                                                        if (objAsMoveData.NumberOfSounds.Equals(NumberOfSounds))
                                                                                                         {
-                                                                                                            if (objAsMoveData.SFXPlayFrame.Equals(SFXPlayFrame))
+                                                                                                            if (objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData))
                                                                                                             {
                                                                                                                 return true;
                                                                                                             }

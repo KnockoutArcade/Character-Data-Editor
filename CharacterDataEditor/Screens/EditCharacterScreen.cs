@@ -93,8 +93,9 @@ namespace CharacterDataEditor.Screens
         private bool exiting;
 
         private bool playSound;
-        private CachedSound soundPlayer; // Used for attack sounds and footsteps
-        private CachedSound hitSoundPlayer;
+        private List<CachedSound> soundPlayers;
+        private CachedSound footstepSoundPlayer;
+        private List<CachedSound> hitSoundPlayers;
 
         private const int buttonSpacing = 8;
 
@@ -143,6 +144,8 @@ namespace CharacterDataEditor.Screens
             allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
 
             playSound = false;
+            soundPlayers = new List<CachedSound>();
+            hitSoundPlayers = new List<CachedSound>();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
@@ -414,16 +417,19 @@ namespace CharacterDataEditor.Screens
             {
                 if (moveInEditor != null)
                 {
-                    if (spriteData == moveSprite && currentFrame == moveInEditor.SFXPlayFrame && moveInEditor.SoundEffect != string.Empty)
+                    for (int i = 0; i < moveInEditor.MoveSoundData.Count; i++)
                     {
-                        AudioPlaybackEngine.Instance.PlaySound(soundPlayer);
+                        if (spriteData == moveSprite && currentFrame == moveInEditor.MoveSoundData[i].SFXPlayFrame && moveInEditor.MoveSoundData[i].SoundEffect != string.Empty)
+                        {
+                            AudioPlaybackEngine.Instance.PlaySound(soundPlayers[i]);
+                        }
                     }
 
-                    for (int i = 0; i < moveInEditor.AttackData.Count; i++)
+                    for (int i = 0; i < hitSoundPlayers.Count; i++)
                     {
-                        if (spriteData == moveSprite && currentFrame == moveInEditor.AttackData[0].Start)
+                        if (spriteData == moveSprite && currentFrame == moveInEditor.AttackData[i].Start)
                         {
-                            AudioPlaybackEngine.Instance.PlaySound(hitSoundPlayer);
+                            AudioPlaybackEngine.Instance.PlaySound(hitSoundPlayers[i]);
                         }
                     }
                 }
@@ -439,7 +445,7 @@ namespace CharacterDataEditor.Screens
                             (spriteData == runForwardSprite && character.NonmoveSoundData.RunForwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.RunningSoundEffect != string.Empty) ||
                             (spriteData == runBackwardSprite && character.NonmoveSoundData.RunBackwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.RunningSoundEffect != string.Empty))
                     {
-                        AudioPlaybackEngine.Instance.PlaySound(soundPlayer);
+                        AudioPlaybackEngine.Instance.PlaySound(footstepSoundPlayer);
                     }
                 }
             }
@@ -849,51 +855,6 @@ namespace CharacterDataEditor.Screens
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
                 moveInEditor.IsThrow = isThrow;
 
-                var soundId = moveInEditor.SoundEffect ?? string.Empty;
-                var selectedSoundIndex = soundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == moveInEditor.SoundEffect)) : -1;
-                ImguiDrawingHelper.DrawComboInput("soundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedSoundIndex);
-                moveInEditor.SoundEffect = selectedSoundIndex != -1 ? allSounds[selectedSoundIndex].Name : string.Empty;
-                if (moveInEditor.SoundEffect != string.Empty &&
-                    spriteData != walkForwardSprite &&
-                    spriteData != walkBackwardSprite &&
-                    spriteData != runForwardSprite &&
-                    spriteData != runBackwardSprite)
-                {
-                    string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
-                    if (!File.Exists(filePath))
-                    {
-                        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                        moveInEditor.SoundEffect = "";
-                    }
-                    else
-                    {
-                        if (soundPlayer != null)
-                        {
-                            string currentPath = soundPlayer.filePath;
-                            if (currentPath != filePath)
-                            {
-                                soundPlayer = new CachedSound(filePath);
-                            }
-                        }
-                        else
-                        {
-                            soundPlayer = new CachedSound(filePath);
-                        }
-                    }
-                }
-
-                int sfxPlayFrame = moveInEditor.SFXPlayFrame;
-                ImguiDrawingHelper.DrawIntInput("soundPlayFrame", ref sfxPlayFrame);
-                if (sfxPlayFrame < 1)
-                {
-                    sfxPlayFrame = 1;
-                }
-                if (sfxPlayFrame > moveInEditor.Duration)
-                {
-                    sfxPlayFrame = moveInEditor.Duration;
-                }
-                moveInEditor.SFXPlayFrame = sfxPlayFrame;
-
                 // Windows dropdown
                 if (ImGui.CollapsingHeader("Windows"))
                 {
@@ -956,6 +917,102 @@ namespace CharacterDataEditor.Screens
                     character.MoveData = new List<MoveDataModel>();
                 }
 
+                // Move Sound Properties dropdown
+                if (ImGui.CollapsingHeader("Sound Properties"))
+                {
+                    int soundCount = moveInEditor.NumberOfSounds;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfSounds", ref soundCount, int.MinValue, null, "These are sounds that play as the move happens, not when the move hits the opponent.");
+
+                    if (soundCount < 0)
+                    {
+                        soundCount = 0;
+                    }
+
+                    if (soundCount < moveInEditor.NumberOfSounds)
+                    {
+                        while (soundCount < moveInEditor.NumberOfSounds)
+                        {
+                            moveInEditor.MoveSoundData.RemoveAt(moveInEditor.NumberOfSounds - 1);
+                            soundPlayers.RemoveAt(moveInEditor.NumberOfSounds - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (soundCount > moveInEditor.NumberOfSounds)
+                        {
+                            moveInEditor.MoveSoundData.Add(new MoveSoundDataModel());
+                        }
+                    }
+
+                    if (soundCount == 0)
+                    {
+                        ImGui.Text("No sounds");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.MoveSoundData.Count; i++)
+                        {
+                            var moveSoundDataItem = moveInEditor.MoveSoundData[i];
+
+                            if (ImGui.TreeNode($"Sound Effect [{i}]"))
+                            {
+                                var soundEffect = moveSoundDataItem.SoundEffect;
+                                var sfxPlayFrame = moveSoundDataItem.SFXPlayFrame;
+
+                                var soundId = soundEffect ?? string.Empty;
+                                var selectedSoundIndex = soundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == soundEffect)) : -1;
+                                ImguiDrawingHelper.DrawComboInput("soundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedSoundIndex);
+                                soundEffect = selectedSoundIndex != -1 ? allSounds[selectedSoundIndex].Name : string.Empty;
+
+                                ImguiDrawingHelper.DrawIntInput("soundPlayFrame", ref sfxPlayFrame);
+                                if (sfxPlayFrame < 1)
+                                {
+                                    sfxPlayFrame = 1;
+                                }
+                                if (sfxPlayFrame > moveInEditor.Duration)
+                                {
+                                    sfxPlayFrame = moveInEditor.Duration;
+                                }
+
+                                moveSoundDataItem.SoundEffect = soundEffect;
+                                moveSoundDataItem.SFXPlayFrame = sfxPlayFrame;
+
+                                ImGui.TreePop();
+                            }
+
+                            if (moveSoundDataItem.SoundEffect != string.Empty &&
+                                    spriteData != walkForwardSprite &&
+                                    spriteData != walkBackwardSprite &&
+                                    spriteData != runForwardSprite &&
+                                    spriteData != runBackwardSprite)
+                            {
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + moveSoundDataItem.SoundEffect + @"\" + moveSoundDataItem.SoundEffect + ".wav";
+                                if (!File.Exists(filePath))
+                                {
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    moveSoundDataItem.SoundEffect = "";
+                                }
+                                else
+                                {
+                                    if (soundPlayers.Count > i)
+                                    {
+                                        string currentPath = soundPlayers[i].filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            soundPlayers[i] = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        soundPlayers.Add(new CachedSound(filePath));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Attack Properties dropdown
                 if (ImGui.CollapsingHeader("Attack Properties"))
                 {
@@ -979,6 +1036,7 @@ namespace CharacterDataEditor.Screens
                         {
                             moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                             moveInEditor.CounterData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                         }
                     }
                     else
@@ -1071,34 +1129,6 @@ namespace CharacterDataEditor.Screens
                                 var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
                                 ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
                                 hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
-                                if (moveInEditor.SoundEffect != string.Empty &&
-                                    spriteData != walkForwardSprite &&
-                                    spriteData != walkBackwardSprite &&
-                                    spriteData != runForwardSprite &&
-                                    spriteData != runBackwardSprite)
-                                {
-                                    string filePath = projectData.ProjectPathOnly + @"sounds\" + moveInEditor.SoundEffect + @"\" + moveInEditor.SoundEffect + ".wav";
-                                    if (!File.Exists(filePath))
-                                    {
-                                        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                        moveInEditor.SoundEffect = "";
-                                    }
-                                    else
-                                    {
-                                        if (hitSoundPlayer != null)
-                                        {
-                                            string currentPath = hitSoundPlayer.filePath;
-                                            if (currentPath != filePath)
-                                            {
-                                                hitSoundPlayer = new CachedSound(filePath);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            hitSoundPlayer = new CachedSound(filePath);
-                                        }
-                                    }
-                                }
 
                                 attackDataItem.Start = start;
                                 attackDataItem.Lifetime = lifetime;
@@ -1131,6 +1161,35 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.HitSound = hitSound;
 
                                 ImGui.TreePop();
+                            }
+
+                            if (attackDataItem.HitSound != string.Empty &&
+                                    spriteData != walkForwardSprite &&
+                                    spriteData != walkBackwardSprite &&
+                                    spriteData != runForwardSprite &&
+                                    spriteData != runBackwardSprite)
+                            {
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + attackDataItem.HitSound + @"\" + attackDataItem.HitSound + ".wav";
+                                if (!File.Exists(filePath))
+                                {
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    attackDataItem.HitSound = "";
+                                }
+                                else
+                                {
+                                    if (hitSoundPlayers.Count > i)
+                                    {
+                                        string currentPath = hitSoundPlayers[i].filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            hitSoundPlayers[i] = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        hitSoundPlayers.Add(new CachedSound(filePath));
+                                    }
+                                }
                             }
                         }
                     }
@@ -1226,7 +1285,6 @@ namespace CharacterDataEditor.Screens
 
                                 ImGui.TreePop();
                             }
-
                             moveInEditor.CounterData[i] = currentCounterData;
                         }
                     }
@@ -2275,17 +2333,17 @@ namespace CharacterDataEditor.Screens
                             }
                             else
                             {
-                                if (soundPlayer != null)
+                                if (footstepSoundPlayer != null)
                                 {
-                                    string currentPath = soundPlayer.filePath;
+                                    string currentPath = footstepSoundPlayer.filePath;
                                     if (currentPath != filePath)
                                     {
-                                        soundPlayer = new CachedSound(filePath);
+                                        footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
                                 else
                                 {
-                                    soundPlayer = new CachedSound(filePath);
+                                    footstepSoundPlayer = new CachedSound(filePath);
                                 }
                             }
                         }
@@ -2354,17 +2412,17 @@ namespace CharacterDataEditor.Screens
                             }
                             else
                             {
-                                if (soundPlayer != null)
+                                if (footstepSoundPlayer != null)
                                 {
-                                    string currentPath = soundPlayer.filePath;
+                                    string currentPath = footstepSoundPlayer.filePath;
                                     if (currentPath != filePath)
                                     {
-                                        soundPlayer = new CachedSound(filePath);
+                                        footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
                                 else
                                 {
-                                    soundPlayer = new CachedSound(filePath);
+                                    footstepSoundPlayer = new CachedSound(filePath);
                                 }
                             }
                         }
@@ -2433,17 +2491,17 @@ namespace CharacterDataEditor.Screens
                             }
                             else
                             {
-                                if (soundPlayer != null)
+                                if (footstepSoundPlayer != null)
                                 {
-                                    string currentPath = soundPlayer.filePath;
+                                    string currentPath = footstepSoundPlayer.filePath;
                                     if (currentPath != filePath)
                                     {
-                                        soundPlayer = new CachedSound(filePath);
+                                        footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
                                 else
                                 {
-                                    soundPlayer = new CachedSound(filePath);
+                                    footstepSoundPlayer = new CachedSound(filePath);
                                 }
                             }
                         }
@@ -2512,17 +2570,17 @@ namespace CharacterDataEditor.Screens
                             }
                             else
                             {
-                                if (soundPlayer != null)
+                                if (footstepSoundPlayer != null)
                                 {
-                                    string currentPath = soundPlayer.filePath;
+                                    string currentPath = footstepSoundPlayer.filePath;
                                     if (currentPath != filePath)
                                     {
-                                        soundPlayer = new CachedSound(filePath);
+                                        footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
                                 else
                                 {
-                                    soundPlayer = new CachedSound(filePath);
+                                    footstepSoundPlayer = new CachedSound(filePath);
                                 }
                             }
                         }
@@ -2665,6 +2723,9 @@ namespace CharacterDataEditor.Screens
 
                                     boxDrawMode = BoxDrawMode.None;
                                     showHitHurtboxes = false;
+
+                                    soundPlayers.Clear();
+                                    hitSoundPlayers.Clear();
 
                                     if (moveSpriteIndex > -1)
                                     {
