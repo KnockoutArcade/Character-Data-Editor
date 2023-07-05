@@ -37,6 +37,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public string SupplimentaryScript { get; set; } = string.Empty;
+        public int NumberOfSounds { get { return MoveSoundData?.Count ?? 0; } }
+        public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
         public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
 
         public MoveDataModel GetDuplicate()
@@ -53,7 +55,7 @@ namespace CharacterDataEditor.Models.CharacterData
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
             hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto);
-            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, SpiritData);
+            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData);
 
             return hash;
         }
@@ -118,9 +120,15 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                 {
                                                                                                     if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
                                                                                                     {
-                                                                                                        if (objAsMoveData.SpiritData.Equals(SpiritData))
+                                                                                                        if (objAsMoveData.NumberOfSounds.Equals(NumberOfSounds))
                                                                                                         {
-                                                                                                            return true;
+                                                                                                            if (objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData))
+                                                                                                            {
+                                                                                                                if (objAsMoveData.SpiritData.Equals(SpiritData))
+                                                                                                                {
+                                                                                                                    return true;
+                                                                                                                }
+                                                                                                            }
                                                                                                         }
                                                                                                     }
                                                                                                 }

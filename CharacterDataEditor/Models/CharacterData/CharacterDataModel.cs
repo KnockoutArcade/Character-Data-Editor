@@ -40,13 +40,14 @@ namespace CharacterDataEditor.Models.CharacterData
         public List<PaletteModel> Palettes { get; set; } = new List<PaletteModel>();
         public List<MoveDataModel> MoveData { get; set; } = new List<MoveDataModel>();
         public UniqueDataModel UniqueData { get; set; } = new UniqueDataModel();
+        public NonmoveSoundDataModel NonmoveSoundData { get; set; } = new NonmoveSoundDataModel();
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, WalkSpeed, BaseColor, Palettes, UniqueData);
             hash = HashCode.Combine(hash, MoveData, RunSpeed, Traction, JumpSpeed, FallSpeed, BackDashDuration, BackDashInvincibility);
             hash = HashCode.Combine(hash, BackDashSpeed, BackDashStartup, FastFallSpeed, JumpType, JumpHorizontalSpeed, CharacterSprites, SuperMeterBuildRate);
-            hash = HashCode.Combine(hash, MaxHitPoints, RegenSpeed, KORegenSpeed);
+            hash = HashCode.Combine(hash, MaxHitPoints, NonmoveSoundData, RegenSpeed, KORegenSpeed);
 
             return hash;
         }
@@ -101,7 +102,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                         objAsCharacterDataModel.RegenSpeed.Equals(RegenSpeed) &&
                                                         objAsCharacterDataModel.KORegenSpeed.Equals(KORegenSpeed))
                                                     {
-                                                        return true;
+                                                        if (objAsCharacterDataModel.NonmoveSoundData.Equals(NonmoveSoundData))
+                                                        {
+                                                            return true;
+                                                        }
                                                     }
                                                 }
                                             }

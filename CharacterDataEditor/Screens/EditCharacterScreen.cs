@@ -5,6 +5,7 @@ using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
 using CharacterDataEditor.Services;
+using CharacterDataEditor.NAudio;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
@@ -17,6 +18,7 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using NAudio.Wave;
 
 namespace CharacterDataEditor.Screens
 {
@@ -37,6 +39,9 @@ namespace CharacterDataEditor.Screens
         private Texture2D advanceOneFrameForwardTexture;
         private Texture2D advanceOneFrameBackTexture;
         private Texture2D showHitboxesTexture;
+        private Texture2D hideHitboxesTexture;
+        private Texture2D soundPlayTexture;
+        private Texture2D soundMuteTexture;
 
         private List<string> spiritDataList = new List<string>();
         private List<CharacterDataModel> spiritCharacters = new List<CharacterDataModel>();
@@ -54,11 +59,17 @@ namespace CharacterDataEditor.Screens
         private List<string> commandButtonsList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
+        private List<SoundDataModel> allSounds;
         private List<ObjectDataModel> allProjectiles;
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
         private SpriteDataModel spriteData;
+        private SpriteDataModel moveSprite;
+        private SpriteDataModel walkForwardSprite;
+        private SpriteDataModel walkBackwardSprite;
+        private SpriteDataModel runForwardSprite;
+        private SpriteDataModel runBackwardSprite;
         private PaletteModel paletteData;
         private SpriteDrawingHelper spriteDrawer;
         private Vector2 spriteDrawPosition;
@@ -84,6 +95,11 @@ namespace CharacterDataEditor.Screens
         private bool unsaved;
         private bool exiting;
 
+        private bool playSound;
+        private List<CachedSound> soundPlayers;
+        private CachedSound footstepSoundPlayer;
+        private List<CachedSound> hitSoundPlayers;
+
         private const int buttonSpacing = 8;
 
         private string editorWindowTitle;
@@ -106,6 +122,11 @@ namespace CharacterDataEditor.Screens
             spriteToDraw = string.Empty;
             prevSpriteToDraw = string.Empty;
             spriteData = null;
+            moveSprite = null;
+            walkForwardSprite = null;
+            walkBackwardSprite = null;
+            runForwardSprite = null;
+            runBackwardSprite = null;
             editorMode = EditorMode.None;
 
             moveInEditor = null;
@@ -146,7 +167,12 @@ namespace CharacterDataEditor.Screens
 
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
+            allSounds = _characterOperations.GetAllGameData<SoundDataModel>(projectData.ProjectPathOnly);
             allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
+
+            playSound = false;
+            soundPlayers = new List<CachedSound>();
+            hitSoundPlayers = new List<CachedSound>();
 
             if (action == "edit" && !string.IsNullOrWhiteSpace(character.CharacterSprites?.Idle))
             {
@@ -159,6 +185,9 @@ namespace CharacterDataEditor.Screens
             advanceOneFrameForwardTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameButtonPath));
             advanceOneFrameBackTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.AdvanceOneFrameBackButtonPath));
             showHitboxesTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.ShowHitboxes));
+            hideHitboxesTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.HideHitboxes));
+            soundPlayTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundPlay));
+            soundMuteTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundMute));
 
             spriteDrawer = new SpriteDrawingHelper();
             frameCounter = 0;
@@ -408,6 +437,40 @@ namespace CharacterDataEditor.Screens
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
                 resetAnimation = false;
+            }
+
+            // Handle playing sound effect
+            if (!animationPaused && playSound)
+            {
+                if (moveInEditor != null)
+                {
+                    for (int i = 0; i < moveInEditor.MoveSoundData.Count; i++)
+                    {
+                        if (spriteData == moveSprite && currentFrame == moveInEditor.MoveSoundData[i].SFXPlayFrame && moveInEditor.MoveSoundData[i].SoundEffect != string.Empty)
+                        {
+                            AudioPlaybackEngine.Instance.PlaySound(soundPlayers[i]);
+                        }
+                    }
+
+                    for (int i = 0; i < hitSoundPlayers.Count; i++)
+                    {
+                        if (spriteData == moveSprite && currentFrame == moveInEditor.AttackData[i].Start)
+                        {
+                            AudioPlaybackEngine.Instance.PlaySound(hitSoundPlayers[i]);
+                        }
+                    }
+                }
+                
+                if (spriteData == walkForwardSprite || spriteData == walkBackwardSprite || spriteData == runForwardSprite || spriteData == runBackwardSprite)
+                {
+                    if ((spriteData == walkForwardSprite && character.NonmoveSoundData.WalkForwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.WalkingSoundEffect != string.Empty) ||
+                            (spriteData == walkBackwardSprite && character.NonmoveSoundData.WalkBackwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.WalkingSoundEffect != string.Empty) ||
+                            (spriteData == runForwardSprite && character.NonmoveSoundData.RunForwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.RunningSoundEffect != string.Empty) ||
+                            (spriteData == runBackwardSprite && character.NonmoveSoundData.RunBackwardFootsteps.Contains(currentFrame) && character.NonmoveSoundData.RunningSoundEffect != string.Empty))
+                    {
+                        AudioPlaybackEngine.Instance.PlaySound(footstepSoundPlayer);
+                    }
+                }
             }
         }
 
@@ -882,6 +945,102 @@ namespace CharacterDataEditor.Screens
                     character.MoveData = new List<MoveDataModel>();
                 }
 
+                // Move Sound Properties dropdown
+                if (ImGui.CollapsingHeader("Sound Properties"))
+                {
+                    int soundCount = moveInEditor.NumberOfSounds;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfSounds", ref soundCount, int.MinValue, null, "These are sounds that play as the move happens, not when the move hits the opponent.");
+
+                    if (soundCount < 0)
+                    {
+                        soundCount = 0;
+                    }
+
+                    if (soundCount < moveInEditor.NumberOfSounds)
+                    {
+                        while (soundCount < moveInEditor.NumberOfSounds)
+                        {
+                            moveInEditor.MoveSoundData.RemoveAt(moveInEditor.NumberOfSounds - 1);
+                            soundPlayers.RemoveAt(moveInEditor.NumberOfSounds - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (soundCount > moveInEditor.NumberOfSounds)
+                        {
+                            moveInEditor.MoveSoundData.Add(new MoveSoundDataModel());
+                        }
+                    }
+
+                    if (soundCount == 0)
+                    {
+                        ImGui.Text("No sounds");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < moveInEditor.MoveSoundData.Count; i++)
+                        {
+                            var moveSoundDataItem = moveInEditor.MoveSoundData[i];
+
+                            if (ImGui.TreeNode($"Sound Effect [{i}]"))
+                            {
+                                var soundEffect = moveSoundDataItem.SoundEffect;
+                                var sfxPlayFrame = moveSoundDataItem.SFXPlayFrame;
+
+                                var soundId = soundEffect ?? string.Empty;
+                                var selectedSoundIndex = soundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == soundEffect)) : -1;
+                                ImguiDrawingHelper.DrawComboInput("soundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedSoundIndex);
+                                soundEffect = selectedSoundIndex != -1 ? allSounds[selectedSoundIndex].Name : string.Empty;
+
+                                ImguiDrawingHelper.DrawIntInput("soundPlayFrame", ref sfxPlayFrame);
+                                if (sfxPlayFrame < 1)
+                                {
+                                    sfxPlayFrame = 1;
+                                }
+                                if (sfxPlayFrame > moveInEditor.Duration)
+                                {
+                                    sfxPlayFrame = moveInEditor.Duration;
+                                }
+
+                                moveSoundDataItem.SoundEffect = soundEffect;
+                                moveSoundDataItem.SFXPlayFrame = sfxPlayFrame;
+
+                                ImGui.TreePop();
+                            }
+
+                            if (moveSoundDataItem.SoundEffect != string.Empty &&
+                                    spriteData != walkForwardSprite &&
+                                    spriteData != walkBackwardSprite &&
+                                    spriteData != runForwardSprite &&
+                                    spriteData != runBackwardSprite)
+                            {
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + moveSoundDataItem.SoundEffect + @"\" + moveSoundDataItem.SoundEffect + ".wav";
+                                if (!File.Exists(filePath))
+                                {
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    moveSoundDataItem.SoundEffect = "";
+                                }
+                                else
+                                {
+                                    if (soundPlayers.Count > i)
+                                    {
+                                        string currentPath = soundPlayers[i].filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            soundPlayers[i] = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        soundPlayers.Add(new CachedSound(filePath));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Attack Properties dropdown
                 if (ImGui.CollapsingHeader("Attack Properties"))
                 {
@@ -905,6 +1064,7 @@ namespace CharacterDataEditor.Screens
                         {
                             moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                             moveInEditor.CounterData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                         }
                     }
                     else
@@ -956,6 +1116,7 @@ namespace CharacterDataEditor.Screens
                                 float comboScaling = attackDataItem.ComboScaling;
                                 float meterGain = attackDataItem.MeterGain;
                                 bool causesWallbounce = attackDataItem.CausesWallbounce;
+                                string hitSound = attackDataItem.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
@@ -992,6 +1153,11 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
 
+                                var hitSoundId = attackDataItem.HitSound ?? string.Empty;
+                                var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
+                                ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
+                                hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
+
                                 attackDataItem.Start = start;
                                 attackDataItem.Lifetime = lifetime;
                                 attackDataItem.AttackWidth = attackWidth;
@@ -1020,8 +1186,38 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.ComboScaling = comboScaling;
                                 attackDataItem.MeterGain = meterGain;
                                 attackDataItem.CausesWallbounce = causesWallbounce;
+                                attackDataItem.HitSound = hitSound;
 
                                 ImGui.TreePop();
+                            }
+
+                            if (attackDataItem.HitSound != string.Empty &&
+                                    spriteData != walkForwardSprite &&
+                                    spriteData != walkBackwardSprite &&
+                                    spriteData != runForwardSprite &&
+                                    spriteData != runBackwardSprite)
+                            {
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + attackDataItem.HitSound + @"\" + attackDataItem.HitSound + ".wav";
+                                if (!File.Exists(filePath))
+                                {
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    attackDataItem.HitSound = "";
+                                }
+                                else
+                                {
+                                    if (hitSoundPlayers.Count > i)
+                                    {
+                                        string currentPath = hitSoundPlayers[i].filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            hitSoundPlayers[i] = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        hitSoundPlayers.Add(new CachedSound(filePath));
+                                    }
+                                }
                             }
                         }
                     }
@@ -1061,6 +1257,7 @@ namespace CharacterDataEditor.Screens
                                 float LaunchKnockbackHorizontal = currentCounterData.LaunchKnockbackHorizontal;
                                 float ComboScaling = currentCounterData.ComboScaling;
                                 bool CausesWallbounce = currentCounterData.CausesWallbounce;
+                                string HitSound = currentCounterData.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("counterHitLevel", ref CounterHitLevel);
                                 ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
@@ -1088,6 +1285,11 @@ namespace CharacterDataEditor.Screens
 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref ParticleDuration);
 
+                                var hitSoundId = currentCounterData.HitSound ?? string.Empty;
+                                var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == currentCounterData.HitSound)) : -1;
+                                ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
+                                HitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
+
                                 currentCounterData.CounterHitLevel = CounterHitLevel;
                                 currentCounterData.Group = Group;
                                 currentCounterData.Damage = Damage;
@@ -1107,10 +1309,10 @@ namespace CharacterDataEditor.Screens
                                 currentCounterData.LaunchKnockbackVertical = LaunchKnockbackVertical;
                                 currentCounterData.LaunchKnockbackHorizontal= LaunchKnockbackHorizontal;
                                 currentCounterData.CausesWallbounce = CausesWallbounce;
+                                currentCounterData.HitSound = HitSound;
 
                                 ImGui.TreePop();
                             }
-
                             moveInEditor.CounterData[i] = currentCounterData;
                         }
                     }
@@ -1951,6 +2153,25 @@ namespace CharacterDataEditor.Screens
 
                 ImGui.SetCursorPos(cursorPos);
 
+                if (showHitHurtboxes)
+                {
+                    if (ImGui.ImageButton("##ShowHitboxes", (IntPtr)showHitboxesTexture.id, imageButtonSize))
+                    {
+                        boxDrawMode = BoxDrawMode.None;
+                        showHitHurtboxes = false;
+                    }
+                }
+                else
+                {
+                    if (ImGui.ImageButton("##HideHitboxes", (IntPtr)hideHitboxesTexture.id, imageButtonSize))
+                    {
+                        boxDrawMode = BoxDrawMode.Both;
+                        showHitHurtboxes = true;
+                    }
+                }
+
+                ImGui.SameLine();
+
                 if (ImGui.ImageButton("##ADVBack", (IntPtr)advanceOneFrameBackTexture.id, imageButtonSize))
                 {
                     animationPaused = true;
@@ -1959,16 +2180,19 @@ namespace CharacterDataEditor.Screens
                 
                 ImGui.SameLine();
                 
-                if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.id, imageButtonSize))
+                if (animationPaused)
                 {
-                    animationPaused = false;
+                    if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.id, imageButtonSize))
+                    {
+                        animationPaused = false;
+                    }
                 }
-                
-                ImGui.SameLine();
-
-                if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.id, imageButtonSize))
+                else
                 {
-                    animationPaused = true;
+                    if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.id, imageButtonSize))
+                    {
+                        animationPaused = true;
+                    }
                 }
                 
                 ImGui.SameLine();
@@ -1981,17 +2205,18 @@ namespace CharacterDataEditor.Screens
 
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton("##Show", (IntPtr)showHitboxesTexture.id, imageButtonSize))
+                if (playSound)
                 {
-                    if (!showHitHurtboxes)
+                    if (ImGui.ImageButton("##PlaySound", (IntPtr)soundPlayTexture.id, imageButtonSize))
                     {
-                        boxDrawMode = BoxDrawMode.Both;
-                        showHitHurtboxes = true;
+                        playSound = false;
                     }
-                    else
+                }
+                else
+                {
+                    if (ImGui.ImageButton("##MuteSound", (IntPtr)soundMuteTexture.id, imageButtonSize))
                     {
-                        boxDrawMode = BoxDrawMode.None;
-                        showHitHurtboxes = false;
+                        playSound = true;
                     }
                 }
 
@@ -2204,6 +2429,361 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
 
                     idleIndex = idleSelected;
+
+                    walkForwardSprite = allSprites[walkForwardSelected];
+                    walkBackwardSprite = allSprites[walkBackwardSelected];
+                    runForwardSprite = allSprites[runForwardSelected];
+                    runBackwardSprite = allSprites[runBackwardSelected];
+                }
+
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+
+                if (ImGui.CollapsingHeader("Sound Data", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    var walkingSoundEffect = character.NonmoveSoundData.WalkingSoundEffect;
+                    var runningSoundEffect = character.NonmoveSoundData.RunningSoundEffect;
+                    var walkForwardFootsteps = character.NonmoveSoundData.WalkForwardFootsteps;
+                    var walkBackwardFootsteps = character.NonmoveSoundData.WalkBackwardFootsteps;
+                    var runForwardFootsteps = character.NonmoveSoundData.RunForwardFootsteps;
+                    var runBackwardFootsteps = character.NonmoveSoundData.RunBackwardFootsteps;
+
+                    var walkSoundId = character.NonmoveSoundData.WalkingSoundEffect ?? string.Empty;
+                    var selectedWalkSoundIndex = walkSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == character.NonmoveSoundData.WalkingSoundEffect)) : -1;
+                    ImguiDrawingHelper.DrawComboInput("walkFootstep", allSounds.Select(x => x.Name).ToArray(), ref selectedWalkSoundIndex);
+                    walkingSoundEffect = selectedWalkSoundIndex != -1 ? allSounds[selectedWalkSoundIndex].Name : string.Empty;
+
+                    var runSoundId = character.NonmoveSoundData.RunningSoundEffect ?? string.Empty;
+                    var selectedRunSoundIndex = runSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == character.NonmoveSoundData.RunningSoundEffect)) : -1;
+                    ImguiDrawingHelper.DrawComboInput("runFootstep", allSounds.Select(x => x.Name).ToArray(), ref selectedRunSoundIndex);
+                    runningSoundEffect = selectedRunSoundIndex != -1 ? allSounds[selectedRunSoundIndex].Name : string.Empty;
+
+                    if (spriteData == walkForwardSprite && walkForwardSprite.Frames.Count > 0)
+                    {
+                        if (walkingSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                walkingSoundEffect = "";
+                            }
+                            else
+                            {
+                                if (footstepSoundPlayer != null)
+                                {
+                                    string currentPath = footstepSoundPlayer.filePath;
+                                    if (currentPath != filePath)
+                                    {
+                                        footstepSoundPlayer = new CachedSound(filePath);
+                                    }
+                                }
+                                else
+                                {
+                                    footstepSoundPlayer = new CachedSound(filePath);
+                                }
+                            }
+                        }
+
+                        // Create list of checkboxes for walking forward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (walkForwardFootsteps.Count > walkForwardSprite.Frames.Count)
+                        {
+                            walkForwardFootsteps.RemoveAt(walkForwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of possible sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in walkForwardFootsteps)
+                        {
+                            if (frame > walkForwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            walkForwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < walkForwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (walkForwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !walkForwardFootsteps.Contains(i + 1))
+                            {
+                                walkForwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && walkForwardFootsteps.Contains(i + 1))
+                            {
+                                walkForwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        walkForwardFootsteps.Sort();
+                    }
+                    else if (spriteData == walkBackwardSprite && walkBackwardSprite.Frames.Count > 0)
+                    {
+                        if (walkingSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                walkingSoundEffect = "";
+                            }
+                            else
+                            {
+                                if (footstepSoundPlayer != null)
+                                {
+                                    string currentPath = footstepSoundPlayer.filePath;
+                                    if (currentPath != filePath)
+                                    {
+                                        footstepSoundPlayer = new CachedSound(filePath);
+                                    }
+                                }
+                                else
+                                {
+                                    footstepSoundPlayer = new CachedSound(filePath);
+                                }
+                            }
+                        }
+
+                        // Create list of checkboxes for walking backward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (walkBackwardFootsteps.Count > walkBackwardSprite.Frames.Count)
+                        {
+                            walkBackwardFootsteps.RemoveAt(walkBackwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in walkBackwardFootsteps)
+                        {
+                            if (frame > walkBackwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            walkBackwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < walkBackwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (walkBackwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !walkBackwardFootsteps.Contains(i + 1))
+                            {
+                                walkBackwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && walkBackwardFootsteps.Contains(i + 1))
+                            {
+                                walkBackwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        walkBackwardFootsteps.Sort();
+                    }
+                    else if (spriteData == runForwardSprite && runForwardSprite.Frames.Count > 0)
+                    {
+                        if (runningSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                runningSoundEffect = "";
+                            }
+                            else
+                            {
+                                if (footstepSoundPlayer != null)
+                                {
+                                    string currentPath = footstepSoundPlayer.filePath;
+                                    if (currentPath != filePath)
+                                    {
+                                        footstepSoundPlayer = new CachedSound(filePath);
+                                    }
+                                }
+                                else
+                                {
+                                    footstepSoundPlayer = new CachedSound(filePath);
+                                }
+                            }
+                        }
+
+                        // Create list of checkboxes for running forward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (runForwardFootsteps.Count > runForwardSprite.Frames.Count)
+                        {
+                            runForwardFootsteps.RemoveAt(runForwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of possible sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in runForwardFootsteps)
+                        {
+                            if (frame > runForwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            runForwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < runForwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (runForwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !runForwardFootsteps.Contains(i + 1))
+                            {
+                                runForwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && runForwardFootsteps.Contains(i + 1))
+                            {
+                                runForwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        runForwardFootsteps.Sort();
+                    }
+                    else if (spriteData == runBackwardSprite && runBackwardSprite.Frames.Count > 0)
+                    {
+                        if (runningSoundEffect != string.Empty)
+                        {
+                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                            if (!File.Exists(filePath))
+                            {
+                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                runningSoundEffect = "";
+                            }
+                            else
+                            {
+                                if (footstepSoundPlayer != null)
+                                {
+                                    string currentPath = footstepSoundPlayer.filePath;
+                                    if (currentPath != filePath)
+                                    {
+                                        footstepSoundPlayer = new CachedSound(filePath);
+                                    }
+                                }
+                                else
+                                {
+                                    footstepSoundPlayer = new CachedSound(filePath);
+                                }
+                            }
+                        }
+
+                        // Create list of checkboxes for running backward footsteps
+                        ImGui.Columns(2);
+                        ImGui.Text("Footstep Frames:");
+                        ImGui.SameLine();
+                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                        ImGui.Columns(1);
+
+                        // Shortens length of the list
+                        while (runBackwardFootsteps.Count > runBackwardSprite.Frames.Count)
+                        {
+                            runBackwardFootsteps.RemoveAt(runBackwardSprite.Frames.Count);
+                        }
+
+                        // Removes sprite frames that are out of the range of sprite frames
+                        int numberOfInvalidFrames = 0;
+                        List<int> invalidFrames = new List<int>();
+                        foreach (int frame in runBackwardFootsteps)
+                        {
+                            if (frame > runBackwardSprite.Frames.Count)
+                            {
+                                numberOfInvalidFrames++;
+                                invalidFrames.Add(frame);
+                            }
+                        }
+                        while (numberOfInvalidFrames > 0)
+                        {
+                            runBackwardFootsteps.Remove(invalidFrames[0]);
+                            invalidFrames.RemoveAt(0);
+                            numberOfInvalidFrames--;
+                        }
+
+                        // Create a list of checkboxes, one checkbox for each moveset
+                        for (int i = 0; i < runBackwardSprite.Frames.Count; i++)
+                        {
+                            var isSelected = false;
+                            if (runBackwardFootsteps.Contains(i + 1))
+                            {
+                                isSelected = true;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                            if (isSelected && !runBackwardFootsteps.Contains(i + 1))
+                            {
+                                runBackwardFootsteps.Add(i + 1);
+                            }
+                            else if (!isSelected && runBackwardFootsteps.Contains(i + 1))
+                            {
+                                runBackwardFootsteps.Remove(i + 1);
+                            }
+                        }
+                        runBackwardFootsteps.Sort();
+                    }
+                    else
+                    {
+                        ImGui.Text("Choose a walking or running sprite.");
+                    }
+
+                    character.NonmoveSoundData.WalkingSoundEffect = walkingSoundEffect;
+                    character.NonmoveSoundData.WalkForwardFootsteps = walkForwardFootsteps;
+                    character.NonmoveSoundData.WalkBackwardFootsteps = walkBackwardFootsteps;
+                    character.NonmoveSoundData.RunningSoundEffect = runningSoundEffect;
+                    character.NonmoveSoundData.RunForwardFootsteps = runForwardFootsteps;
+                    character.NonmoveSoundData.RunBackwardFootsteps = runBackwardFootsteps;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -2315,9 +2895,13 @@ namespace CharacterDataEditor.Screens
                                     boxDrawMode = BoxDrawMode.None;
                                     showHitHurtboxes = false;
 
+                                    soundPlayers.Clear();
+                                    hitSoundPlayers.Clear();
+
                                     if (moveSpriteIndex > -1)
                                     {
                                         var sprite = allSprites[moveSpriteIndex];
+                                        moveSprite = sprite;
                                         ChangeAnimatedSprite(sprite, true);
                                     }
                                 }, () =>

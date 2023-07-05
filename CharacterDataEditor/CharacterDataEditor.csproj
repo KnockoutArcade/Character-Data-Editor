@@ -22,13 +22,19 @@
     <None Remove="Resources\AdvanceFrameBack.png" />
     <None Remove="Resources\blank.png" />
     <None Remove="Resources\bullseye.png" />
+    <None Remove="Resources\HideHitboxes.png" />
     <None Remove="Resources\logo.png" />
     <None Remove="Resources\Pause.png" />
     <None Remove="Resources\Play.png" />
     <None Remove="Resources\ShowHitboxes.png" />
+    <None Remove="Resources\SoundMute.png" />
+    <None Remove="Resources\SoundPlay.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Resources\HideHitboxes.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\ShowHitboxes.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -57,6 +63,12 @@
 	<Content Include="Resources\Pause.png">
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	</Content>
+	<Content Include="Resources\SoundMute.png">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
+	<Content Include="Resources\SoundPlay.png">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -65,6 +77,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+    <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="Raylib-cs" Version="4.2.0.1" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
