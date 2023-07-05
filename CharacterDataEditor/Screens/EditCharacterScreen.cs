@@ -1947,7 +1947,7 @@ namespace CharacterDataEditor.Screens
                     {
                         bool toggleState = moveInEditor.SpiritData.ToggleState;
                         bool performAttack = moveInEditor.SpiritData.PerformAttack;
-                        bool performInStandOff = moveInEditor.SpiritData.PerformInStandOff;
+                        bool performInSpiritOff = moveInEditor.SpiritData.PerformInSpiritOff;
                         bool returnToPlayer = moveInEditor.SpiritData.ReturnToPlayer;
 
                         ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState, "Activate Spirit ON/OFF.");
@@ -1955,40 +1955,27 @@ namespace CharacterDataEditor.Screens
 
                         if (performAttack)
                         {
-                            ImguiDrawingHelper.DrawBoolInput("performInStandOff", ref performInStandOff, "If set to true, the spirit will temporarily be summoned in Stand OFF to perform this move. The spirit will then immediately disappear when the move ends.");
+                            ImguiDrawingHelper.DrawBoolInput("performInSpiritOff", ref performInSpiritOff, "If set to true, the spirit will temporarily be summoned in Spirit OFF to perform this move. The spirit will then immediately disappear when the move ends.");
                         }
                         else
                         {
-                            performInStandOff = false;
+                            performInSpiritOff = false;
                         }
 
                         if (performAttack)
                         {
-                            bool startAtCurrent = moveInEditor.SpiritData.StartAtCurrent;
                             int startXOffset = moveInEditor.SpiritData.StartXOffset;
                             int startYOffset = moveInEditor.SpiritData.StartYOffset;
 
-                            ImguiDrawingHelper.DrawBoolInput("startAtCurrentPosition", ref startAtCurrent);
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side");
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side");
 
-                            if (!startAtCurrent)
-                            {
-                                ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset);
-                                ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset);
-                            }
-                            else
-                            {
-                                startXOffset = 0;
-                                startYOffset = 0;
-                            }
-
-                            moveInEditor.SpiritData.StartAtCurrent = startAtCurrent;
                             moveInEditor.SpiritData.StartXOffset = startXOffset;
                             moveInEditor.SpiritData.StartYOffset = startYOffset;
                             
                         }
                         else
                         {
-                            moveInEditor.SpiritData.StartAtCurrent = false;
                             moveInEditor.SpiritData.StartXOffset = 0;
                             moveInEditor.SpiritData.StartYOffset = 0;
                             moveInEditor.SpiritData.MaintainPosition = false;
@@ -1998,7 +1985,7 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SpiritData.ToggleState = toggleState;
                         moveInEditor.SpiritData.PerformAttack = performAttack;
-                        moveInEditor.SpiritData.PerformInStandOff = performInStandOff;
+                        moveInEditor.SpiritData.PerformInSpiritOff = performInSpiritOff;
                         moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
 
                         moveInEditor.SpiritData.MaintainPosition = false;
@@ -2015,8 +2002,7 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
-                        moveInEditor.SpiritData.PerformInStandOff = false;
-                        moveInEditor.SpiritData.StartAtCurrent = false;
+                        moveInEditor.SpiritData.PerformInSpiritOff = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
                         moveInEditor.SpiritData.ReturnToPlayer = false;
@@ -2026,8 +2012,7 @@ namespace CharacterDataEditor.Screens
                         ImGui.Text("Character doesn't have a spirit and isn't a spirit!");
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
-                        moveInEditor.SpiritData.PerformInStandOff = false;
-                        moveInEditor.SpiritData.StartAtCurrent = false;
+                        moveInEditor.SpiritData.PerformInSpiritOff = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
                         moveInEditor.SpiritData.ReturnToPlayer = false;

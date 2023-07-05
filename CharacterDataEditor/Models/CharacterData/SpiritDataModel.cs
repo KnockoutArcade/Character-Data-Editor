@@ -11,8 +11,7 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public bool ToggleState { get; set; } = false;
         public bool PerformAttack { get; set; } = false; 
-        public bool PerformInStandOff { get; set; } = false;
-        public bool StartAtCurrent { get; set; } = false;
+        public bool PerformInSpiritOff { get; set; } = false;
         public int StartXOffset { get; set; } = 0;
         public int StartYOffset { get; set; } = 0;
         public bool ReturnToPlayer { get; set; } = false;
@@ -21,7 +20,7 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInStandOff, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer, MaintainPosition);
+            var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInSpiritOff, StartXOffset, StartYOffset, ReturnToPlayer, MaintainPosition);
             hash = HashCode.Combine(hash, Vulnerable);
 
             return hash;
@@ -45,22 +44,19 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsSpiritData.PerformAttack.Equals(PerformAttack))
                 {
-                    if (objAsSpiritData.PerformInStandOff.Equals(PerformInStandOff))
+                    if (objAsSpiritData.PerformInSpiritOff.Equals(PerformInSpiritOff))
                     {
-                        if (objAsSpiritData.StartAtCurrent.Equals(StartAtCurrent))
+                        if (objAsSpiritData.StartXOffset.Equals(StartXOffset))
                         {
-                            if (objAsSpiritData.StartXOffset.Equals(StartXOffset))
+                            if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
                             {
-                                if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
+                                if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
                                 {
-                                    if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
+                                    if (objAsSpiritData.MaintainPosition.Equals(MaintainPosition))
                                     {
-                                        if (objAsSpiritData.MaintainPosition.Equals(MaintainPosition))
+                                        if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
                                         {
-                                            if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
-                                            {
-                                                return true;
-                                            }
+                                            return true;
                                         }
                                     }
                                 }
