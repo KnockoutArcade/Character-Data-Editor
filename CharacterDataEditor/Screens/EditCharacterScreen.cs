@@ -1424,6 +1424,7 @@ namespace CharacterDataEditor.Screens
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
                                     PositionType requiredPosition = specialDataItem.RequiredPosition;
+                                    bool deactivateSpirit = specialDataItem.DeactivateSpirit;
 
                                     ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
                                     Regex regex = new Regex(@"[^\d]");
@@ -1433,21 +1434,55 @@ namespace CharacterDataEditor.Screens
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
 
-                                    var enhancementName = enhancementMove.ToString();
-                                    int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
-                                    ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
-                                    var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
-                                    enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
-
-                                    ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
-
-                                    if (!transitionImmediately)
+                                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
                                     {
-                                        ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                        ImguiDrawingHelper.DrawBoolInput("deactivateSpirit", ref deactivateSpirit);
+                                        if (!deactivateSpirit)
+                                        {
+                                            var enhancementName = enhancementMove.ToString();
+                                            int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                            ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                            var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
+                                            enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
+
+                                            ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
+
+                                            if (!transitionImmediately)
+                                            {
+                                                ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                            }
+                                            else
+                                            {
+                                                transitionFrame = 0;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            enhancementMove = EnhanceMoveType.None;
+                                            transitionImmediately = false;
+                                            transitionFrame = 0;
+                                        }
                                     }
                                     else
                                     {
-                                        transitionFrame = 0;
+                                        var enhancementName = enhancementMove.ToString();
+                                        int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                        ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                        var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
+                                        enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
+
+                                        ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
+
+                                        if (!transitionImmediately)
+                                        {
+                                            ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                        }
+                                        else
+                                        {
+                                            transitionFrame = 0;
+                                        }
+
+                                        deactivateSpirit = false;
                                     }
 
                                     var positionName = requiredPosition.ToString();
@@ -1464,6 +1499,7 @@ namespace CharacterDataEditor.Screens
                                     specialDataItem.TransitionImmediately = transitionImmediately;
                                     specialDataItem.TransitionFrame = transitionFrame;
                                     specialDataItem.RequiredPosition = requiredPosition;
+                                    specialDataItem.DeactivateSpirit = deactivateSpirit;
 
                                     ImGui.TreePop();
                                 }
@@ -1945,15 +1981,9 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.ToggleState = toggleState;
                         moveInEditor.SpiritData.PerformAttack = performAttack;
                         moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
-
-                        moveInEditor.SpiritData.MaintainPosition = false;
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
-                        bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
-                        ImguiDrawingHelper.DrawBoolInput("maintainPositionAfterAttack", ref maintainPosition);
-                        moveInEditor.SpiritData.MaintainPosition = maintainPosition;
-
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
                         moveInEditor.SpiritData.StartAtCurrent = false;
@@ -1970,7 +2000,6 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
                         moveInEditor.SpiritData.ReturnToPlayer = false;
-                        moveInEditor.SpiritData.MaintainPosition = false;
                     }
 
                     ImGui.TreePop();
@@ -2262,64 +2291,7 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawIntInput("maxHitPoints", ref maxHitPoints);
                     character.MaxHitPoints = maxHitPoints;
 
-                    if (character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
-                    {
-                        var horizontalSpeed = character.HorizontalSpeed;
-                        var verticalSpeed = character.VerticalSpeed;
-                        var envDisplacement = character.EnvironmentalDisplacement;
-                        var walkSpeed = character.WalkSpeed;
-                        var runSpeed = character.RunSpeed;
-                        var traction = character.Traction;
-                        var jumpSpeed = character.JumpSpeed;
-                        var fallSpeed = character.FallSpeed;
-                        var backDashDuration = character.BackDashDuration;
-                        var backDashInvincibility = character.BackDashInvincibility;
-                        var backDashSpeed = character.BackDashSpeed;
-                        var backDashStartup = character.BackDashStartup;
-                        var fastFallSpeed = character.FastFallSpeed;
-                        var jumpType = character.JumpType;
-                        var jumpHorizontalSpeed = character.JumpHorizontalSpeed;
-                        var superMeterBuildRate = character.SuperMeterBuildRate;
-                        var spriteCollection = character.CharacterSprites;
-
-                        ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
-                        ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
-                        ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
-                        ImguiDrawingHelper.DrawDecimalInput("walkSpeed", ref walkSpeed);
-                        ImguiDrawingHelper.DrawDecimalInput("runSpeed", ref runSpeed);
-                        ImguiDrawingHelper.DrawDecimalInput("traction", ref traction);
-                        ImguiDrawingHelper.DrawDecimalInput("jumpSpeed", ref jumpSpeed);
-                        ImguiDrawingHelper.DrawDecimalInput("fallSpeed", ref fallSpeed);
-                        ImguiDrawingHelper.DrawIntInput("backDashDuration", ref backDashDuration);
-                        ImguiDrawingHelper.DrawIntInput("backDashInvincibility", ref backDashInvincibility);
-                        ImguiDrawingHelper.DrawDecimalInput("backDashSpeed", ref backDashSpeed);
-                        ImguiDrawingHelper.DrawDecimalInput("backDashStartup", ref backDashStartup);
-                        ImguiDrawingHelper.DrawDecimalInput("fastFallSpeed", ref fastFallSpeed);
-
-                        ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
-
-                        ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
-                        ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
-
-                        character.HorizontalSpeed = horizontalSpeed;
-                        character.VerticalSpeed = verticalSpeed;
-                        character.EnvironmentalDisplacement = envDisplacement;
-                        character.WalkSpeed = walkSpeed;
-                        character.RunSpeed = runSpeed;
-                        character.Traction = traction;
-                        character.JumpSpeed = jumpSpeed;
-                        character.FallSpeed = fallSpeed;
-                        character.BackDashDuration = backDashDuration;
-                        character.BackDashInvincibility = backDashInvincibility;
-                        character.BackDashSpeed = backDashSpeed;
-                        character.BackDashStartup = backDashStartup;
-                        character.FastFallSpeed = fastFallSpeed;
-                        character.JumpType = jumpType;
-                        character.JumpHorizontalSpeed = jumpHorizontalSpeed;
-                        character.SuperMeterBuildRate = superMeterBuildRate;
-                        character.CharacterSprites = spriteCollection;
-                    }
-                    else
+                    if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
                         var regenSpeed = character.RegenSpeed;
                         var koRegenSpeed = character.KORegenSpeed;
@@ -2330,6 +2302,59 @@ namespace CharacterDataEditor.Screens
                         character.RegenSpeed = regenSpeed;
                         character.KORegenSpeed = koRegenSpeed;
                     }
+
+                    var horizontalSpeed = character.HorizontalSpeed;
+                    var verticalSpeed = character.VerticalSpeed;
+                    var envDisplacement = character.EnvironmentalDisplacement;
+                    var walkSpeed = character.WalkSpeed;
+                    var runSpeed = character.RunSpeed;
+                    var traction = character.Traction;
+                    var jumpSpeed = character.JumpSpeed;
+                    var fallSpeed = character.FallSpeed;
+                    var backDashDuration = character.BackDashDuration;
+                    var backDashInvincibility = character.BackDashInvincibility;
+                    var backDashSpeed = character.BackDashSpeed;
+                    var backDashStartup = character.BackDashStartup;
+                    var fastFallSpeed = character.FastFallSpeed;
+                    var jumpType = character.JumpType;
+                    var jumpHorizontalSpeed = character.JumpHorizontalSpeed;
+                    var superMeterBuildRate = character.SuperMeterBuildRate;
+                    var spriteCollection = character.CharacterSprites;
+                    
+                    ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
+                    ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
+                    ImguiDrawingHelper.DrawDecimalInput("walkSpeed", ref walkSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("runSpeed", ref runSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("traction", ref traction);
+                    ImguiDrawingHelper.DrawDecimalInput("jumpSpeed", ref jumpSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("fallSpeed", ref fallSpeed);
+                    ImguiDrawingHelper.DrawIntInput("backDashDuration", ref backDashDuration);
+                    ImguiDrawingHelper.DrawIntInput("backDashInvincibility", ref backDashInvincibility);
+                    ImguiDrawingHelper.DrawDecimalInput("backDashSpeed", ref backDashSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("backDashStartup", ref backDashStartup);
+                    ImguiDrawingHelper.DrawDecimalInput("fastFallSpeed", ref fastFallSpeed);
+                    ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
+                    ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
+                    ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
+                    
+                    character.HorizontalSpeed = horizontalSpeed;
+                    character.VerticalSpeed = verticalSpeed;
+                    character.EnvironmentalDisplacement = envDisplacement;
+                    character.WalkSpeed = walkSpeed;
+                    character.RunSpeed = runSpeed;
+                    character.Traction = traction;
+                    character.JumpSpeed = jumpSpeed;
+                    character.FallSpeed = fallSpeed;
+                    character.BackDashDuration = backDashDuration;
+                    character.BackDashInvincibility = backDashInvincibility;
+                    character.BackDashSpeed = backDashSpeed;
+                    character.BackDashStartup = backDashStartup;
+                    character.FastFallSpeed = fastFallSpeed;
+                    character.JumpType = jumpType;
+                    character.JumpHorizontalSpeed = jumpHorizontalSpeed;
+                    character.SuperMeterBuildRate = superMeterBuildRate;
+                    character.CharacterSprites = spriteCollection;
                 }
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
 

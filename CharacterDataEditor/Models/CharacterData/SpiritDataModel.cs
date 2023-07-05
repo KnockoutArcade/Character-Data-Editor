@@ -15,11 +15,10 @@ namespace CharacterDataEditor.Models.CharacterData
         public int StartXOffset { get; set; } = 0;
         public int StartYOffset { get; set; } = 0;
         public bool ReturnToPlayer { get; set; } = false;
-        public bool MaintainPosition { get; set; } = false;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(ToggleState, PerformAttack, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer, MaintainPosition);
+            var hash = HashCode.Combine(ToggleState, PerformAttack, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer);
 
             return hash;
         }
@@ -50,10 +49,7 @@ namespace CharacterDataEditor.Models.CharacterData
                             {
                                 if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
                                 {
-                                    if (objAsSpiritData.MaintainPosition.Equals(MaintainPosition))
-                                    {
-                                        return true;
-                                    }
+                                    return true;
                                 }
                             }
                         }
