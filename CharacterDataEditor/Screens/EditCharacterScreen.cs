@@ -1984,12 +1984,14 @@ namespace CharacterDataEditor.Screens
                             moveInEditor.SpiritData.StartAtCurrent = startAtCurrent;
                             moveInEditor.SpiritData.StartXOffset = startXOffset;
                             moveInEditor.SpiritData.StartYOffset = startYOffset;
+                            
                         }
                         else
                         {
                             moveInEditor.SpiritData.StartAtCurrent = false;
                             moveInEditor.SpiritData.StartXOffset = 0;
                             moveInEditor.SpiritData.StartYOffset = 0;
+                            moveInEditor.SpiritData.MaintainPosition = false;
                         }
 
                         ImguiDrawingHelper.DrawBoolInput("returnToPlayer", ref returnToPlayer);
@@ -1999,12 +2001,16 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.PerformInStandOff = performInStandOff;
                         moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
 
+                        moveInEditor.SpiritData.MaintainPosition = false;
                         moveInEditor.SpiritData.Vulnerable = false;
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
+                        bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
                         bool Vulnerable = moveInEditor.SpiritData.Vulnerable;
+                        ImguiDrawingHelper.DrawBoolInput("maintainPosition", ref maintainPosition, "If true, then after the spirit finishes the attack, it stays at its current location and will follow the host's movements.");
                         ImguiDrawingHelper.DrawBoolInput("VulnerableAfterAttack", ref Vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                        moveInEditor.SpiritData.MaintainPosition = maintainPosition;
                         moveInEditor.SpiritData.Vulnerable = Vulnerable;
 
                         moveInEditor.SpiritData.ToggleState = false;
@@ -2025,6 +2031,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
                         moveInEditor.SpiritData.ReturnToPlayer = false;
+                        moveInEditor.SpiritData.MaintainPosition = false;
                         moveInEditor.SpiritData.Vulnerable = false;
                     }
 

@@ -16,11 +16,13 @@ namespace CharacterDataEditor.Models.CharacterData
         public int StartXOffset { get; set; } = 0;
         public int StartYOffset { get; set; } = 0;
         public bool ReturnToPlayer { get; set; } = false;
+        public bool MaintainPosition { get; set; } = false;
         public bool Vulnerable { get; set; } = false;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInStandOff, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer, Vulnerable);
+            var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInStandOff, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer, MaintainPosition);
+            hash = HashCode.Combine(hash, Vulnerable);
 
             return hash;
         }
@@ -53,9 +55,12 @@ namespace CharacterDataEditor.Models.CharacterData
                                 {
                                     if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
                                     {
-                                        if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
+                                        if (objAsSpiritData.MaintainPosition.Equals(MaintainPosition))
                                         {
-                                            return true;
+                                            if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
+                                            {
+                                                return true;
+                                            }
                                         }
                                     }
                                 }
