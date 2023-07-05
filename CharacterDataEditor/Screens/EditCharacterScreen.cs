@@ -1981,7 +1981,7 @@ namespace CharacterDataEditor.Screens
                             moveInEditor.SpiritData.MaintainPosition = false;
                         }
 
-                        ImguiDrawingHelper.DrawBoolInput("returnToPlayer", ref returnToPlayer);
+                        ImguiDrawingHelper.DrawBoolInput("returnToHost", ref returnToPlayer);
 
                         moveInEditor.SpiritData.ToggleState = toggleState;
                         moveInEditor.SpiritData.PerformAttack = performAttack;
