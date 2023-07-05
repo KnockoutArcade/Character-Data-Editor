@@ -961,8 +961,11 @@ namespace CharacterDataEditor.Screens
                     {
                         while (soundCount < moveInEditor.NumberOfSounds)
                         {
+                            if (soundPlayers.Count > 0)
+                            {
+                                soundPlayers.RemoveAt(moveInEditor.NumberOfSounds - 1);
+                            }
                             moveInEditor.MoveSoundData.RemoveAt(moveInEditor.NumberOfSounds - 1);
-                            soundPlayers.RemoveAt(moveInEditor.NumberOfSounds - 1);
                         }
                     }
                     else
@@ -1062,9 +1065,12 @@ namespace CharacterDataEditor.Screens
                     {
                         while (hitboxCount < moveInEditor.NumberOfHitboxes)
                         {
-                            moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                             moveInEditor.CounterData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
-                            hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            if (hitSoundPlayers.Count > 0)
+                            {
+                                hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            }
+                            moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                         }
                     }
                     else
@@ -1990,6 +1996,7 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SpiritData.ToggleState = toggleState;
                         moveInEditor.SpiritData.PerformAttack = performAttack;
+                        moveInEditor.SpiritData.PerformInStandOff = performInStandOff;
                         moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
 
                         moveInEditor.SpiritData.Vulnerable = false;
@@ -2002,6 +2009,7 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
+                        moveInEditor.SpiritData.PerformInStandOff = false;
                         moveInEditor.SpiritData.StartAtCurrent = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
@@ -2012,6 +2020,7 @@ namespace CharacterDataEditor.Screens
                         ImGui.Text("Character doesn't have a spirit and isn't a spirit!");
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
+                        moveInEditor.SpiritData.PerformInStandOff = false;
                         moveInEditor.SpiritData.StartAtCurrent = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
