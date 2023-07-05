@@ -11,14 +11,16 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public bool ToggleState { get; set; } = false;
         public bool PerformAttack { get; set; } = false; 
+        public bool PerformInStandOff { get; set; } = false;
         public bool StartAtCurrent { get; set; } = false;
         public int StartXOffset { get; set; } = 0;
         public int StartYOffset { get; set; } = 0;
         public bool ReturnToPlayer { get; set; } = false;
+        public bool Vulnerable { get; set; } = false;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(ToggleState, PerformAttack, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer);
+            var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInStandOff, StartAtCurrent, StartXOffset, StartYOffset, ReturnToPlayer, Vulnerable);
 
             return hash;
         }
@@ -41,15 +43,21 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsSpiritData.PerformAttack.Equals(PerformAttack))
                 {
-                    if (objAsSpiritData.StartAtCurrent.Equals(StartAtCurrent))
+                    if (objAsSpiritData.PerformInStandOff.Equals(PerformInStandOff))
                     {
-                        if (objAsSpiritData.StartXOffset.Equals(StartXOffset))
+                        if (objAsSpiritData.StartAtCurrent.Equals(StartAtCurrent))
                         {
-                            if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
+                            if (objAsSpiritData.StartXOffset.Equals(StartXOffset))
                             {
-                                if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
+                                if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
                                 {
-                                    return true;
+                                    if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
+                                    {
+                                        if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
+                                        {
+                                            return true;
+                                        }
+                                    }
                                 }
                             }
                         }

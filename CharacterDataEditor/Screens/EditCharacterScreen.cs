@@ -1941,10 +1941,20 @@ namespace CharacterDataEditor.Screens
                     {
                         bool toggleState = moveInEditor.SpiritData.ToggleState;
                         bool performAttack = moveInEditor.SpiritData.PerformAttack;
+                        bool performInStandOff = moveInEditor.SpiritData.PerformInStandOff;
                         bool returnToPlayer = moveInEditor.SpiritData.ReturnToPlayer;
 
-                        ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState);
+                        ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState, "Activate Spirit ON/OFF.");
                         ImguiDrawingHelper.DrawBoolInput("performCorrespondingAttack", ref performAttack);
+
+                        if (performAttack)
+                        {
+                            ImguiDrawingHelper.DrawBoolInput("performInStandOff", ref performInStandOff, "If set to true, the spirit will temporarily be summoned in Stand OFF to perform this move. The spirit will then immediately disappear when the move ends.");
+                        }
+                        else
+                        {
+                            performInStandOff = false;
+                        }
 
                         if (performAttack)
                         {
@@ -1981,9 +1991,15 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.ToggleState = toggleState;
                         moveInEditor.SpiritData.PerformAttack = performAttack;
                         moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
+
+                        moveInEditor.SpiritData.Vulnerable = false;
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
+                        bool Vulnerable = moveInEditor.SpiritData.Vulnerable;
+                        ImguiDrawingHelper.DrawBoolInput("VulnerableAfterAttack", ref Vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                        moveInEditor.SpiritData.Vulnerable = Vulnerable;
+
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
                         moveInEditor.SpiritData.StartAtCurrent = false;
@@ -2000,6 +2016,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
                         moveInEditor.SpiritData.ReturnToPlayer = false;
+                        moveInEditor.SpiritData.Vulnerable = false;
                     }
 
                     ImGui.TreePop();
