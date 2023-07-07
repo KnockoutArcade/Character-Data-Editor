@@ -744,7 +744,7 @@ namespace CharacterDataEditor.Screens
                 }
 
                 // Select what moves to cancel into
-                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None && character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
+                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None)
                 {
                     var moveCancel = moveInEditor.MoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
@@ -856,7 +856,7 @@ namespace CharacterDataEditor.Screens
 
                 var scriptId = moveInEditor.SupplimentaryScript ?? string.Empty;
                 var selectedScriptIndex = scriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplimentaryScript)) : -1;
-                ImguiDrawingHelper.DrawComboInput("supplimentaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
+                ImguiDrawingHelper.DrawComboInput("supplementaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
                 moveInEditor.SupplimentaryScript = selectedScriptIndex != -1 ? allScripts[selectedScriptIndex].Name : string.Empty;
 
                 if (selectedSpriteIndex > -1)
@@ -1514,7 +1514,7 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
-                        ImGui.Text("Character is a spirit!");
+                        ImGui.Text("Character is a spirit! Handle this Data in host character.");
                         moveInEditor.SpecialData.Clear();
                     }
                     else
@@ -3163,25 +3163,36 @@ namespace CharacterDataEditor.Screens
         {
             // Fill windows list with animation frame indexes for each frame
             int currentFrame = 0;
-            int frameLength = 0;
             windows.Clear();
             if (moveInEditor.FrameData.Count > 0)
             {
                 for (int i = 0; i < totalFrames; i++)
                 {
-                    windows.Add(currentFrame);
-                    frameLength++;
+                    var windowItem = moveInEditor.FrameData[currentFrame];
 
-                    var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                    if (currentFrame < moveInEditor.FrameData.Count)
-                    {
-                        windowItem = moveInEditor.FrameData[currentFrame];
-                    }
-                    if (frameLength >= windowItem.Length - 1)
+                    if (i >= windowItem.Length - 1 && currentFrame < moveInEditor.FrameData.Count - 1)
                     {
                         currentFrame++;
                     }
+
+                    if (currentFrame < moveInEditor.FrameData.Count - 1)
+                    {
+                        windows.Add(windowItem.ImageIndex - 1);
+                    }
+                    else
+                    {
+                        if (i < windowItem.Length)
+                        {
+                            windows.Add(windowItem.ImageIndex - 1);
+                        }
+                        else
+                        {
+                            windows.Add(windowItem.ImageIndex);
+                        }
+                    }
                 }
+                // Adds an extra window to prevent crashes
+                windows.Add(windows[windows.Count - 1]);
             }
         }
     }
