@@ -12,6 +12,7 @@ using Raylib_cs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -43,6 +44,8 @@ namespace CharacterDataEditor.Screens
         private Texture2D soundMuteTexture;
 
         private List<string> spiritDataList = new List<string>();
+        private List<CharacterDataModel> spiritCharacters = new List<CharacterDataModel>();
+        private List<string> spiritNames = new List<string>();
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
         private List<string> moveTypesList = new List<string>();
@@ -137,6 +140,30 @@ namespace CharacterDataEditor.Screens
             character = action == "edit" ? screenData.character : new CharacterDataModel();
             //copies the data from character into original character
             originalCharacter = character.Clone();
+
+            // Add every character to this list
+            spiritCharacters = _characterOperations.GetCharactersFromProject<CharacterDataModel>(projectData.ProjectPathOnly);
+            List<CharacterDataModel> spiritsToRemove = new List<CharacterDataModel>();
+            // Find which character need to be removed from this list
+            foreach (var spiritCharacter in spiritCharacters)
+            {
+                if (spiritCharacter.UniqueData.SpiritData != SpiritDataType.IsSpirit)
+                {
+                    spiritsToRemove.Add(spiritCharacter);
+                }
+            }
+            // Remove the unwanted characters
+            foreach (var spiritToRemove in spiritsToRemove)
+            {
+                spiritCharacters.Remove(spiritToRemove);
+            }
+            // Add the names of the remaining characters to another list
+            spiritNames.Clear();
+            spiritNames.Add("None");
+            foreach (var spiritCharacter in spiritCharacters)
+            {
+                spiritNames.Add(spiritCharacter.Name);
+            }
 
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
@@ -535,26 +562,18 @@ namespace CharacterDataEditor.Screens
                                         tempLifetime = attackDataItem.Lifetime;
                                     }
 
+                                    for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                    {
+                                        if (j == moveInEditor.RehitData.HitOnFrames[k] && moveInEditor.RehitData.HitBox - 1 == i)
+                                        {
+                                            tempLifetime = attackDataItem.Lifetime;
+                                            break;
+                                        }
+                                    }
+
                                     if (tempLifetime <= 0)
                                     {
-                                        bool foundRehitHitbox = false;
-                                        for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
-                                        {
-                                            if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
-                                            {
-                                                foundRehitHitbox = true;
-                                                break;
-                                            }
-                                        }
-                                        if (foundRehitHitbox)
-                                        {
-                                            var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
-                                            hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
-                                        }
-                                        else
-                                        {
-                                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-                                        }
+                                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
                                     }
                                     else
                                     {
@@ -723,7 +742,12 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
                     moveInEditor.MoveCanCancelInto = moveCancel;
                 }
+                else
+                {
+                    moveInEditor.MoveCanCancelInto = 0;
+                }
 
+                // If the character has more than one moveset
                 if (character.UniqueData.AdditionalMovesets > 0)
                 {
                     ImGui.Columns(2);
@@ -824,7 +848,7 @@ namespace CharacterDataEditor.Screens
 
                 var scriptId = moveInEditor.SupplimentaryScript ?? string.Empty;
                 var selectedScriptIndex = scriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplimentaryScript)) : -1;
-                ImguiDrawingHelper.DrawComboInput("supplimentaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
+                ImguiDrawingHelper.DrawComboInput("supplementaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
                 moveInEditor.SupplimentaryScript = selectedScriptIndex != -1 ? allScripts[selectedScriptIndex].Name : string.Empty;
 
                 if (selectedSpriteIndex > -1)
@@ -845,6 +869,8 @@ namespace CharacterDataEditor.Screens
                 {
                     ChangeWindowArray();
                     animationPaused = true;
+                    boxDrawMode = BoxDrawMode.None;
+                    showHitHurtboxes = false;
                 }
 
                 bool isThrow = moveInEditor.IsThrow;
@@ -929,8 +955,11 @@ namespace CharacterDataEditor.Screens
                     {
                         while (soundCount < moveInEditor.NumberOfSounds)
                         {
+                            if (soundPlayers.Count > 0)
+                            {
+                                soundPlayers.RemoveAt(moveInEditor.NumberOfSounds - 1);
+                            }
                             moveInEditor.MoveSoundData.RemoveAt(moveInEditor.NumberOfSounds - 1);
-                            soundPlayers.RemoveAt(moveInEditor.NumberOfSounds - 1);
                         }
                     }
                     else
@@ -1030,9 +1059,12 @@ namespace CharacterDataEditor.Screens
                     {
                         while (hitboxCount < moveInEditor.NumberOfHitboxes)
                         {
-                            moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                             moveInEditor.CounterData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
-                            hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            if (hitSoundPlayers.Count > 0)
+                            {
+                                hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            }
+                            moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                         }
                     }
                     else
@@ -1289,7 +1321,8 @@ namespace CharacterDataEditor.Screens
                 // Command Normal dropdown
                 if (ImGui.CollapsingHeader("Command Normal Data"))
                 {
-                    if (moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3)
+                    if ((moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3) && 
+                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                     {
                         DirectionType numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
                         CommandButton button = moveInEditor.CommandNormalData.Button;
@@ -1324,6 +1357,14 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
                         moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
                     }
+                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                    {
+                        ImGui.Text("Character is a spirit!");
+                        moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
+                        moveInEditor.CommandNormalData.Button = CommandButton.Light;
+                        moveInEditor.CommandNormalData.GroundOrAir = false;
+                        moveInEditor.CommandNormalData.CancelWhenLanding = false;
+                    }
                     else
                     {
                         ImGui.Text("Not a command normal!");
@@ -1337,8 +1378,9 @@ namespace CharacterDataEditor.Screens
                 // Special Data dropdown
                 if (ImGui.CollapsingHeader("Special Data"))
                 {
-                    if (moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
-                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
+                    if ((moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None) && 
+                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                     {
                         int enhancementCount = moveInEditor.NumberOfEnhancements;
                         ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
@@ -1382,6 +1424,7 @@ namespace CharacterDataEditor.Screens
                                     bool transitionImmediately = specialDataItem.TransitionImmediately;
                                     int transitionFrame = specialDataItem.TransitionFrame;
                                     PositionType requiredPosition = specialDataItem.RequiredPosition;
+                                    bool deactivateSpirit = specialDataItem.DeactivateSpirit;
 
                                     ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
                                     Regex regex = new Regex(@"[^\d]");
@@ -1391,21 +1434,55 @@ namespace CharacterDataEditor.Screens
                                     ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
                                     ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
 
-                                    var enhancementName = enhancementMove.ToString();
-                                    int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
-                                    ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
-                                    var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
-                                    enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
-
-                                    ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
-
-                                    if (!transitionImmediately)
+                                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
                                     {
-                                        ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                        ImguiDrawingHelper.DrawBoolInput("deactivateSpirit", ref deactivateSpirit);
+                                        if (!deactivateSpirit)
+                                        {
+                                            var enhancementName = enhancementMove.ToString();
+                                            int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                            ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                            var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
+                                            enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
+
+                                            ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
+
+                                            if (!transitionImmediately)
+                                            {
+                                                ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                            }
+                                            else
+                                            {
+                                                transitionFrame = 0;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            enhancementMove = EnhanceMoveType.None;
+                                            transitionImmediately = false;
+                                            transitionFrame = 0;
+                                        }
                                     }
                                     else
                                     {
-                                        transitionFrame = 0;
+                                        var enhancementName = enhancementMove.ToString();
+                                        int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                        ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                        var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
+                                        enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
+
+                                        ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
+
+                                        if (!transitionImmediately)
+                                        {
+                                            ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                        }
+                                        else
+                                        {
+                                            transitionFrame = 0;
+                                        }
+
+                                        deactivateSpirit = false;
                                     }
 
                                     var positionName = requiredPosition.ToString();
@@ -1422,11 +1499,17 @@ namespace CharacterDataEditor.Screens
                                     specialDataItem.TransitionImmediately = transitionImmediately;
                                     specialDataItem.TransitionFrame = transitionFrame;
                                     specialDataItem.RequiredPosition = requiredPosition;
+                                    specialDataItem.DeactivateSpirit = deactivateSpirit;
 
                                     ImGui.TreePop();
                                 }
                             }
                         }
+                    }
+                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                    {
+                        ImGui.Text("Character is a spirit! Handle this data in host character.");
+                        moveInEditor.SpecialData.Clear();
                     }
                     else
                     {
@@ -1850,6 +1933,89 @@ namespace CharacterDataEditor.Screens
                         }
                     }
                 }
+
+                // Spirit Data dropdown
+                if (ImGui.CollapsingHeader("Spirit Data"))
+                {
+                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                    {
+                        bool toggleState = moveInEditor.SpiritData.ToggleState;
+                        bool performAttack = moveInEditor.SpiritData.PerformAttack;
+                        bool performInSpiritOff = moveInEditor.SpiritData.PerformInSpiritOff;
+                        bool returnToPlayer = moveInEditor.SpiritData.ReturnToPlayer;
+
+                        ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState, "Activate Spirit ON/OFF.");
+                        ImguiDrawingHelper.DrawBoolInput("performCorrespondingAttack", ref performAttack);
+
+                        if (performAttack)
+                        {
+                            ImguiDrawingHelper.DrawBoolInput("performInSpiritOff", ref performInSpiritOff, "If set to true, the spirit will temporarily be summoned in Spirit OFF to perform this move. The spirit will then immediately disappear when the move ends.");
+                        }
+                        else
+                        {
+                            performInSpiritOff = false;
+                        }
+
+                        if (performAttack)
+                        {
+                            int startXOffset = moveInEditor.SpiritData.StartXOffset;
+                            int startYOffset = moveInEditor.SpiritData.StartYOffset;
+
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
+
+                            moveInEditor.SpiritData.StartXOffset = startXOffset;
+                            moveInEditor.SpiritData.StartYOffset = startYOffset;
+                            
+                        }
+                        else
+                        {
+                            moveInEditor.SpiritData.StartXOffset = 0;
+                            moveInEditor.SpiritData.StartYOffset = 0;
+                            moveInEditor.SpiritData.MaintainPosition = false;
+                        }
+
+                        ImguiDrawingHelper.DrawBoolInput("returnToHost", ref returnToPlayer);
+
+                        moveInEditor.SpiritData.ToggleState = toggleState;
+                        moveInEditor.SpiritData.PerformAttack = performAttack;
+                        moveInEditor.SpiritData.PerformInSpiritOff = performInSpiritOff;
+                        moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
+
+                        moveInEditor.SpiritData.MaintainPosition = false;
+                        moveInEditor.SpiritData.Vulnerable = false;
+                    }
+                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                    {
+                        bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
+                        bool Vulnerable = moveInEditor.SpiritData.Vulnerable;
+                        ImguiDrawingHelper.DrawBoolInput("maintainPosition", ref maintainPosition, "If true, then after the spirit finishes the attack, it stays at its current location and will follow the host's movements.");
+                        ImguiDrawingHelper.DrawBoolInput("VulnerableAfterAttack", ref Vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                        moveInEditor.SpiritData.MaintainPosition = maintainPosition;
+                        moveInEditor.SpiritData.Vulnerable = Vulnerable;
+
+                        moveInEditor.SpiritData.ToggleState = false;
+                        moveInEditor.SpiritData.PerformAttack = false;
+                        moveInEditor.SpiritData.PerformInSpiritOff = false;
+                        moveInEditor.SpiritData.StartXOffset = 0;
+                        moveInEditor.SpiritData.StartYOffset = 0;
+                        moveInEditor.SpiritData.ReturnToPlayer = false;
+                    }
+                    else
+                    {
+                        ImGui.Text("Character doesn't have a spirit and isn't a spirit!");
+                        moveInEditor.SpiritData.ToggleState = false;
+                        moveInEditor.SpiritData.PerformAttack = false;
+                        moveInEditor.SpiritData.PerformInSpiritOff = false;
+                        moveInEditor.SpiritData.StartXOffset = 0;
+                        moveInEditor.SpiritData.StartYOffset = 0;
+                        moveInEditor.SpiritData.ReturnToPlayer = false;
+                        moveInEditor.SpiritData.MaintainPosition = false;
+                        moveInEditor.SpiritData.Vulnerable = false;
+                    }
+
+                    ImGui.TreePop();
+                }
             }
         }
 
@@ -2134,6 +2300,21 @@ namespace CharacterDataEditor.Screens
                     ImGui.EndTable();
 
                     var maxHitPoints = character.MaxHitPoints;
+                    ImguiDrawingHelper.DrawIntInput("maxHitPoints", ref maxHitPoints);
+                    character.MaxHitPoints = maxHitPoints;
+
+                    if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                    {
+                        var regenSpeed = character.RegenSpeed;
+                        var koRegenSpeed = character.KORegenSpeed;
+
+                        ImguiDrawingHelper.DrawDecimalInput("regenSpeed", ref regenSpeed);
+                        ImguiDrawingHelper.DrawDecimalInput("noHealthRegenSpeed", ref koRegenSpeed);
+
+                        character.RegenSpeed = regenSpeed;
+                        character.KORegenSpeed = koRegenSpeed;
+                    }
+
                     var horizontalSpeed = character.HorizontalSpeed;
                     var verticalSpeed = character.VerticalSpeed;
                     var envDisplacement = character.EnvironmentalDisplacement;
@@ -2151,8 +2332,7 @@ namespace CharacterDataEditor.Screens
                     var jumpHorizontalSpeed = character.JumpHorizontalSpeed;
                     var superMeterBuildRate = character.SuperMeterBuildRate;
                     var spriteCollection = character.CharacterSprites;
-
-                    ImguiDrawingHelper.DrawIntInput("maxHitPoints", ref maxHitPoints);
+                    
                     ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
                     ImguiDrawingHelper.DrawIntInput("environmentalDisplacement", ref envDisplacement);
@@ -2166,13 +2346,10 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawDecimalInput("backDashSpeed", ref backDashSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("backDashStartup", ref backDashStartup);
                     ImguiDrawingHelper.DrawDecimalInput("fastFallSpeed", ref fastFallSpeed);
-
                     ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
-
                     ImguiDrawingHelper.DrawDecimalInput("jumpHorizontalSpeed", ref jumpHorizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("superMeterBuildRate", ref superMeterBuildRate);
-
-                    character.MaxHitPoints = maxHitPoints;
+                    
                     character.HorizontalSpeed = horizontalSpeed;
                     character.VerticalSpeed = verticalSpeed;
                     character.EnvironmentalDisplacement = envDisplacement;
@@ -2650,23 +2827,58 @@ namespace CharacterDataEditor.Screens
 
                 if (ImGui.CollapsingHeader("Unique Data", ImGuiTreeNodeFlags.DefaultOpen))
                 {
-                    int additionalMovesets = character.UniqueData.AdditionalMovesets;
-                    SpiritDataType spiritData = character.UniqueData.SpiritData;
-
-                    ImguiDrawingHelper.DrawIntInput("additionalMovesets", ref additionalMovesets);
-                    if (additionalMovesets < 0)
+                    if (character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                     {
-                        additionalMovesets = 0;
+                        int additionalMovesets = character.UniqueData.AdditionalMovesets;
+
+                        ImguiDrawingHelper.DrawIntInput("additionalMovesets", ref additionalMovesets);
+                        if (additionalMovesets < 0)
+                        {
+                            additionalMovesets = 0;
+                        }
+
+                        character.UniqueData.AdditionalMovesets = additionalMovesets;
                     }
+
+                    SpiritDataType spiritData = character.UniqueData.SpiritData;
 
                     var dataType = spiritData.ToString();
                     int spiritDataIndex = spiritDataList.IndexOf(dataType.AddSpacesToCamelCase());
                     ImguiDrawingHelper.DrawComboInput("spiritData", spiritDataList.ToArray(), ref spiritDataIndex);
                     var selectedData = spiritDataList[spiritDataIndex];
                     spiritData = (SpiritDataType)Enum.Parse(typeof(SpiritDataType), selectedData.ToCamelCase());
-
-                    character.UniqueData.AdditionalMovesets = additionalMovesets;
+                    
                     character.UniqueData.SpiritData = spiritData;
+
+                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit && spiritNames.Contains(character.UniqueData.Spirit))
+                    {
+                        var spirit = character.UniqueData.Spirit;
+
+                        int spiritCharacterIndex = spiritNames.IndexOf(spirit);
+                        ImguiDrawingHelper.DrawComboInput("spirit", spiritNames.ToArray(), ref spiritCharacterIndex);
+                        var selectedSpiritCharacter = spiritNames[spiritCharacterIndex];
+                        if (selectedSpiritCharacter != "None")
+                        {
+                            foreach (var spiritCharacter in spiritCharacters)
+                            {
+                                if (spiritCharacter.Name == selectedSpiritCharacter)
+                                {
+                                    spirit = spiritCharacter.Name;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            spirit = "None";
+                        }
+
+                        character.UniqueData.Spirit = spirit;
+                    }
+                    else
+                    {
+                        character.UniqueData.Spirit = "None";
+                    }
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -2945,25 +3157,36 @@ namespace CharacterDataEditor.Screens
         {
             // Fill windows list with animation frame indexes for each frame
             int currentFrame = 0;
-            int frameLength = 0;
             windows.Clear();
             if (moveInEditor.FrameData.Count > 0)
             {
                 for (int i = 0; i < totalFrames; i++)
                 {
-                    windows.Add(currentFrame);
-                    frameLength++;
+                    var windowItem = moveInEditor.FrameData[currentFrame];
 
-                    var windowItem = moveInEditor.FrameData[moveInEditor.FrameData.Count - 1];
-                    if (currentFrame < moveInEditor.FrameData.Count)
-                    {
-                        windowItem = moveInEditor.FrameData[currentFrame];
-                    }
-                    if (frameLength >= windowItem.Length - 1)
+                    if (i >= windowItem.Length - 1 && currentFrame < moveInEditor.FrameData.Count - 1)
                     {
                         currentFrame++;
                     }
+
+                    if (currentFrame < moveInEditor.FrameData.Count - 1)
+                    {
+                        windows.Add(windowItem.ImageIndex - 1);
+                    }
+                    else
+                    {
+                        if (i < windowItem.Length)
+                        {
+                            windows.Add(windowItem.ImageIndex - 1);
+                        }
+                        else
+                        {
+                            windows.Add(windowItem.ImageIndex);
+                        }
+                    }
                 }
+                // Adds an extra window to prevent crashes
+                windows.Add(windows[windows.Count - 1]);
             }
         }
     }

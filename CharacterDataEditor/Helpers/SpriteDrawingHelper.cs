@@ -60,6 +60,10 @@ namespace CharacterDataEditor.Helpers
             }
             else
             {
+                if (currentAnimationFrame < 0)
+                {
+                    currentAnimationFrame = 0;
+                }
                 textureToDraw = spriteTextures[currentAnimationFrame].Texture;
             }
 
@@ -235,7 +239,7 @@ namespace CharacterDataEditor.Helpers
                         {
                             currentTotalFrame = 1;
                         }
-                        currentAnimationFrame = windows[currentTotalFrame - 1];
+                        currentAnimationFrame = windows[currentTotalFrame];
                     }
                 }
                 else if (data.FrameAdvance == FrameAdvance.Backward)
@@ -247,7 +251,7 @@ namespace CharacterDataEditor.Helpers
                         {
                             currentTotalFrame = totalFrames;
                         }
-                        currentAnimationFrame = windows[currentTotalFrame - 1];
+                        currentAnimationFrame = windows[currentTotalFrame];
                     }
                 }
             }
@@ -434,7 +438,7 @@ namespace CharacterDataEditor.Helpers
                             {
                                 currentTotalFrame = 1;
                             }
-                            currentAnimationFrame = windows[currentTotalFrame - 1];
+                            currentAnimationFrame = windows[currentTotalFrame];
                         }
                     }
                 }
