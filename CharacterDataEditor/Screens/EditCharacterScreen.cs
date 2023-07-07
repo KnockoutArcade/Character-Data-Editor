@@ -562,26 +562,18 @@ namespace CharacterDataEditor.Screens
                                         tempLifetime = attackDataItem.Lifetime;
                                     }
 
+                                    for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
+                                    {
+                                        if (j == moveInEditor.RehitData.HitOnFrames[k] && moveInEditor.RehitData.HitBox - 1 == i)
+                                        {
+                                            tempLifetime = attackDataItem.Lifetime;
+                                            break;
+                                        }
+                                    }
+
                                     if (tempLifetime <= 0)
                                     {
-                                        bool foundRehitHitbox = false;
-                                        for (int k = 0; k < moveInEditor.RehitData.HitOnFrames.Count; k++)
-                                        {
-                                            if (currentFrame == moveInEditor.RehitData.HitOnFrames[k])
-                                            {
-                                                foundRehitHitbox = true;
-                                                break;
-                                            }
-                                        }
-                                        if (foundRehitHitbox)
-                                        {
-                                            var rehitHitbox = moveInEditor.AttackData[moveInEditor.RehitData.HitBox - 1];
-                                            hitboxRects[i].Add(new Rectangle(rehitHitbox.WidthOffset, rehitHitbox.HeightOffset, rehitHitbox.AttackWidth, rehitHitbox.AttackHeight));
-                                        }
-                                        else
-                                        {
-                                            hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
-                                        }
+                                        hitboxRects[i].Add(new Rectangle(0, 0, 0, 0));
                                     }
                                     else
                                     {
@@ -1516,7 +1508,7 @@ namespace CharacterDataEditor.Screens
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
-                        ImGui.Text("Character is a spirit! Handle this Data in host character.");
+                        ImGui.Text("Character is a spirit! Handle this data in host character.");
                         moveInEditor.SpecialData.Clear();
                     }
                     else
