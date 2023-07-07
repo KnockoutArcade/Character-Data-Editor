@@ -10,10 +10,11 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public int AdditionalMovesets { get; set; } = 0;
         public SpiritDataType SpiritData { get; set; } = SpiritDataType.None;
+        public string Spirit { get; set; } = "None"; // I originally wanted to store the entire CharacterDataModel but that's too taxing on the program
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(AdditionalMovesets, SpiritData);
+            var hash = HashCode.Combine(AdditionalMovesets, SpiritData, Spirit);
 
             return hash;
         }
@@ -36,7 +37,10 @@ namespace CharacterDataEditor.Models.CharacterData
             {
                 if (objAsUniqueData.SpiritData.Equals(SpiritData))
                 {
-                    return true;
+                    if (objAsUniqueData.Spirit.Equals(Spirit))
+                    {
+                        return true;
+                    }
                 }
             }
 

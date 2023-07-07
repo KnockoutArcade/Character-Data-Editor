@@ -13,10 +13,12 @@ namespace CharacterDataEditor.Models.CharacterData
         public bool TransitionImmediately { get; set; } = false;
         public int TransitionFrame { get; set; } = 0;
         public PositionType RequiredPosition { get; set; } = PositionType.Either;
+        public bool DeactivateSpirit { get; set; } = false;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(NumpadInput, ButtonPressRequired, StartingFrame, EndingFrame, EnhancementMove, TransitionImmediately, TransitionFrame, RequiredPosition);
+            hash = HashCode.Combine(hash, DeactivateSpirit);
 
             return hash;
         }
@@ -51,7 +53,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                     {
                                         if (objAsSpecialData.RequiredPosition == RequiredPosition)
                                         {
-                                            return true;
+                                            if (objAsSpecialData.DeactivateSpirit == DeactivateSpirit)
+                                            {
+                                                return true;
+                                            }
                                         }
                                     }
                                 }
