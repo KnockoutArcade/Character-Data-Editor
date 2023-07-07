@@ -877,6 +877,8 @@ namespace CharacterDataEditor.Screens
                 {
                     ChangeWindowArray();
                     animationPaused = true;
+                    boxDrawMode = BoxDrawMode.None;
+                    showHitHurtboxes = false;
                 }
 
                 bool isThrow = moveInEditor.IsThrow;
