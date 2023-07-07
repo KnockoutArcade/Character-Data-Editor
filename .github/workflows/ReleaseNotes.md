@@ -1,12 +1,10 @@
 ## What's Changed?
 
-* Sound data has been added.
-  * Moves can have multiple sound effects that play as the move plays.
-  * Each attack has their own sound effect for when the move lands.
-  * Footstep sounds for walking and running can be set and which frames they play on for the animation can be set.
-  * These sounds can be played directly within the character editor.
-* UI updates; the buttons in the sprite viewer have been adjusted to make them more intuitive.
-* Fixed a bug where the editor crashes when creating a new character.
+* Spirit data has been added.
+  * Characters can now have spirit, be a spirit, or neither.
+    * If the character has a spirit, they have data to control their spirit.
+    * If the character is a spirit, lots of data is added and omitted to help classify them as a spirit.
+* Bug fixes with sprite and hitbox rendering.
 
 ## Known Bugs
 
