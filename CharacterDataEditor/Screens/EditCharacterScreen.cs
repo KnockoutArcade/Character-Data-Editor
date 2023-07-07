@@ -1961,8 +1961,8 @@ namespace CharacterDataEditor.Screens
                             int startXOffset = moveInEditor.SpiritData.StartXOffset;
                             int startYOffset = moveInEditor.SpiritData.StartYOffset;
 
-                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side");
-                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side");
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
+                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
 
                             moveInEditor.SpiritData.StartXOffset = startXOffset;
                             moveInEditor.SpiritData.StartYOffset = startYOffset;
