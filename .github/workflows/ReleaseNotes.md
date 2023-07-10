@@ -1,10 +1,7 @@
 ## What's Changed?
 
-* Spirit data has been added.
-  * Characters can now have spirit, be a spirit, or neither.
-    * If the character has a spirit, they have data to control their spirit.
-    * If the character is a spirit, lots of data is added and omitted to help classify them as a spirit.
-* Bug fixes with sprite and hitbox rendering.
+* Fixed a crash where creating window data crashed the editor.
+* Removed cancel list for spirits. They have to be set in the host character.
 
 ## Known Bugs
 

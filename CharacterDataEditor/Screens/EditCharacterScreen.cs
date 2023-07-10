@@ -736,7 +736,7 @@ namespace CharacterDataEditor.Screens
                 }
 
                 // Select what moves to cancel into
-                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None)
+                if (moveInEditor.EnhanceMoveType == EnhanceMoveType.None && character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                 {
                     var moveCancel = moveInEditor.MoveCanCancelInto;
                     ImguiDrawingHelper.DrawFlagsInputListbox("moveCancelsInto", ref moveCancel, scale);
@@ -3186,7 +3186,10 @@ namespace CharacterDataEditor.Screens
                     }
                 }
                 // Adds an extra window to prevent crashes
-                windows.Add(windows[windows.Count - 1]);
+                if (windows.Count > 0)
+                {
+                    windows.Add(windows[windows.Count - 1]);
+                }
             }
         }
     }
