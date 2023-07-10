@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace CharacterDataEditor.Models.CharacterData
 {
-    public class UniqueDataModel : BaseCharacter
+    public class UniqueDataModel
     {
         public int AdditionalMovesets { get; set; } = 0;
         public SpiritDataType SpiritData { get; set; } = SpiritDataType.None;

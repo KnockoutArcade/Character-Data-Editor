@@ -14,13 +14,14 @@ namespace CharacterDataEditor.Models.CharacterData
         public bool PerformInSpiritOff { get; set; } = false;
         public int StartXOffset { get; set; } = 0;
         public int StartYOffset { get; set; } = 0;
+        public bool SummonSpirit { get; set; } = false;
         public bool ReturnToPlayer { get; set; } = false;
         public bool MaintainPosition { get; set; } = false;
         public bool Vulnerable { get; set; } = false;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInSpiritOff, StartXOffset, StartYOffset, ReturnToPlayer, MaintainPosition);
+            var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInSpiritOff, StartXOffset, StartYOffset, SummonSpirit, ReturnToPlayer, MaintainPosition);
             hash = HashCode.Combine(hash, Vulnerable);
 
             return hash;
@@ -50,13 +51,16 @@ namespace CharacterDataEditor.Models.CharacterData
                         {
                             if (objAsSpiritData.StartYOffset.Equals(StartYOffset))
                             {
-                                if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
+                                if (objAsSpiritData.SummonSpirit.Equals(SummonSpirit))
                                 {
-                                    if (objAsSpiritData.MaintainPosition.Equals(MaintainPosition))
+                                    if (objAsSpiritData.ReturnToPlayer.Equals(ReturnToPlayer))
                                     {
-                                        if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
+                                        if (objAsSpiritData.MaintainPosition.Equals(MaintainPosition))
                                         {
-                                            return true;
+                                            if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
+                                            {
+                                                return true;
+                                            }
                                         }
                                     }
                                 }
