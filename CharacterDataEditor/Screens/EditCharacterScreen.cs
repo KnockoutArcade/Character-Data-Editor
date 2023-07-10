@@ -2858,6 +2858,7 @@ namespace CharacterDataEditor.Screens
                     if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit && spiritNames.Contains(character.UniqueData.Spirit))
                     {
                         var spirit = character.UniqueData.Spirit;
+                        bool doubleJump = character.UniqueData.DoubleJump;
 
                         int spiritCharacterIndex = spiritNames.IndexOf(spirit);
                         ImguiDrawingHelper.DrawComboInput("spirit", spiritNames.ToArray(), ref spiritCharacterIndex);
@@ -2878,11 +2879,15 @@ namespace CharacterDataEditor.Screens
                             spirit = "None";
                         }
 
+                        ImguiDrawingHelper.DrawBoolInput("doubleJump", ref doubleJump, "Toggles the ability to double jump in Spirit ON");
+
                         character.UniqueData.Spirit = spirit;
+                        character.UniqueData.DoubleJump = doubleJump;
                     }
                     else
                     {
                         character.UniqueData.Spirit = "None";
+                        character.UniqueData.DoubleJump = false;
                     }
                 }
 
