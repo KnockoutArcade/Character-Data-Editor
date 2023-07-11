@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace CharacterDataEditor.Models.CharacterData
 {
-    public class MoveSoundDataModel : BaseCharacter
+    public class MoveSoundDataModel
     {
         public string SoundEffect { get; set; } = string.Empty;
         public int SFXPlayFrame { get; set; } = 0;

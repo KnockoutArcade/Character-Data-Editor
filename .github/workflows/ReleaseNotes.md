@@ -1,7 +1,9 @@
 ## What's Changed?
 
-* Fixed a crash where creating window data crashed the editor.
-* Removed cancel list for spirits. They have to be set in the host character.
+* Added two new pieces of Spirit data.
+  * Added a toggle for whether a move should switch to Spirit ON if it summons the spirit in Spirit OFF.
+  * Add a toggle for if double jump should be enabled in Spirit ON.
+* Fixed a bug that added unnecessary information in the json files.
 
 ## Known Bugs
 

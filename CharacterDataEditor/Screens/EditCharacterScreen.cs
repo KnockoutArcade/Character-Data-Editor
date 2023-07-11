@@ -1960,18 +1960,21 @@ namespace CharacterDataEditor.Screens
                         {
                             int startXOffset = moveInEditor.SpiritData.StartXOffset;
                             int startYOffset = moveInEditor.SpiritData.StartYOffset;
+                            bool summonSpirit = moveInEditor.SpiritData.SummonSpirit;
 
                             ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
                             ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
+                            ImguiDrawingHelper.DrawBoolInput("summonSpirit", ref summonSpirit, "Enters Spirit ON and keeps the spirit out after the move ends.");
 
                             moveInEditor.SpiritData.StartXOffset = startXOffset;
                             moveInEditor.SpiritData.StartYOffset = startYOffset;
-                            
+                            moveInEditor.SpiritData.SummonSpirit = summonSpirit;
                         }
                         else
                         {
                             moveInEditor.SpiritData.StartXOffset = 0;
                             moveInEditor.SpiritData.StartYOffset = 0;
+                            moveInEditor.SpiritData.SummonSpirit = false;
                             moveInEditor.SpiritData.MaintainPosition = false;
                         }
 
@@ -1999,6 +2002,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.PerformInSpiritOff = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
+                        moveInEditor.SpiritData.SummonSpirit = false;
                         moveInEditor.SpiritData.ReturnToPlayer = false;
                     }
                     else
@@ -2009,6 +2013,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.PerformInSpiritOff = false;
                         moveInEditor.SpiritData.StartXOffset = 0;
                         moveInEditor.SpiritData.StartYOffset = 0;
+                        moveInEditor.SpiritData.SummonSpirit = false;
                         moveInEditor.SpiritData.ReturnToPlayer = false;
                         moveInEditor.SpiritData.MaintainPosition = false;
                         moveInEditor.SpiritData.Vulnerable = false;
@@ -2853,6 +2858,7 @@ namespace CharacterDataEditor.Screens
                     if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit && spiritNames.Contains(character.UniqueData.Spirit))
                     {
                         var spirit = character.UniqueData.Spirit;
+                        bool doubleJump = character.UniqueData.DoubleJump;
 
                         int spiritCharacterIndex = spiritNames.IndexOf(spirit);
                         ImguiDrawingHelper.DrawComboInput("spirit", spiritNames.ToArray(), ref spiritCharacterIndex);
@@ -2873,11 +2879,15 @@ namespace CharacterDataEditor.Screens
                             spirit = "None";
                         }
 
+                        ImguiDrawingHelper.DrawBoolInput("doubleJump", ref doubleJump, "Toggles the ability to double jump in Spirit ON");
+
                         character.UniqueData.Spirit = spirit;
+                        character.UniqueData.DoubleJump = doubleJump;
                     }
                     else
                     {
                         character.UniqueData.Spirit = "None";
+                        character.UniqueData.DoubleJump = false;
                     }
                 }
 
