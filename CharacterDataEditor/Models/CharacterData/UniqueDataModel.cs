@@ -6,15 +6,16 @@ using System.Linq;
 
 namespace CharacterDataEditor.Models.CharacterData
 {
-    public class UniqueDataModel : BaseCharacter
+    public class UniqueDataModel
     {
         public int AdditionalMovesets { get; set; } = 0;
         public SpiritDataType SpiritData { get; set; } = SpiritDataType.None;
         public string Spirit { get; set; } = "None"; // I originally wanted to store the entire CharacterDataModel but that's too taxing on the program
+        public bool DoubleJump { get; set; } = false;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(AdditionalMovesets, SpiritData, Spirit);
+            var hash = HashCode.Combine(AdditionalMovesets, SpiritData, Spirit, DoubleJump);
 
             return hash;
         }
@@ -39,7 +40,10 @@ namespace CharacterDataEditor.Models.CharacterData
                 {
                     if (objAsUniqueData.Spirit.Equals(Spirit))
                     {
-                        return true;
+                        if (objAsUniqueData.DoubleJump.Equals(DoubleJump))
+                        {
+                            return true;
+                        }
                     }
                 }
             }

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace CharacterDataEditor.Models.CharacterData
 {
-    public class NonmoveSoundDataModel : BaseCharacter
+    public class NonmoveSoundDataModel
     {
         public string WalkingSoundEffect { get; set; } = "";
         public List<int> WalkForwardFootsteps { get; set; } = new List<int>();
