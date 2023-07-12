@@ -1,9 +1,7 @@
 ## What's Changed?
 
-* Added two new pieces of Spirit data.
-  * Added a toggle for whether a move should switch to Spirit ON if it summons the spirit in Spirit OFF.
-  * Add a toggle for if double jump should be enabled in Spirit ON.
-* Fixed a bug that added unnecessary information in the json files.
+* Added a boolean for spirits that determine if a move should be performed if the corresponding move in Spirit OFF is used to summon it.
+* Added new data linking movesets with spirits if a character has multiple movesets and has a spirit.
 
 ## Known Bugs
 
