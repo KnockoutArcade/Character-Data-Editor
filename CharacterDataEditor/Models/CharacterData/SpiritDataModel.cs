@@ -18,11 +18,12 @@ namespace CharacterDataEditor.Models.CharacterData
         public bool ReturnToPlayer { get; set; } = false;
         public bool MaintainPosition { get; set; } = false;
         public bool Vulnerable { get; set; } = false;
+        public bool OnlyInSpiritOff { get; set; } = false;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(ToggleState, PerformAttack, PerformInSpiritOff, StartXOffset, StartYOffset, SummonSpirit, ReturnToPlayer, MaintainPosition);
-            hash = HashCode.Combine(hash, Vulnerable);
+            hash = HashCode.Combine(hash, Vulnerable, OnlyInSpiritOff);
 
             return hash;
         }
@@ -59,7 +60,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                         {
                                             if (objAsSpiritData.Vulnerable.Equals(Vulnerable))
                                             {
-                                                return true;
+                                                if (objAsSpiritData.OnlyInSpiritOff.Equals(OnlyInSpiritOff))
+                                                {
+                                                    return true;
+                                                }
                                             }
                                         }
                                     }

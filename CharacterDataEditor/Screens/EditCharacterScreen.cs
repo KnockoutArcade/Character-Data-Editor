@@ -1987,15 +1987,21 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SpiritData.MaintainPosition = false;
                         moveInEditor.SpiritData.Vulnerable = false;
+                        moveInEditor.SpiritData.OnlyInSpiritOff = false;
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
                         bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
-                        bool Vulnerable = moveInEditor.SpiritData.Vulnerable;
+                        bool vulnerable = moveInEditor.SpiritData.Vulnerable;
+                        bool onlyInSpiritOff = moveInEditor.SpiritData.OnlyInSpiritOff;
+
                         ImguiDrawingHelper.DrawBoolInput("maintainPosition", ref maintainPosition, "If true, then after the spirit finishes the attack, it stays at its current location and will follow the host's movements.");
-                        ImguiDrawingHelper.DrawBoolInput("VulnerableAfterAttack", ref Vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                        ImguiDrawingHelper.DrawBoolInput("vulnerableAfterAttack", ref vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                        ImguiDrawingHelper.DrawBoolInput("onlyInSpiritOff", ref onlyInSpiritOff, "This move will be performed when summoned with the corresponding move in Spirit OFF.");
+
                         moveInEditor.SpiritData.MaintainPosition = maintainPosition;
-                        moveInEditor.SpiritData.Vulnerable = Vulnerable;
+                        moveInEditor.SpiritData.Vulnerable = vulnerable;
+                        moveInEditor.SpiritData.OnlyInSpiritOff = onlyInSpiritOff;
 
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
@@ -2017,6 +2023,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.ReturnToPlayer = false;
                         moveInEditor.SpiritData.MaintainPosition = false;
                         moveInEditor.SpiritData.Vulnerable = false;
+                        moveInEditor.SpiritData.OnlyInSpiritOff = false;
                     }
 
                     ImGui.TreePop();
@@ -2888,6 +2895,53 @@ namespace CharacterDataEditor.Screens
                     {
                         character.UniqueData.Spirit = "None";
                         character.UniqueData.DoubleJump = false;
+                    }
+
+                    if (character.UniqueData.AdditionalMovesets > 0 && character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                    {
+                        bool linkMovesetsWithSpirits = character.UniqueData.LinkMovesetsWithSpirits;
+                        ImguiDrawingHelper.DrawBoolInput("linkMovesets /Spirits", ref linkMovesetsWithSpirits);
+                        character.UniqueData.LinkMovesetsWithSpirits = linkMovesetsWithSpirits;
+
+                        if (linkMovesetsWithSpirits)
+                        {
+                            int spiritOffMoveset = character.UniqueData.SpiritOffMoveset;
+                            int spiritOnMoveset = character.UniqueData.SpiritOnMoveset;
+
+                            ImguiDrawingHelper.DrawIntInput("spiritOffMoveset", ref spiritOffMoveset);
+                            if (spiritOffMoveset < 1)
+                            {
+                                spiritOffMoveset = 1;
+                            }
+                            if (spiritOffMoveset > character.UniqueData.AdditionalMovesets + 1)
+                            {
+                                spiritOffMoveset = character.UniqueData.AdditionalMovesets + 1;
+                            }
+
+                            ImguiDrawingHelper.DrawIntInput("spiritOnMoveset", ref spiritOnMoveset);
+                            if (spiritOnMoveset < 1)
+                            {
+                                spiritOnMoveset = 1;
+                            }
+                            if (spiritOnMoveset > character.UniqueData.AdditionalMovesets + 1)
+                            {
+                                spiritOnMoveset = character.UniqueData.AdditionalMovesets + 1;
+                            }
+
+                            character.UniqueData.SpiritOffMoveset = spiritOffMoveset;
+                            character.UniqueData.SpiritOnMoveset = spiritOnMoveset;
+                        }
+                        else
+                        {
+                            character.UniqueData.SpiritOffMoveset = 0;
+                            character.UniqueData.SpiritOnMoveset = 0;
+                        }
+                    }
+                    else
+                    {
+                        character.UniqueData.LinkMovesetsWithSpirits = false;
+                        character.UniqueData.SpiritOffMoveset = 0;
+                        character.UniqueData.SpiritOnMoveset = 0;
                     }
                 }
 
