@@ -2896,6 +2896,53 @@ namespace CharacterDataEditor.Screens
                         character.UniqueData.Spirit = "None";
                         character.UniqueData.DoubleJump = false;
                     }
+
+                    if (character.UniqueData.AdditionalMovesets > 0 && character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                    {
+                        bool linkMovesetsWithSpirits = character.UniqueData.LinkMovesetsWithSpirits;
+                        ImguiDrawingHelper.DrawBoolInput("linkMovesets /Spirits", ref linkMovesetsWithSpirits);
+                        character.UniqueData.LinkMovesetsWithSpirits = linkMovesetsWithSpirits;
+
+                        if (linkMovesetsWithSpirits)
+                        {
+                            int spiritOffMoveset = character.UniqueData.SpiritOffMoveset;
+                            int spiritOnMoveset = character.UniqueData.SpiritOnMoveset;
+
+                            ImguiDrawingHelper.DrawIntInput("spiritOffMoveset", ref spiritOffMoveset);
+                            if (spiritOffMoveset < 1)
+                            {
+                                spiritOffMoveset = 1;
+                            }
+                            if (spiritOffMoveset > character.UniqueData.AdditionalMovesets + 1)
+                            {
+                                spiritOffMoveset = character.UniqueData.AdditionalMovesets + 1;
+                            }
+
+                            ImguiDrawingHelper.DrawIntInput("spiritOnMoveset", ref spiritOnMoveset);
+                            if (spiritOnMoveset < 1)
+                            {
+                                spiritOnMoveset = 1;
+                            }
+                            if (spiritOnMoveset > character.UniqueData.AdditionalMovesets + 1)
+                            {
+                                spiritOnMoveset = character.UniqueData.AdditionalMovesets + 1;
+                            }
+
+                            character.UniqueData.SpiritOffMoveset = spiritOffMoveset;
+                            character.UniqueData.SpiritOnMoveset = spiritOnMoveset;
+                        }
+                        else
+                        {
+                            character.UniqueData.SpiritOffMoveset = 0;
+                            character.UniqueData.SpiritOnMoveset = 0;
+                        }
+                    }
+                    else
+                    {
+                        character.UniqueData.LinkMovesetsWithSpirits = false;
+                        character.UniqueData.SpiritOffMoveset = 0;
+                        character.UniqueData.SpiritOnMoveset = 0;
+                    }
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);

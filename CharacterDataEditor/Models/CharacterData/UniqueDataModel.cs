@@ -12,10 +12,13 @@ namespace CharacterDataEditor.Models.CharacterData
         public SpiritDataType SpiritData { get; set; } = SpiritDataType.None;
         public string Spirit { get; set; } = "None"; // I originally wanted to store the entire CharacterDataModel but that's too taxing on the program
         public bool DoubleJump { get; set; } = false;
+        public bool LinkMovesetsWithSpirits { get; set; } = false;
+        public int SpiritOffMoveset { get; set; } = 0;
+        public int SpiritOnMoveset { get; set; } = 0;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(AdditionalMovesets, SpiritData, Spirit, DoubleJump);
+            var hash = HashCode.Combine(AdditionalMovesets, SpiritData, Spirit, DoubleJump, LinkMovesetsWithSpirits, SpiritOffMoveset, SpiritOnMoveset);
 
             return hash;
         }
@@ -42,7 +45,16 @@ namespace CharacterDataEditor.Models.CharacterData
                     {
                         if (objAsUniqueData.DoubleJump.Equals(DoubleJump))
                         {
-                            return true;
+                            if (objAsUniqueData.LinkMovesetsWithSpirits.Equals(LinkMovesetsWithSpirits))
+                            {
+                                if (objAsUniqueData.SpiritOffMoveset.Equals(SpiritOffMoveset))
+                                {
+                                    if (objAsUniqueData.SpiritOnMoveset.Equals(SpiritOnMoveset))
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
