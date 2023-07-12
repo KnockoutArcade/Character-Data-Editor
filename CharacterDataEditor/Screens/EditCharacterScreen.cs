@@ -1987,15 +1987,21 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SpiritData.MaintainPosition = false;
                         moveInEditor.SpiritData.Vulnerable = false;
+                        moveInEditor.SpiritData.OnlyInSpiritOff = false;
                     }
                     else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                     {
                         bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
-                        bool Vulnerable = moveInEditor.SpiritData.Vulnerable;
+                        bool vulnerable = moveInEditor.SpiritData.Vulnerable;
+                        bool onlyInSpiritOff = moveInEditor.SpiritData.OnlyInSpiritOff;
+
                         ImguiDrawingHelper.DrawBoolInput("maintainPosition", ref maintainPosition, "If true, then after the spirit finishes the attack, it stays at its current location and will follow the host's movements.");
-                        ImguiDrawingHelper.DrawBoolInput("VulnerableAfterAttack", ref Vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                        ImguiDrawingHelper.DrawBoolInput("vulnerableAfterAttack", ref vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                        ImguiDrawingHelper.DrawBoolInput("onlyInSpiritOff", ref onlyInSpiritOff, "This move will be performed when summoned with the corresponding move in Spirit OFF.");
+
                         moveInEditor.SpiritData.MaintainPosition = maintainPosition;
-                        moveInEditor.SpiritData.Vulnerable = Vulnerable;
+                        moveInEditor.SpiritData.Vulnerable = vulnerable;
+                        moveInEditor.SpiritData.OnlyInSpiritOff = onlyInSpiritOff;
 
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
@@ -2017,6 +2023,7 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.ReturnToPlayer = false;
                         moveInEditor.SpiritData.MaintainPosition = false;
                         moveInEditor.SpiritData.Vulnerable = false;
+                        moveInEditor.SpiritData.OnlyInSpiritOff = false;
                     }
 
                     ImGui.TreePop();
