@@ -1096,6 +1096,8 @@ namespace CharacterDataEditor.Screens
                                 int heightOffset = attackDataItem.HeightOffset;
                                 int group = attackDataItem.Group;
                                 int damage = attackDataItem.Damage;
+                                float meterGain = attackDataItem.MeterGain;
+                                float comboScaling = attackDataItem.ComboScaling;
                                 int attackHitstop = attackDataItem.AttackHitStop;
                                 int attackHitstun = attackDataItem.AttackHitStun;
                                 AttackType attackType = attackDataItem.AttackType;
@@ -1106,6 +1108,7 @@ namespace CharacterDataEditor.Screens
                                 bool launches = attackDataItem.Launches;
                                 float launchKnockbackV = attackDataItem.LaunchKnockbackVertical;
                                 float launchKnockbackH = attackDataItem.LaunchKnockbackHorizontal;
+                                float gravityScaling = attackDataItem.GravityScaling;
                                 float pushback = attackDataItem.Pushback;
                                 int particleOffsetX = attackDataItem.ParticleXOffset;
                                 int particleOffsetY = attackDataItem.ParticleYOffset;
@@ -1113,8 +1116,6 @@ namespace CharacterDataEditor.Screens
                                 int particleDuration = attackDataItem.ParticleDuration;
                                 int holdOffsetX = attackDataItem.HoldXOffset;
                                 int holdOffsetY = attackDataItem.HoldYOffset;
-                                float comboScaling = attackDataItem.ComboScaling;
-                                float meterGain = attackDataItem.MeterGain;
                                 bool causesWallbounce = attackDataItem.CausesWallbounce;
                                 string hitSound = attackDataItem.HitSound;
 
@@ -1140,8 +1141,17 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
                                 ImguiDrawingHelper.DrawBoolInput("launches", ref launches);
-                                ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref launchKnockbackV);
-                                ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref launchKnockbackH);
+                                if (launches)
+                                {
+                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref launchKnockbackV);
+                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref launchKnockbackH);
+                                }
+                                else
+                                {
+                                    launchKnockbackV = 0;
+                                    launchKnockbackH = 0;
+                                }
+                                ImguiDrawingHelper.DrawDecimalInput("gravityScaling", ref gravityScaling);
                                 ImguiDrawingHelper.DrawDecimalInput("pushback", ref pushback);
                                 ImguiDrawingHelper.DrawIntInput("particleOffsetX", ref particleOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("particleOffsetY", ref particleOffsetY);
@@ -1166,6 +1176,8 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.HeightOffset = heightOffset;
                                 attackDataItem.Group = group;
                                 attackDataItem.Damage = damage;
+                                attackDataItem.MeterGain = meterGain;
+                                attackDataItem.ComboScaling = comboScaling;
                                 attackDataItem.AttackHitStop = attackHitstop;
                                 attackDataItem.AttackHitStun = attackHitstun;
                                 attackDataItem.AttackType = (AttackType)selectedAttackType;
@@ -1176,6 +1188,7 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.Launches = launches;
                                 attackDataItem.LaunchKnockbackHorizontal = launchKnockbackH;
                                 attackDataItem.LaunchKnockbackVertical = launchKnockbackV;
+                                attackDataItem.GravityScaling = gravityScaling;
                                 attackDataItem.Pushback = pushback;
                                 attackDataItem.ParticleXOffset = particleOffsetX;
                                 attackDataItem.ParticleYOffset = particleOffsetY;
@@ -1183,8 +1196,6 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.ParticleDuration = particleDuration;
                                 attackDataItem.HoldXOffset = holdOffsetX;
                                 attackDataItem.HoldYOffset = holdOffsetY;
-                                attackDataItem.ComboScaling = comboScaling;
-                                attackDataItem.MeterGain = meterGain;
                                 attackDataItem.CausesWallbounce = causesWallbounce;
                                 attackDataItem.HitSound = hitSound;
 
@@ -1242,33 +1253,32 @@ namespace CharacterDataEditor.Screens
                                 int Group = currentCounterData.Group;
                                 int Damage = currentCounterData.Damage;
                                 float MeterGain = currentCounterData.MeterGain;
+                                float ComboScaling = currentCounterData.ComboScaling;
                                 int AttackHitStop = currentCounterData.AttackHitStop;
                                 int AttackHitStun = currentCounterData.AttackHitStun;
                                 float KnockBack = currentCounterData.KnockBack;
                                 float AirKnockbackVertical = currentCounterData.AirKnockbackVertical;
                                 float AirKnockbackHorizontal = currentCounterData.AirKnockbackHorizontal;
+                                bool Launches = currentCounterData.Launches;
+                                float LaunchKnockbackVertical = currentCounterData.LaunchKnockbackVertical;
+                                float LaunchKnockbackHorizontal = currentCounterData.LaunchKnockbackHorizontal;
+                                float GravtyScaling = currentCounterData.GravityScaling;
                                 float Pushback = currentCounterData.Pushback;
                                 int ParticleXOffset = currentCounterData.ParticleXOffset;
                                 int ParticleYOffset = currentCounterData.ParticleYOffset;
                                 string ParticleEffect = currentCounterData.ParticleEffect;
                                 int ParticleDuration = currentCounterData.ParticleDuration;
-                                bool Launches = currentCounterData.Launches;
-                                float LaunchKnockbackVertical = currentCounterData.LaunchKnockbackVertical;
-                                float LaunchKnockbackHorizontal = currentCounterData.LaunchKnockbackHorizontal;
-                                float ComboScaling = currentCounterData.ComboScaling;
                                 bool CausesWallbounce = currentCounterData.CausesWallbounce;
                                 string HitSound = currentCounterData.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("counterHitLevel", ref CounterHitLevel);
-                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
                                 ImguiDrawingHelper.DrawIntInput("group", ref Group);
                                 ImguiDrawingHelper.DrawIntInput("damage", ref Damage);
                                 ImguiDrawingHelper.DrawDecimalInput("meterGain", ref MeterGain);
                                 ImguiDrawingHelper.DrawDecimalInput("comboScaling", ref ComboScaling);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStop", ref AttackHitStop);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStun", ref AttackHitStun);
-                                ImguiDrawingHelper.DrawDecimalInput("knockBack", ref KnockBack);
-                                ImguiDrawingHelper.DrawDecimalInput("pushback", ref Pushback);
+                                ImguiDrawingHelper.DrawDecimalInput("knockback", ref KnockBack);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref AirKnockbackVertical);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref AirKnockbackHorizontal);
                                 ImguiDrawingHelper.DrawBoolInput("launches", ref Launches);
@@ -1277,6 +1287,13 @@ namespace CharacterDataEditor.Screens
                                     ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref LaunchKnockbackVertical);
                                     ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref LaunchKnockbackHorizontal);
                                 }
+                                else
+                                {
+                                    LaunchKnockbackVertical = 0;
+                                    LaunchKnockbackHorizontal = 0;
+                                }
+                                ImguiDrawingHelper.DrawDecimalInput("gravityScaling", ref GravtyScaling);
+                                ImguiDrawingHelper.DrawDecimalInput("pushback", ref Pushback);
                                 ImguiDrawingHelper.DrawIntInput("particleOffset X", ref ParticleXOffset);
                                 ImguiDrawingHelper.DrawIntInput("particleOffset Y", ref ParticleYOffset);
 
@@ -1284,6 +1301,7 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref ParticleDuration);
+                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
 
                                 var hitSoundId = currentCounterData.HitSound ?? string.Empty;
                                 var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == currentCounterData.HitSound)) : -1;
@@ -1294,20 +1312,21 @@ namespace CharacterDataEditor.Screens
                                 currentCounterData.Group = Group;
                                 currentCounterData.Damage = Damage;
                                 currentCounterData.MeterGain = MeterGain;
+                                currentCounterData.ComboScaling = ComboScaling;
                                 currentCounterData.AttackHitStop = AttackHitStop;
                                 currentCounterData.AttackHitStun = AttackHitStun;
                                 currentCounterData.KnockBack = KnockBack;
                                 currentCounterData.AirKnockbackVertical = AirKnockbackVertical;
                                 currentCounterData.AirKnockbackHorizontal = AirKnockbackHorizontal;
+                                currentCounterData.Launches = Launches;
+                                currentCounterData.LaunchKnockbackVertical = LaunchKnockbackVertical;
+                                currentCounterData.LaunchKnockbackHorizontal = LaunchKnockbackHorizontal;
+                                currentCounterData.GravityScaling = GravtyScaling;
                                 currentCounterData.Pushback = Pushback;
                                 currentCounterData.ParticleXOffset = ParticleXOffset;
                                 currentCounterData.ParticleYOffset = ParticleYOffset;
                                 currentCounterData.ParticleEffect = allSprites[selectedParticleEffect].Name;
                                 currentCounterData.ParticleDuration = ParticleDuration;
-                                currentCounterData.Launches = Launches;
-                                currentCounterData.ComboScaling = ComboScaling;
-                                currentCounterData.LaunchKnockbackVertical = LaunchKnockbackVertical;
-                                currentCounterData.LaunchKnockbackHorizontal= LaunchKnockbackHorizontal;
                                 currentCounterData.CausesWallbounce = CausesWallbounce;
                                 currentCounterData.HitSound = HitSound;
 
