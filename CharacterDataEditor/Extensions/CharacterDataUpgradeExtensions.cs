@@ -150,7 +150,7 @@ namespace CharacterDataEditor.Extensions
         {
             foreach (var move in previous.MoveData)
             {
-                move.ProjectileData = new List<ProjectileDataModel>();
+                move.ProjectileData = new List<CharacterProjectileDataModel>();
             }
 
             previous.Version = VersionConstants.Ver101;

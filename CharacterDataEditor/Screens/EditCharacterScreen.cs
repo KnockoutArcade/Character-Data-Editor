@@ -1699,7 +1699,7 @@ namespace CharacterDataEditor.Screens
                     {
                         while (projectileCount > moveInEditor.NumberOfProjectiles)
                         {
-                            moveInEditor.ProjectileData.Add(new ProjectileDataModel());
+                            moveInEditor.ProjectileData.Add(new CharacterProjectileDataModel());
                         }
                     }
 

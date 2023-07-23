@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace CharacterDataEditor.Screens
 {
@@ -182,6 +183,7 @@ namespace CharacterDataEditor.Screens
             DrawMainMenu(screenManager.ScreenScale, screenManager);
             DrawNewCharacterPanel(screenManager.ScreenScale, screenManager);
             DrawExistingCharacterPanel(screenManager.ScreenScale, screenManager);
+            DrawExistingProjectilePanel(screenManager.ScreenScale, screenManager);
         }
 
         public void RenderAfterImGui(IScreenManager screenManager)
@@ -229,8 +231,8 @@ namespace CharacterDataEditor.Screens
 
         private void DrawExistingCharacterPanel(float scale, IScreenManager screenManager)
         {
-            ImGui.SetNextWindowPos(new Vector2(20 * scale, 80 * scale));
-            var windowSize = new Vector2(400 * scale, 550 * scale);
+            ImGui.SetNextWindowPos(new Vector2(20 * scale, 100 * scale));
+            var windowSize = new Vector2(200 * scale, 530 * scale);
             ImGui.SetNextWindowSize(windowSize);
 
             if (ImGui.Begin("Existing Characters", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -281,12 +283,47 @@ namespace CharacterDataEditor.Screens
             });
         }
 
+        private void DrawExistingProjectilePanel(float scale, IScreenManager screenManager)
+        {
+            ImGui.SetNextWindowPos(new Vector2(240 * scale, 100 * scale));
+            var windowSize = new Vector2(200 * scale, 530 * scale);
+            ImGui.SetNextWindowSize(windowSize);
+
+            if (ImGui.Begin("Existing Projectiles", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.SetWindowFontScale(scale);
+
+                if (characters.Count == 0)
+                {
+                    ImGui.Text("No Projectiles found...");
+                }
+                else
+                {
+                    foreach (var character in characters)
+                    {
+                        if (ImGui.Selectable(character.Name, itemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
+                        {
+                            var sprite = allSprites.Where(x => x.Name == character.CharacterSprites?.Idle).FirstOrDefault();
+                            spriteData = sprite;
+
+                            SetItemAsSelected(characters.IndexOf(character));
+
+                            if (ImGui.IsMouseDoubleClicked(0))
+                            {
+                                screenManager.NavigateTo(typeof(EditCharacterScreen), new { width, height, character, projectData, action = "edit" });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private void DrawNewCharacterPanel(float scale, IScreenManager screenManager)
         {
             ImGui.SetNextWindowPos(new Vector2(20 * scale, 20 * scale));
-            var windowSize = ImGui.CalcTextSize("Create New Character");
-            windowSize.X = (windowSize.X + 18) * scale;
-            windowSize.Y = (windowSize.Y + 25) * scale;
+            var windowSize = ImGui.CalcTextSize("Create New Projectile");
+            windowSize.X = (windowSize.X + 25) * scale;
+            windowSize.Y = (windowSize.Y + 55) * scale;
             ImGui.SetNextWindowSize(windowSize);
 
             if (ImGui.Begin("New", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -297,6 +334,11 @@ namespace CharacterDataEditor.Screens
                 {
                     // go to create character screen
                     CreateNewCharacter(screenManager);
+                }
+                if (ImGui.Button("Create New Projectile"))
+                {
+                    // go to create character screen
+                    //CreateNewCharacter(screenManager);
                 }
             }
         }
