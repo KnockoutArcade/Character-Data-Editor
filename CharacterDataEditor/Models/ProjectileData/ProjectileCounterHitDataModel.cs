@@ -5,6 +5,7 @@ namespace CharacterDataEditor.Models.ProjectileData
     public class ProjectileCounterHitDataModel
     {
         public int CounterHitLevel { get; set; } = 0;
+        public int Group { get; set; } = 0;
         public int Damage { get; set; } = 0;
         public float MeterGain { get; set; } = 0;
         public float ComboScaling { get; set; } = 0.0f;
@@ -27,7 +28,7 @@ namespace CharacterDataEditor.Models.ProjectileData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(CounterHitLevel, Damage, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, KnockBack);
+            var hash = HashCode.Combine(CounterHitLevel, Group, Damage, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, KnockBack);
             hash = HashCode.Combine(hash, AirKnockbackVertical, AirKnockbackHorizontal, Launches, LaunchKnockbackVertical, LaunchKnockbackHorizontal, GravityScaling, Pushback);
             hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, CausesWallbounce, HitSound);
 
@@ -50,45 +51,48 @@ namespace CharacterDataEditor.Models.ProjectileData
 
             if (CounterHitLevel == objAsCounterHitData.CounterHitLevel)
             {
-                if (Damage == objAsCounterHitData.Damage)
+                if (Group == objAsCounterHitData.Group)
                 {
-                    if (MeterGain == objAsCounterHitData.MeterGain)
+                    if (Damage == objAsCounterHitData.Damage)
                     {
-                        if (AttackHitStop == objAsCounterHitData.AttackHitStop)
+                        if (MeterGain == objAsCounterHitData.MeterGain)
                         {
-                            if (AttackHitStun == objAsCounterHitData.AttackHitStun)
+                            if (AttackHitStop == objAsCounterHitData.AttackHitStop)
                             {
-                                if (KnockBack == objAsCounterHitData.KnockBack)
+                                if (AttackHitStun == objAsCounterHitData.AttackHitStun)
                                 {
-                                    if (AirKnockbackVertical == objAsCounterHitData.AirKnockbackVertical)
+                                    if (KnockBack == objAsCounterHitData.KnockBack)
                                     {
-                                        if (AirKnockbackHorizontal == objAsCounterHitData.AirKnockbackHorizontal)
+                                        if (AirKnockbackVertical == objAsCounterHitData.AirKnockbackVertical)
                                         {
-                                            if (Pushback == objAsCounterHitData.Pushback)
+                                            if (AirKnockbackHorizontal == objAsCounterHitData.AirKnockbackHorizontal)
                                             {
-                                                if (ParticleXOffset == objAsCounterHitData.ParticleXOffset)
+                                                if (Pushback == objAsCounterHitData.Pushback)
                                                 {
-                                                    if (ParticleYOffset == objAsCounterHitData.ParticleYOffset)
+                                                    if (ParticleXOffset == objAsCounterHitData.ParticleXOffset)
                                                     {
-                                                        if (ParticleEffect == objAsCounterHitData.ParticleEffect)
+                                                        if (ParticleYOffset == objAsCounterHitData.ParticleYOffset)
                                                         {
-                                                            if (ParticleDuration == objAsCounterHitData.ParticleDuration)
+                                                            if (ParticleEffect == objAsCounterHitData.ParticleEffect)
                                                             {
-                                                                if (Launches == objAsCounterHitData.Launches)
+                                                                if (ParticleDuration == objAsCounterHitData.ParticleDuration)
                                                                 {
-                                                                    if (LaunchKnockbackVertical == objAsCounterHitData.LaunchKnockbackVertical)
+                                                                    if (Launches == objAsCounterHitData.Launches)
                                                                     {
-                                                                        if (LaunchKnockbackHorizontal == objAsCounterHitData.LaunchKnockbackHorizontal)
+                                                                        if (LaunchKnockbackVertical == objAsCounterHitData.LaunchKnockbackVertical)
                                                                         {
-                                                                            if (ComboScaling == objAsCounterHitData.ComboScaling)
+                                                                            if (LaunchKnockbackHorizontal == objAsCounterHitData.LaunchKnockbackHorizontal)
                                                                             {
-                                                                                if (CausesWallbounce == objAsCounterHitData.CausesWallbounce)
+                                                                                if (ComboScaling == objAsCounterHitData.ComboScaling)
                                                                                 {
-                                                                                    if (HitSound == objAsCounterHitData.HitSound)
+                                                                                    if (CausesWallbounce == objAsCounterHitData.CausesWallbounce)
                                                                                     {
-                                                                                        if (GravityScaling == objAsCounterHitData.GravityScaling)
+                                                                                        if (HitSound == objAsCounterHitData.HitSound)
                                                                                         {
-                                                                                            return true;
+                                                                                            if (GravityScaling == objAsCounterHitData.GravityScaling)
+                                                                                            {
+                                                                                                return true;
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }

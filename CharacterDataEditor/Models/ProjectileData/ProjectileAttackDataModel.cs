@@ -11,6 +11,7 @@ namespace CharacterDataEditor.Models.ProjectileData
         public int AttackHeight { get; set; } = 0;
         public int WidthOffset { get; set; } = 0;
         public int HeightOffset { get; set; } = 0;
+        public int Group { get; set; } = 0;
         public int Damage { get; set; } = 0;
         public float MeterGain { get; set; } = 0.0f;
         public float ComboScaling { get; set; } = 0.0f;
@@ -37,10 +38,11 @@ namespace CharacterDataEditor.Models.ProjectileData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Start, Lifetime, AttackWidth, AttackHeight, WidthOffset, HeightOffset, Damage, MeterGain);
-            hash = HashCode.Combine(hash, ComboScaling, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack, AirKnockbackHorizontal);
-            hash = HashCode.Combine(hash, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback, ParticleXOffset);
-            hash = HashCode.Combine(hash, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset, CausesWallbounce, HitSound);
+            var hash = HashCode.Combine(Start, Lifetime, AttackWidth, AttackHeight, WidthOffset, HeightOffset, Group, Damage);
+            hash = HashCode.Combine(hash, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack);
+            hash = HashCode.Combine(hash, AirKnockbackHorizontal, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback);
+            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset, CausesWallbounce);
+            hash = HashCode.Combine(hash, HitSound);
 
             return hash;
         }
@@ -69,53 +71,56 @@ namespace CharacterDataEditor.Models.ProjectileData
                         {
                             if (objAsAttackData.WidthOffset == WidthOffset)
                             {
-                                if (objAsAttackData.Damage == Damage)
+                                if (objAsAttackData.Group == Group)
                                 {
-                                    if (objAsAttackData.AttackHitStop == AttackHitStop)
+                                    if (objAsAttackData.Damage == Damage)
                                     {
-                                        if (objAsAttackData.AttackHitStun == AttackHitStun)
+                                        if (objAsAttackData.AttackHitStop == AttackHitStop)
                                         {
-                                            if (objAsAttackData.AttackType == AttackType)
+                                            if (objAsAttackData.AttackHitStun == AttackHitStun)
                                             {
-                                                if (objAsAttackData.BlockStun == BlockStun)
+                                                if (objAsAttackData.AttackType == AttackType)
                                                 {
-                                                    if (objAsAttackData.KnockBack == KnockBack)
+                                                    if (objAsAttackData.BlockStun == BlockStun)
                                                     {
-                                                        if (objAsAttackData.AirKnockbackHorizontal == AirKnockbackHorizontal)
+                                                        if (objAsAttackData.KnockBack == KnockBack)
                                                         {
-                                                            if (objAsAttackData.AirKnockbackVertical == AirKnockbackVertical)
+                                                            if (objAsAttackData.AirKnockbackHorizontal == AirKnockbackHorizontal)
                                                             {
-                                                                if (objAsAttackData.Launches == Launches)
+                                                                if (objAsAttackData.AirKnockbackVertical == AirKnockbackVertical)
                                                                 {
-                                                                    if (objAsAttackData.LaunchKnockbackHorizontal == LaunchKnockbackHorizontal)
+                                                                    if (objAsAttackData.Launches == Launches)
                                                                     {
-                                                                        if (objAsAttackData.LaunchKnockbackVertical == LaunchKnockbackVertical)
+                                                                        if (objAsAttackData.LaunchKnockbackHorizontal == LaunchKnockbackHorizontal)
                                                                         {
-                                                                            if (objAsAttackData.Pushback == Pushback)
+                                                                            if (objAsAttackData.LaunchKnockbackVertical == LaunchKnockbackVertical)
                                                                             {
-                                                                                if (objAsAttackData.ParticleDuration == ParticleDuration)
+                                                                                if (objAsAttackData.Pushback == Pushback)
                                                                                 {
-                                                                                    if (objAsAttackData.ParticleEffect == ParticleEffect)
+                                                                                    if (objAsAttackData.ParticleDuration == ParticleDuration)
                                                                                     {
-                                                                                        if (objAsAttackData.ParticleXOffset == ParticleXOffset)
+                                                                                        if (objAsAttackData.ParticleEffect == ParticleEffect)
                                                                                         {
-                                                                                            if (objAsAttackData.ParticleYOffset == ParticleYOffset)
+                                                                                            if (objAsAttackData.ParticleXOffset == ParticleXOffset)
                                                                                             {
-                                                                                                if (objAsAttackData.HoldXOffset == HoldXOffset)
+                                                                                                if (objAsAttackData.ParticleYOffset == ParticleYOffset)
                                                                                                 {
-                                                                                                    if (objAsAttackData.HoldYOffset == HoldYOffset)
+                                                                                                    if (objAsAttackData.HoldXOffset == HoldXOffset)
                                                                                                     {
-                                                                                                        if (objAsAttackData.MeterGain == MeterGain)
+                                                                                                        if (objAsAttackData.HoldYOffset == HoldYOffset)
                                                                                                         {
-                                                                                                            if (objAsAttackData.ComboScaling == ComboScaling)
+                                                                                                            if (objAsAttackData.MeterGain == MeterGain)
                                                                                                             {
-                                                                                                                if (objAsAttackData.CausesWallbounce == CausesWallbounce)
+                                                                                                                if (objAsAttackData.ComboScaling == ComboScaling)
                                                                                                                 {
-                                                                                                                    if (objAsAttackData.HitSound == HitSound)
+                                                                                                                    if (objAsAttackData.CausesWallbounce == CausesWallbounce)
                                                                                                                     {
-                                                                                                                        if (objAsAttackData.GravityScaling == GravityScaling)
+                                                                                                                        if (objAsAttackData.HitSound == HitSound)
                                                                                                                         {
-                                                                                                                            return true;
+                                                                                                                            if (objAsAttackData.GravityScaling == GravityScaling)
+                                                                                                                            {
+                                                                                                                                return true;
+                                                                                                                            }
                                                                                                                         }
                                                                                                                     }
                                                                                                                 }

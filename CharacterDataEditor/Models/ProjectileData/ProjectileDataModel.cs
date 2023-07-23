@@ -26,8 +26,7 @@ namespace CharacterDataEditor.Models.ProjectileData
         public float Bounciness { get; set; } = 0.0f;
         public bool Transcendent { get; set; } = false;
         public int Health { get; set; } = 0;
-        public string Sprite { get; set; } = string.Empty;
-        public string ImpactSprite { get; set; } = string.Empty;
+        public ProjectileSpriteCollectionModel ProjectileSprites { get; set; } = new ProjectileSpriteCollectionModel();
         #endregion
         public ProjectilePaletteModel BaseColor { get; set; } = new ProjectilePaletteModel();
         public int NumberOfPalettes { get { return Palettes?.Count ?? 0; } }
@@ -41,8 +40,7 @@ namespace CharacterDataEditor.Models.ProjectileData
         {
             var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, FallSpeed, GroundTraction, AirTraction, DestroyOnFloor);
             hash = HashCode.Combine(hash, DestroyOnWall, BounceOnFloor, BounceOnWall, NumberOfBounces, Bounciness, Transcendent, Health);
-            hash = HashCode.Combine(hash, Sprite, ImpactSprite, BaseColor, Palettes, NumberOfHitboxes, AttackData, CounterData);
-            hash = HashCode.Combine(hash, RehitData);
+            hash = HashCode.Combine(hash, ProjectileSprites, BaseColor, Palettes, NumberOfHitboxes, AttackData, CounterData, RehitData);
 
             return hash;
         }
@@ -76,8 +74,7 @@ namespace CharacterDataEditor.Models.ProjectileData
                 objAsProjectileDataModel.Bounciness.Equals(Bounciness) &&
                 objAsProjectileDataModel.Transcendent.Equals(Transcendent) &&
                 objAsProjectileDataModel.Health.Equals(Health) &&
-                objAsProjectileDataModel.Sprite.Equals(Sprite) &&
-                objAsProjectileDataModel.ImpactSprite.Equals(ImpactSprite) &&
+                objAsProjectileDataModel.ProjectileSprites.Equals(ProjectileSprites) &&
                 objAsProjectileDataModel.BaseColor.Equals(BaseColor) &&
                 objAsProjectileDataModel.Palettes.SequenceEqual(Palettes) &&
                 objAsProjectileDataModel.NumberOfHitboxes.Equals(NumberOfHitboxes) &&

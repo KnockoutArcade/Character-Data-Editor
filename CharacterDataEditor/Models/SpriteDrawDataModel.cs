@@ -1,5 +1,6 @@
 ﻿using CharacterDataEditor.Enums;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Numerics;
@@ -15,6 +16,8 @@ namespace CharacterDataEditor.Models
         public SpriteDrawFlags Flags { get; set; }
         public PaletteModel BaseColor { get; set; }
         public PaletteModel SwapColor { get; set; }
+        public ProjectilePaletteModel ProjectileBaseColor { get; set; }
+        public ProjectilePaletteModel ProjectileSwapColor { get; set; }
         public SpriteDataModel SpriteData { get; set; }
         public ILogger Logger { get; set; }
         public FrameAdvance FrameAdvance { get; set; }

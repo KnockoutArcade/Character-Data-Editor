@@ -3,6 +3,7 @@ using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
 using System;
@@ -142,17 +143,36 @@ namespace CharacterDataEditor.Helpers
                 Raylib.DrawRectangle((int)destinationRectangle.x, (int)destinationRectangle.y, (int)destinationRectangle.width, (int)destinationRectangle.height, Color.BLACK);
             }
 
-            if (data.Flags.HasFlag(SpriteDrawFlags.PaletteSwapActive) && data.BaseColor?.ColorPalette?.Count > 0 && data.SwapColor?.ColorPalette?.Count > 0)
+            if (data.BaseColor != null && data.SwapColor != null)
             {
-                ShaderHelper.ShaderStartRender();
-
-                var baseColorArray = data.BaseColor.ToShaderVec4Array();
-                var swapColorArray = data.SwapColor.ToShaderVec4Array();
-
-                for (int i = 0; i < baseColorArray.Length; i++)
+                if (data.Flags.HasFlag(SpriteDrawFlags.PaletteSwapActive) && data.BaseColor?.ColorPalette?.Count > 0 && data.SwapColor?.ColorPalette?.Count > 0)
                 {
-                    ShaderHelper.SetValue($"basecolor{i}", baseColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
-                    ShaderHelper.SetValue($"swapcolor{i}", swapColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                    ShaderHelper.ShaderStartRender();
+
+                    var baseColorArray = data.BaseColor.ToShaderVec4Array();
+                    var swapColorArray = data.SwapColor.ToShaderVec4Array();
+
+                    for (int i = 0; i < baseColorArray.Length; i++)
+                    {
+                        ShaderHelper.SetValue($"basecolor{i}", baseColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                        ShaderHelper.SetValue($"swapcolor{i}", swapColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                    }
+                }
+            }
+            else
+            {
+                if (data.Flags.HasFlag(SpriteDrawFlags.PaletteSwapActive) && data.ProjectileBaseColor?.ColorPalette?.Count > 0 && data.ProjectileSwapColor?.ColorPalette?.Count > 0)
+                {
+                    ShaderHelper.ShaderStartRender();
+
+                    var baseColorArray = data.ProjectileBaseColor.ToShaderVec4Array();
+                    var swapColorArray = data.ProjectileSwapColor.ToShaderVec4Array();
+
+                    for (int i = 0; i < baseColorArray.Length; i++)
+                    {
+                        ShaderHelper.SetValue($"basecolor{i}", baseColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                        ShaderHelper.SetValue($"swapcolor{i}", swapColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                    }
                 }
             }
 

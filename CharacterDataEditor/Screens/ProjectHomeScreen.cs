@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using CharacterDataEditor.Models.ProjectileData;
 
 namespace CharacterDataEditor.Screens
 {
@@ -29,6 +30,7 @@ namespace CharacterDataEditor.Screens
         private float width;
         private RecentProjectModel projectData;
         private List<CharacterDataModel> characters;
+        private List<ProjectileDataModel> projectiles;
         private SpriteDataModel spriteData;
         private List<SpriteDataModel> allSprites;
 
