@@ -1,12 +1,14 @@
 ﻿using CharacterDataEditor.Enums;
+using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CharacterDataEditor.Models.CharacterData
+namespace CharacterDataEditor.Models.ProjectileData
 {
-    public class ProjectileDataModel : BaseCharacter
+    public class ProjectileDataModel : BaseProjectile
     {
         public string Name { get; set; } = string.Empty;
         #region Base Stats
@@ -24,18 +26,23 @@ namespace CharacterDataEditor.Models.CharacterData
         public float Bounciness { get; set; } = 0.0f;
         public bool Transcendent { get; set; } = false;
         public int Health { get; set; } = 0;
-        public CharacterSpriteCollectionModel CharacterSprites { get; set; } = new CharacterSpriteCollectionModel();
+        public string Sprite { get; set; } = string.Empty;
+        public string ImpactSprite { get; set; } = string.Empty;
         #endregion
-        public PaletteModel BaseColor { get; set; } = new PaletteModel();
+        public ProjectilePaletteModel BaseColor { get; set; } = new ProjectilePaletteModel();
         public int NumberOfPalettes { get { return Palettes?.Count ?? 0; } }
-        public List<PaletteModel> Palettes { get; set; } = new List<PaletteModel>();
-        public List<MoveDataModel> MoveData { get; set; } = new List<MoveDataModel>();
+        public List<ProjectilePaletteModel> Palettes { get; set; } = new List<ProjectilePaletteModel>();
+        public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
+        public List<ProjectileAttackDataModel> AttackData { get; set; } = new List<ProjectileAttackDataModel>();
+        public List<ProjectileCounterHitDataModel> CounterData { get; set; } = new List<ProjectileCounterHitDataModel>();
+        public ProjectileRehitDataModel RehitData { get; set; } = new ProjectileRehitDataModel();
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, FallSpeed, GroundTraction, AirTraction, DestroyOnFloor);
             hash = HashCode.Combine(hash, DestroyOnWall, BounceOnFloor, BounceOnWall, NumberOfBounces, Bounciness, Transcendent, Health);
-            hash = HashCode.Combine(hash, CharacterSprites, BaseColor, Palettes, MoveData);
+            hash = HashCode.Combine(hash, Sprite, ImpactSprite, BaseColor, Palettes, NumberOfHitboxes, AttackData, CounterData);
+            hash = HashCode.Combine(hash, RehitData);
 
             return hash;
         }
@@ -69,10 +76,14 @@ namespace CharacterDataEditor.Models.CharacterData
                 objAsProjectileDataModel.Bounciness.Equals(Bounciness) &&
                 objAsProjectileDataModel.Transcendent.Equals(Transcendent) &&
                 objAsProjectileDataModel.Health.Equals(Health) &&
-                objAsProjectileDataModel.CharacterSprites.Equals(CharacterSprites) &&
+                objAsProjectileDataModel.Sprite.Equals(Sprite) &&
+                objAsProjectileDataModel.ImpactSprite.Equals(ImpactSprite) &&
                 objAsProjectileDataModel.BaseColor.Equals(BaseColor) &&
                 objAsProjectileDataModel.Palettes.SequenceEqual(Palettes) &&
-                objAsProjectileDataModel.MoveData.SequenceEqual(MoveData))
+                objAsProjectileDataModel.NumberOfHitboxes.Equals(NumberOfHitboxes) &&
+                objAsProjectileDataModel.AttackData.SequenceEqual(AttackData) &&
+                objAsProjectileDataModel.CounterData.SequenceEqual(CounterData) &&
+                objAsProjectileDataModel.RehitData.Equals(RehitData))
             {
                 return true;
             }
