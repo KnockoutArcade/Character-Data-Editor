@@ -3,6 +3,7 @@ using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using OriginalVersion = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
 using Ver095 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095;
 using Ver103 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103;
@@ -16,7 +17,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using CharacterDataEditor.Models.ProjectileData;
 
 namespace CharacterDataEditor.Screens
 {
@@ -163,6 +163,115 @@ namespace CharacterDataEditor.Screens
                     };
                 }
                 else if(upgradedCharacters.Count > 0)
+                {
+                    // add characters to the list
+                    characters.AddRange(upgradedCharacters);
+
+                    // save the updated characters
+                    upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
+
+                    // resize the flags for selection
+                    itemSelected = new bool[characters.Count];
+                }
+            }
+
+            // initially attempt to get projectiles with the current version of the project data structure
+            projectiles = _projectileOperations.GetProjectilesFromProject<ProjectileDataModel>(projectData.ProjectPathOnly);
+            if (characters == null)
+            {
+                _logger.LogCritical("Unable to load characters, path may be inaccessable. Throwing Exception");
+                throw new FileNotFoundException("Unable to load characters, path may be inaccessable.", projectData.FullPath);
+            }
+
+            // if any of the characters need an upgrade, generate an error message and display with options for the user
+            var charactersNeedingUpgrade = characters.Where(x => x.UpgradeNeeded).ToList();
+
+            // remove the characters that need an upgrade from the open list until they're upgraded
+            charactersNeedingUpgrade.ForEach(x => characters.Remove(x));
+
+            if (charactersNeedingUpgrade.Any())
+            {
+                string fullErrorMessage = string.Empty;
+                List<CharacterDataModel> upgradedCharacters = new List<CharacterDataModel>();
+
+                foreach (var characterNeedingUpgrade in charactersNeedingUpgrade)
+                {
+                    UpgradeResults results;
+
+                    switch (characterNeedingUpgrade.Version)
+                    {
+                        case VersionConstants.Ver094:
+                        case VersionConstants.Ver095:
+                            {
+                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver095.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                                results = oldCharacter.Upgrade();
+                                break;
+                            }
+                        case VersionConstants.Ver096:
+                        case VersionConstants.Ver1:
+                        case VersionConstants.Ver101:
+                        case VersionConstants.Ver102:
+                        case VersionConstants.Ver103:
+                            {
+                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver103.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                                results = oldCharacter.Upgrade();
+                                break;
+                            }
+                        case VersionConstants.Original:
+                            {
+                                var oldCharacter = _characterOperations.GetCharacterByFilename<OriginalVersion.CharacterDataModel>(characterNeedingUpgrade.FileName);
+                                results = oldCharacter.Upgrade();
+                                break;
+                            }
+                        case VersionConstants.Ver110:
+                        case VersionConstants.Ver111:
+                        case VersionConstants.Ver112:
+                        case VersionConstants.Ver113:
+                        case VersionConstants.Ver114:
+                        default:
+                            {
+                                results = characterNeedingUpgrade.Upgrade();
+                                break;
+                            }
+                    }
+
+                    if (results.IsDataLossSuspected)
+                    {
+                        fullErrorMessage += $"\nCharacter {characterNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{results.Message}\n";
+                    }
+
+                    // add the upgraded character to the list
+                    upgradedCharacters.Add(results.UpgradedCharacterData);
+                }
+
+                if (fullErrorMessage != string.Empty)
+                {
+                    upgradeMessageText = fullErrorMessage;
+                    upgradeMessageShown = true;
+
+                    afterConfirmAction = (keycode, screenManager) =>
+                    {
+                        if (keycode == (int)KeyboardKey.KEY_C)
+                        {
+                            screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                        }
+                        else if (keycode == (int)KeyboardKey.KEY_U)
+                        {
+                            // add characters to the list
+                            characters.AddRange(upgradedCharacters);
+
+                            // save the updated characters
+                            upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
+
+                            // resize the flags for selection
+                            itemSelected = new bool[characters.Count];
+
+                            // disable the message
+                            upgradeMessageShown = false;
+                        }
+                    };
+                }
+                else if (upgradedCharacters.Count > 0)
                 {
                     // add characters to the list
                     characters.AddRange(upgradedCharacters);
