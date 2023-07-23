@@ -24,6 +24,7 @@ namespace CharacterDataEditor.Screens
     {
         private readonly ILogger<IScreen> _logger;
         private readonly ICharacterOperations _characterOperations;
+        private readonly IProjectileOperations _projectileOperations;
 
         SpriteDrawingHelper spriteDrawer;
         private float height;
@@ -177,34 +178,34 @@ namespace CharacterDataEditor.Screens
 
             // initially attempt to get projectiles with the current version of the project data structure
             projectiles = _projectileOperations.GetProjectilesFromProject<ProjectileDataModel>(projectData.ProjectPathOnly);
-            if (characters == null)
+            if (projectiles == null)
             {
-                _logger.LogCritical("Unable to load characters, path may be inaccessable. Throwing Exception");
-                throw new FileNotFoundException("Unable to load characters, path may be inaccessable.", projectData.FullPath);
+                _logger.LogCritical("Unable to load projectiles, path may be inaccessable. Throwing Exception");
+                throw new FileNotFoundException("Unable to load projectiles, path may be inaccessable.", projectData.FullPath);
             }
 
-            // if any of the characters need an upgrade, generate an error message and display with options for the user
-            var charactersNeedingUpgrade = characters.Where(x => x.UpgradeNeeded).ToList();
+            // if any of the projectiles need an upgrade, generate an error message and display with options for the user
+            var projectilesNeedingUpgrade = projectiles.Where(x => x.UpgradeNeeded).ToList();
 
-            // remove the characters that need an upgrade from the open list until they're upgraded
-            charactersNeedingUpgrade.ForEach(x => characters.Remove(x));
+            // remove the projectiles that need an upgrade from the open list until they're upgraded
+            projectilesNeedingUpgrade.ForEach(x => projectiles.Remove(x));
 
-            if (charactersNeedingUpgrade.Any())
+            if (projectilesNeedingUpgrade.Any())
             {
                 string fullErrorMessage = string.Empty;
-                List<CharacterDataModel> upgradedCharacters = new List<CharacterDataModel>();
+                List<ProjectileDataModel> upgradedProjectiles = new List<ProjectileDataModel>();
 
-                foreach (var characterNeedingUpgrade in charactersNeedingUpgrade)
+                foreach (var projectileNeedingUpgrade in projectilesNeedingUpgrade)
                 {
                     UpgradeResults results;
 
-                    switch (characterNeedingUpgrade.Version)
+                    switch (projectileNeedingUpgrade.Version)
                     {
                         case VersionConstants.Ver094:
                         case VersionConstants.Ver095:
                             {
-                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver095.CharacterDataModel>(characterNeedingUpgrade.FileName);
-                                results = oldCharacter.Upgrade();
+                                var oldProjectile = _projectileOperations.GetProjectileByFilename<Ver095.ProjectileDataModel>(ProjectileNeedingUpgrade.FileName);
+                                results = oldProjectile.Upgrade();
                                 break;
                             }
                         case VersionConstants.Ver096:
@@ -213,14 +214,14 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver102:
                         case VersionConstants.Ver103:
                             {
-                                var oldCharacter = _characterOperations.GetCharacterByFilename<Ver103.CharacterDataModel>(characterNeedingUpgrade.FileName);
-                                results = oldCharacter.Upgrade();
+                                var oldProjectile = _projectileOperations.GetProjectileByFilename<Ver103.ProjectileDataModel>(ProjectileNeedingUpgrade.FileName);
+                                results = oldProjectile.Upgrade();
                                 break;
                             }
                         case VersionConstants.Original:
                             {
-                                var oldCharacter = _characterOperations.GetCharacterByFilename<OriginalVersion.CharacterDataModel>(characterNeedingUpgrade.FileName);
-                                results = oldCharacter.Upgrade();
+                                var oldProjectile = _projectileOperations.GetProjectileByFilename<OriginalVersion.ProjectileDataModel>(ProjectileNeedingUpgrade.FileName);
+                                results = oldProjectile.Upgrade();
                                 break;
                             }
                         case VersionConstants.Ver110:
@@ -230,18 +231,18 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver114:
                         default:
                             {
-                                results = characterNeedingUpgrade.Upgrade();
+                                results = projectileNeedingUpgrade.Upgrade();
                                 break;
                             }
                     }
 
                     if (results.IsDataLossSuspected)
                     {
-                        fullErrorMessage += $"\nCharacter {characterNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{results.Message}\n";
+                        fullErrorMessage += $"\nProjectile {projectileNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{results.Message}\n";
                     }
 
-                    // add the upgraded character to the list
-                    upgradedCharacters.Add(results.UpgradedCharacterData);
+                    // add the upgraded projectile to the list
+                    upgradedProjectiles.Add(results.UpgradedProjectileData);
                 }
 
                 if (fullErrorMessage != string.Empty)
@@ -257,36 +258,36 @@ namespace CharacterDataEditor.Screens
                         }
                         else if (keycode == (int)KeyboardKey.KEY_U)
                         {
-                            // add characters to the list
-                            characters.AddRange(upgradedCharacters);
+                            // add projectiles to the list
+                            projectiles.AddRange(upgradedProjectiles);
 
-                            // save the updated characters
-                            upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
+                            // save the updated projectiles
+                            upgradedProjectiles.ForEach(x => _projectileOperations.SaveProjectile(x, projectData.ProjectPathOnly));
 
                             // resize the flags for selection
-                            itemSelected = new bool[characters.Count];
+                            itemSelected = new bool[projectiles.Count];
 
                             // disable the message
                             upgradeMessageShown = false;
                         }
                     };
                 }
-                else if (upgradedCharacters.Count > 0)
+                else if (upgradedProjectiles.Count > 0)
                 {
-                    // add characters to the list
-                    characters.AddRange(upgradedCharacters);
+                    // add projectiles to the list
+                    projectiles.AddRange(upgradedProjectiles);
 
-                    // save the updated characters
-                    upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
+                    // save the updated projectiles
+                    upgradedProjectiles.ForEach(x => _projectileOperations.SaveProjectile(x, projectData.ProjectPathOnly));
 
                     // resize the flags for selection
-                    itemSelected = new bool[characters.Count];
+                    itemSelected = new bool[projectiles.Count];
                 }
             }
 
-            itemSelected = new bool[characters.Count];
+            itemSelected = new bool[projectiles.Count];
 
-            allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
+            allSprites = _projectileOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
         }
 
         public void RenderImGui(IScreenManager screenManager)
