@@ -35,7 +35,8 @@ namespace CharacterDataEditor.Screens
         private SpriteDataModel spriteData;
         private List<SpriteDataModel> allSprites;
 
-        private bool[] itemSelected;
+        private bool[] characterItemSelected;
+        private bool[] projectileItemSelected;
 
         private bool upgradeMessageShown;
         private string upgradeMessageText;
@@ -157,7 +158,7 @@ namespace CharacterDataEditor.Screens
                             upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
 
                             // resize the flags for selection
-                            itemSelected = new bool[characters.Count];
+                            characterItemSelected = new bool[characters.Count];
 
                             // disable the message
                             upgradeMessageShown = false;
@@ -173,9 +174,11 @@ namespace CharacterDataEditor.Screens
                     upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
 
                     // resize the flags for selection
-                    itemSelected = new bool[characters.Count];
+                    characterItemSelected = new bool[characters.Count];
                 }
             }
+
+            characterItemSelected = new bool[characters.Count];
 
             // initially attempt to get projectiles with the current version of the project data structure
             projectiles = _projectileOperations.GetProjectilesFromProject<ProjectileDataModel>(projectData.ProjectPathOnly);
@@ -239,7 +242,7 @@ namespace CharacterDataEditor.Screens
                             upgradedProjectiles.ForEach(x => _projectileOperations.SaveProjectile(x, projectData.ProjectPathOnly));
 
                             // resize the flags for selection
-                            itemSelected = new bool[projectiles.Count];
+                            projectileItemSelected = new bool[projectiles.Count];
 
                             // disable the message
                             upgradeMessageShown = false;
@@ -255,11 +258,11 @@ namespace CharacterDataEditor.Screens
                     upgradedProjectiles.ForEach(x => _projectileOperations.SaveProjectile(x, projectData.ProjectPathOnly));
 
                     // resize the flags for selection
-                    itemSelected = new bool[projectiles.Count];
+                    projectileItemSelected = new bool[projectiles.Count];
                 }
             }
 
-            itemSelected = new bool[projectiles.Count];
+            projectileItemSelected = new bool[projectiles.Count];
 
             allSprites = _projectileOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
         }
@@ -338,12 +341,12 @@ namespace CharacterDataEditor.Screens
                 {
                     foreach (var character in characters)
                     {
-                        if (ImGui.Selectable(character.Name, itemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
+                        if (ImGui.Selectable(character.Name, characterItemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
                         {
                             var sprite = allSprites.Where(x => x.Name == character.CharacterSprites?.Idle).FirstOrDefault();
                             spriteData = sprite;
 
-                            SetItemAsSelected(characters.IndexOf(character));
+                            SetCharacterItemAsSelected(characters.IndexOf(character));
 
                             if (ImGui.IsMouseDoubleClicked(0))
                             {
@@ -392,12 +395,12 @@ namespace CharacterDataEditor.Screens
                 {
                     foreach (var projectile in projectiles)
                     {
-                        if (ImGui.Selectable(projectile.Name, itemSelected[projectiles.IndexOf(projectile)], ImGuiSelectableFlags.AllowDoubleClick))
+                        if (ImGui.Selectable(projectile.Name, projectileItemSelected[projectiles.IndexOf(projectile)], ImGuiSelectableFlags.AllowDoubleClick))
                         {
                             var sprite = allSprites.Where(x => x.Name == projectile.ProjectileSprites?.Sprite).FirstOrDefault();
                             spriteData = sprite;
 
-                            SetItemAsSelected(projectiles.IndexOf(projectile));
+                            SetProjectileItemAsSelected(projectiles.IndexOf(projectile));
 
                             if (ImGui.IsMouseDoubleClicked(0))
                             {
@@ -468,14 +471,24 @@ namespace CharacterDataEditor.Screens
             ImGui.EndMainMenuBar();
         }
 
-        private void SetItemAsSelected(int index)
+        private void SetCharacterItemAsSelected(int index)
         {
-            for (int i = 0; i < itemSelected.Length; i++)
+            for (int i = 0; i < characterItemSelected.Length; i++)
             {
-                itemSelected[i] = false;
+                characterItemSelected[i] = false;
             }
 
-            itemSelected[index] = true;
+            characterItemSelected[index] = true;
+        }
+
+        private void SetProjectileItemAsSelected(int index)
+        {
+            for (int i = 0; i < projectileItemSelected.Length; i++)
+            {
+                projectileItemSelected[i] = false;
+            }
+
+            projectileItemSelected[index] = true;
         }
     }
 }

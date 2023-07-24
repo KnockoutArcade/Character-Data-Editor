@@ -113,8 +113,8 @@ namespace CharacterDataEditor.Screens
             height = screenData?.height ?? 720;
             projectData = screenData?.projectData ?? new RecentProjectModel();
             action = screenData?.action ?? "new";
-            projectile = action == "edit" ? screenData.character : new ProjectileDataModel();
-            //copies the data from character into original character
+            projectile = action == "edit" ? screenData.projectile : new ProjectileDataModel();
+            //copies the data from projectile into original projectile
             originalProjectile = projectile.Clone();
 
             allSprites = _projectileOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
