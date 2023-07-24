@@ -488,6 +488,7 @@ namespace CharacterDataEditor.Screens
                         projectile.Character = selectedCharacterIndex != -1 ? characters[selectedCharacterIndex].Name : string.Empty;
                         var selectedCharacter = characters[selectedCharacterIndex];
 
+                        // Copy the selected character's palette when it hasn't been copied yet
                         if (prevCharacter == selectedCharacter && projectile.Palettes.Count == 0)
                         {
                             for (int i = 0; i < prevCharacter.Palettes.Count; i++)
@@ -504,7 +505,7 @@ namespace CharacterDataEditor.Screens
                                 }
                             }
                         }
-
+                        // Copy the selected character's palette if a different character is selected
                         if (prevCharacter != selectedCharacter)
                         {
                             projectile.Palettes.Clear();
@@ -522,7 +523,7 @@ namespace CharacterDataEditor.Screens
                                 }
                             }
                         }
-
+                        // Draw different selectable palettes
                         for (int i = 0; i < projectile.Palettes.Count; i++)
                         {
                             var palette = projectile.Palettes[i];
@@ -536,6 +537,18 @@ namespace CharacterDataEditor.Screens
                                 ChangeRenderedPalette(palette);
                             }, palette.Name, paletteSelected, i);
                         }
+                    }
+                    else
+                    {
+                        if (projectile.BaseColor == null)
+                        {
+                            projectile.BaseColor = new ProjectilePaletteModel();
+                            projectile.BaseColor.Name = "Base Palette";
+                        }
+                        paletteInEditor = projectile.BaseColor;
+                        editorMode = EditorMode.BasePalette;
+                        ChangeRenderedPalette(null);
+                        projectile.Palettes.Clear();
                     }
                 }
 
