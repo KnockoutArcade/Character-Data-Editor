@@ -201,34 +201,7 @@ namespace CharacterDataEditor.Screens
 
                     switch (projectileNeedingUpgrade.Version)
                     {
-                        case VersionConstants.Ver094:
-                        case VersionConstants.Ver095:
-                            {
-                                var oldProjectile = _projectileOperations.GetProjectileByFilename<Ver095.ProjectileDataModel>(ProjectileNeedingUpgrade.FileName);
-                                results = oldProjectile.Upgrade();
-                                break;
-                            }
-                        case VersionConstants.Ver096:
-                        case VersionConstants.Ver1:
-                        case VersionConstants.Ver101:
-                        case VersionConstants.Ver102:
-                        case VersionConstants.Ver103:
-                            {
-                                var oldProjectile = _projectileOperations.GetProjectileByFilename<Ver103.ProjectileDataModel>(ProjectileNeedingUpgrade.FileName);
-                                results = oldProjectile.Upgrade();
-                                break;
-                            }
-                        case VersionConstants.Original:
-                            {
-                                var oldProjectile = _projectileOperations.GetProjectileByFilename<OriginalVersion.ProjectileDataModel>(ProjectileNeedingUpgrade.FileName);
-                                results = oldProjectile.Upgrade();
-                                break;
-                            }
-                        case VersionConstants.Ver110:
-                        case VersionConstants.Ver111:
-                        case VersionConstants.Ver112:
-                        case VersionConstants.Ver113:
-                        case VersionConstants.Ver114:
+                        // Right now, this is the original version of the projectile data
                         default:
                             {
                                 results = projectileNeedingUpgrade.Upgrade();
@@ -341,6 +314,11 @@ namespace CharacterDataEditor.Screens
             screenManager.NavigateTo(typeof(EditCharacterScreen), new { width, height, projectData, action = "new" });
         }
 
+        private void CreateNewProjectile(IScreenManager screenManager)
+        {
+            screenManager.NavigateTo(typeof(EditProjectileScreen), new { width, height, projectData, action = "new" });
+        }
+
         private void DrawExistingCharacterPanel(float scale, IScreenManager screenManager)
         {
             ImGui.SetNextWindowPos(new Vector2(20 * scale, 100 * scale));
@@ -405,24 +383,24 @@ namespace CharacterDataEditor.Screens
             {
                 ImGui.SetWindowFontScale(scale);
 
-                if (characters.Count == 0)
+                if (projectiles.Count == 0)
                 {
                     ImGui.Text("No Projectiles found...");
                 }
                 else
                 {
-                    foreach (var character in characters)
+                    foreach (var projectile in projectiles)
                     {
-                        if (ImGui.Selectable(character.Name, itemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
+                        if (ImGui.Selectable(projectile.Name, itemSelected[projectiles.IndexOf(projectile)], ImGuiSelectableFlags.AllowDoubleClick))
                         {
-                            var sprite = allSprites.Where(x => x.Name == character.CharacterSprites?.Idle).FirstOrDefault();
+                            var sprite = allSprites.Where(x => x.Name == projectile.ProjectileSprites?.Sprite).FirstOrDefault();
                             spriteData = sprite;
 
-                            SetItemAsSelected(characters.IndexOf(character));
+                            SetItemAsSelected(projectiles.IndexOf(projectile));
 
                             if (ImGui.IsMouseDoubleClicked(0))
                             {
-                                screenManager.NavigateTo(typeof(EditCharacterScreen), new { width, height, character, projectData, action = "edit" });
+                                screenManager.NavigateTo(typeof(EditProjectileScreen), new { width, height, projectile, projectData, action = "edit" });
                             }
                         }
                     }
@@ -449,8 +427,8 @@ namespace CharacterDataEditor.Screens
                 }
                 if (ImGui.Button("Create New Projectile"))
                 {
-                    // go to create character screen
-                    //CreateNewCharacter(screenManager);
+                    // go to create projectile screen
+                    CreateNewProjectile(screenManager);
                 }
             }
         }
