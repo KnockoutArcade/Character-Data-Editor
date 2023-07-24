@@ -307,7 +307,7 @@ namespace CharacterDataEditor.Screens
                     MaxDrawSize = maxSpriteSize,
                     FrameAdvance = frameAdvance,
                     Flags = animationFlags
-                }, false, totalFrames, windows, resetAnimation);
+                }, projectile.HasLifetime, totalFrames, windows, resetAnimation);
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
@@ -330,7 +330,7 @@ namespace CharacterDataEditor.Screens
                     Flags = animationFlags,
                     EnableFrameDataDraw = isMoveAnimationRender,
                     FrameDrawData = (isMoveAnimationRender) ? projectile.FrameData : null
-                }, false, totalFrames, windows, resetAnimation);
+                }, projectile.HasLifetime, totalFrames, windows, resetAnimation);
 
                 currentFrame = frameData.CurrentFrame;
                 spriteDrawData = frameData;
@@ -931,7 +931,7 @@ namespace CharacterDataEditor.Screens
                             ChangeAnimatedSprite(sprite);
                         }
 
-                        if (selectedIndex == 0)
+                        if (spriteSelected == 0)
                         {
                             showingMove = true;
                         }
@@ -939,8 +939,18 @@ namespace CharacterDataEditor.Screens
                         {
                             showingMove = false;
                         }
-                        totalFrames = 0;
-                        windows.Clear();
+                        if (projectile.HasLifetime)
+                        {
+                            totalFrames = projectile.Lifetime;
+                        }
+                        else
+                        {
+                            totalFrames = 0;
+                        }
+                        // Fill windows list with animation frame indexes for each frame
+                        currentFrame = 0;
+                        ChangeWindowArray();
+                        resetAnimation = true;
                     };
 
                     var changeAction = (int selectedIndex) =>
@@ -1022,6 +1032,8 @@ namespace CharacterDataEditor.Screens
                     // Fill windows list with animation frame indexes for each frame
                     ChangeWindowArray();
                 }
+
+                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
 
                 // Hit Properties Dropdown
                 if (ImGui.CollapsingHeader("Hit Properties"))
