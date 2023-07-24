@@ -1121,7 +1121,6 @@ namespace CharacterDataEditor.Screens
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
-                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
                                 ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
                                 ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
                                 ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
@@ -1160,6 +1159,7 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
                                 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref particleDuration);
+                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
 

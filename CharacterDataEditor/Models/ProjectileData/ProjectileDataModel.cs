@@ -12,6 +12,8 @@ namespace CharacterDataEditor.Models.ProjectileData
     {
         public string Name { get; set; } = string.Empty;
         #region Base Stats
+        public bool HasLifetime { get; set; } = false;
+        public int Lifetime { get; set; } = 0;
         public float HorizontalSpeed { get; set; } = 0.0f;
         public float VerticalSpeed { get; set; } = 0.0f;
         public int EnvironmentalDisplacement { get; set; } = 0;
@@ -38,9 +40,10 @@ namespace CharacterDataEditor.Models.ProjectileData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Name, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, FallSpeed, GroundTraction, AirTraction, DestroyOnFloor);
-            hash = HashCode.Combine(hash, DestroyOnWall, BounceOnFloor, BounceOnWall, NumberOfBounces, Bounciness, Transcendent, Health);
-            hash = HashCode.Combine(hash, ProjectileSprites, BaseColor, Palettes, NumberOfHitboxes, AttackData, CounterData, RehitData);
+            var hash = HashCode.Combine(Name, HasLifetime, Lifetime, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, FallSpeed, GroundTraction);
+            hash = HashCode.Combine(hash, AirTraction, DestroyOnFloor, DestroyOnWall, BounceOnFloor, BounceOnWall, NumberOfBounces, Bounciness);
+            hash = HashCode.Combine(hash, Transcendent, Health, ProjectileSprites, BaseColor, Palettes, NumberOfHitboxes, AttackData);
+            hash = HashCode.Combine(hash, CounterData, RehitData);
 
             return hash;
         }
@@ -60,6 +63,8 @@ namespace CharacterDataEditor.Models.ProjectileData
             var objAsProjectileDataModel = (ProjectileDataModel)obj;
 
             if (objAsProjectileDataModel.Name.Equals(Name) &&
+                objAsProjectileDataModel.HasLifetime.Equals(HasLifetime) &&
+                objAsProjectileDataModel.Lifetime.Equals(Lifetime) &&
                 objAsProjectileDataModel.HorizontalSpeed.Equals(HorizontalSpeed) &&
                 objAsProjectileDataModel.VerticalSpeed.Equals(VerticalSpeed) &&
                 objAsProjectileDataModel.EnvironmentalDisplacement.Equals(EnvironmentalDisplacement) &&
