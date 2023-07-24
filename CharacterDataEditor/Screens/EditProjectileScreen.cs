@@ -50,7 +50,7 @@ namespace CharacterDataEditor.Screens
         private List<CharacterDataModel> characters = new List<CharacterDataModel>();
         private List<string> positionTypesList = new List<string>();
         private List<string> attackTypesList = new List<string>();
-        private ProjectilePaletteModel paletteInEditor;
+        private PaletteModel paletteInEditor;
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<SoundDataModel> allSounds;
@@ -58,7 +58,7 @@ namespace CharacterDataEditor.Screens
         private string spriteToDraw;
         private string prevSpriteToDraw;
         private SpriteDataModel spriteData;
-        private ProjectilePaletteModel paletteData;
+        private PaletteModel paletteData;
         private SpriteDrawingHelper spriteDrawer;
         private Vector2 spriteDrawPosition;
 
@@ -263,7 +263,7 @@ namespace CharacterDataEditor.Screens
             spriteData = sprite;
         }
 
-        private void ChangeRenderedPalette(ProjectilePaletteModel palette)
+        private void ChangeRenderedPalette(PaletteModel palette)
         {
             paletteData = palette;
         }
@@ -299,8 +299,8 @@ namespace CharacterDataEditor.Screens
                 var frameData = spriteDrawer.DrawSpecificFrameSpriteToScreen(new SpriteDrawDataModel
                 {
                     SpriteData = spriteData,
-                    ProjectileBaseColor = projectile.BaseColor,
-                    ProjectileSwapColor = paletteData,
+                    BaseColor = projectile.BaseColor,
+                    SwapColor = paletteData,
                     DrawPosition = spriteDrawPosition,
                     Scale = scale,
                     Logger = _logger,
@@ -320,8 +320,8 @@ namespace CharacterDataEditor.Screens
                 var frameData = spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
                 {
                     SpriteData = spriteData,
-                    ProjectileBaseColor = projectile.BaseColor,
-                    ProjectileSwapColor = paletteData,
+                    BaseColor = projectile.BaseColor,
+                    SwapColor = paletteData,
                     DrawPosition = spriteDrawPosition,
                     Scale = scale,
                     Logger = _logger,
@@ -329,7 +329,7 @@ namespace CharacterDataEditor.Screens
                     DefaultTexture = ResourceConstants.LogoPath,
                     Flags = animationFlags,
                     EnableFrameDataDraw = isMoveAnimationRender,
-                    FrameDrawData = null
+                    FrameDrawData = (isMoveAnimationRender) ? projectile.FrameData : null
                 }, false, totalFrames, windows, resetAnimation);
 
                 currentFrame = frameData.CurrentFrame;
@@ -460,7 +460,7 @@ namespace CharacterDataEditor.Screens
                 {
                     if (projectile.BaseColor == null)
                     {
-                        projectile.BaseColor = new ProjectilePaletteModel();
+                        projectile.BaseColor = new PaletteModel();
                         projectile.BaseColor.Name = "Base Palette";
                     }
 
@@ -494,7 +494,7 @@ namespace CharacterDataEditor.Screens
                             for (int i = 0; i < prevCharacter.Palettes.Count; i++)
                             {
                                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
-                                var newPalette = new ProjectilePaletteModel();
+                                var newPalette = new PaletteModel();
                                 newPalette.Name = prevCharacter.Palettes[i].Name;
                                 projectile.Palettes.Add(newPalette);
                                 if (i == 0)
@@ -512,7 +512,7 @@ namespace CharacterDataEditor.Screens
                             for (int i = 0; i < selectedCharacter.Palettes.Count; i++)
                             {
                                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
-                                var newPalette = new ProjectilePaletteModel();
+                                var newPalette = new PaletteModel();
                                 newPalette.Name = selectedCharacter.Palettes[i].Name;
                                 projectile.Palettes.Add(newPalette);
                                 if (i == 0)
@@ -542,7 +542,7 @@ namespace CharacterDataEditor.Screens
                     {
                         if (projectile.BaseColor == null)
                         {
-                            projectile.BaseColor = new ProjectilePaletteModel();
+                            projectile.BaseColor = new PaletteModel();
                             projectile.BaseColor.Name = "Base Palette";
                         }
                         paletteInEditor = projectile.BaseColor;
@@ -576,7 +576,7 @@ namespace CharacterDataEditor.Screens
 
                 if (paletteInEditor.ColorPalette == null)
                 {
-                    paletteInEditor.ColorPalette = new List<ProjectileRGBModel>();
+                    paletteInEditor.ColorPalette = new List<RGBModel>();
                 }
 
                 //if it's the base palette, this is can be changed... otherwise its the same as the base palette
@@ -603,7 +603,7 @@ namespace CharacterDataEditor.Screens
                 {
                     while (numberOfReplacableColors > paletteInEditor.NumberOfReplacableColors)
                     {
-                        paletteInEditor.ColorPalette.Add(new ProjectileRGBModel());
+                        paletteInEditor.ColorPalette.Add(new RGBModel());
                     }
                 }
 
@@ -843,8 +843,15 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawBoolInput("hasLifetime", ref hasLifetime);
                     if (hasLifetime)
                     {
-                        ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
+                        var adjustLifetime = ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
                         totalFrames = lifetime;
+                        if (adjustLifetime)
+                        {
+                            ChangeWindowArray();
+                            animationPaused = true;
+                            boxDrawMode = BoxDrawMode.None;
+                            showHitHurtboxes = false;
+                        }
                     }
                     else
                     {
@@ -958,6 +965,63 @@ namespace CharacterDataEditor.Screens
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+
+                // Windows dropdown
+                if (ImGui.CollapsingHeader("Windows"))
+                {
+                    int windowCount = projectile.NumberOfFrames;
+
+                    ImguiDrawingHelper.DrawIntInput("numberOfWindows", ref windowCount);
+
+                    if (windowCount < 0)
+                    {
+                        windowCount = 0;
+                    }
+
+                    if (windowCount < projectile.NumberOfFrames)
+                    {
+                        while (windowCount < projectile.NumberOfFrames)
+                        {
+                            projectile.FrameData.RemoveAt(projectile.NumberOfFrames - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (windowCount > projectile.NumberOfFrames)
+                        {
+                            projectile.FrameData.Add(new FrameDataModel());
+                        }
+                    }
+
+                    if (windowCount == 0)
+                    {
+                        ImGui.Text("No windows");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < projectile.NumberOfFrames; i++)
+                        {
+                            var windowItem = projectile.FrameData[i];
+
+                            if (ImGui.TreeNode($"Window [{i}]"))
+                            {
+                                int imageIndex = windowItem.ImageIndex;
+                                int length = windowItem.Length;
+
+                                ImguiDrawingHelper.DrawIntInput("imageIndex", ref imageIndex);
+                                ImguiDrawingHelper.DrawIntInput("length", ref length);
+
+                                windowItem.ImageIndex = imageIndex;
+                                windowItem.Length = length;
+
+                                ImGui.TreePop();
+                            }
+                        }
+                    }
+
+                    // Fill windows list with animation frame indexes for each frame
+                    ChangeWindowArray();
+                }
 
                 // Hit Properties Dropdown
                 if (ImGui.CollapsingHeader("Hit Properties"))
@@ -1477,6 +1541,46 @@ namespace CharacterDataEditor.Screens
         {
             _projectileOperations.SaveProjectile(projectile, projectData.ProjectPathOnly);
             originalProjectile = projectile.Clone();
+        }
+
+        private void ChangeWindowArray()
+        {
+            // Fill windows list with animation frame indexes for each frame
+            int currentFrame = 0;
+            windows.Clear();
+            if (projectile.FrameData.Count > 0)
+            {
+                for (int i = 0; i < totalFrames; i++)
+                {
+                    var windowItem = projectile.FrameData[currentFrame];
+
+                    if (i >= windowItem.Length - 1 && currentFrame < projectile.FrameData.Count - 1)
+                    {
+                        currentFrame++;
+                    }
+
+                    if (currentFrame < projectile.FrameData.Count - 1)
+                    {
+                        windows.Add(windowItem.ImageIndex - 1);
+                    }
+                    else
+                    {
+                        if (i < windowItem.Length)
+                        {
+                            windows.Add(windowItem.ImageIndex - 1);
+                        }
+                        else
+                        {
+                            windows.Add(windowItem.ImageIndex);
+                        }
+                    }
+                }
+                // Adds an extra window to prevent crashes
+                if (windows.Count > 0)
+                {
+                    windows.Add(windows[windows.Count - 1]);
+                }
+            }
         }
     }
 }

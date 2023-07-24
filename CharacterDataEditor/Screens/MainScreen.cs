@@ -125,8 +125,6 @@ namespace CharacterDataEditor.Screens
                 SpriteData = null,
                 BaseColor = null,
                 SwapColor = null,
-                ProjectileBaseColor = null,
-                ProjectileSwapColor = null,
                 DrawPosition = Vector2.Zero,
                 Scale = scale,
                 DefaultTexture = ResourceConstants.LogoPath,
