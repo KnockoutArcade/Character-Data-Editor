@@ -20,6 +20,8 @@ using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using NAudio.Wave;
+using System.Security.Cryptography;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace CharacterDataEditor.Screens
 {
@@ -45,6 +47,7 @@ namespace CharacterDataEditor.Screens
         private Texture2D soundPlayTexture;
         private Texture2D soundMuteTexture;
 
+        private List<CharacterDataModel> characters = new List<CharacterDataModel>();
         private List<string> positionTypesList = new List<string>();
         private List<string> attackTypesList = new List<string>();
         private ProjectilePaletteModel paletteInEditor;
@@ -118,6 +121,8 @@ namespace CharacterDataEditor.Screens
             projectile = action == "edit" ? screenData.projectile : new ProjectileDataModel();
             //copies the data from projectile into original projectile
             originalProjectile = projectile.Clone();
+
+            characters = _characterOperations.GetCharactersFromProject<CharacterDataModel>(projectData.ProjectPathOnly);
 
             allSprites = _projectileOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _projectileOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
@@ -469,41 +474,67 @@ namespace CharacterDataEditor.Screens
                 //load each of the palettes in by name...
                 if (ImGui.CollapsingHeader("Alternate Palettes", ImGuiTreeNodeFlags.DefaultOpen))
                 {
-                    if (ImGui.Button("New Palette"))
+                    // Copies character palettes to match each palette
+                    var copyCharacterPalette = projectile.CopyCharacterPalette;
+                    ImguiDrawingHelper.DrawBoolInput("copyCharacterPalette", ref copyCharacterPalette);
+                    projectile.CopyCharacterPalette = copyCharacterPalette;
+
+                    if (projectile.CopyCharacterPalette)
                     {
-                        var newPalette = new ProjectilePaletteModel();
-                        projectile.Palettes.Add(newPalette);
-                        paletteInEditor = newPalette;
-                        editorMode = EditorMode.Palette;
-                        ChangeRenderedPalette(newPalette);
-                    }
+                        var character = projectile.Character;
+                        int selectedCharacterIndex = character != string.Empty ? characters.IndexOf(characters.First(x => x.Name == character)) : -1;
+                        var prevCharacter = characters[selectedCharacterIndex];
+                        ImguiDrawingHelper.DrawComboInput("character", characters.Select(x => x.Name).ToArray(), ref selectedCharacterIndex);
+                        projectile.Character = selectedCharacterIndex != -1 ? characters[selectedCharacterIndex].Name : string.Empty;
+                        var selectedCharacter = characters[selectedCharacterIndex];
 
-                    ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
-
-                    for (int i = 0; i < projectile.Palettes.Count; i++)
-                    {
-                        var palette = projectile.Palettes[i];
-
-                        var paletteSelected = paletteInEditor == palette;
-
-                        if (ImguiDrawingHelper.DrawSelectableWithRemove(() =>
+                        if (prevCharacter == selectedCharacter && projectile.Palettes.Count == 0)
                         {
-                            paletteInEditor = palette;
-                            editorMode = EditorMode.Palette;
-                            ChangeRenderedPalette(palette);
-                        }, () =>
-                        {
-                            projectile.Palettes.Add(palette.GetDuplicate());
-                        }, palette.Name, paletteSelected, i))
-                        {
-                            if (paletteInEditor == palette)
+                            for (int i = 0; i < prevCharacter.Palettes.Count; i++)
                             {
-                                paletteInEditor = null;
-                                editorMode = EditorMode.BasePalette;
-                                ChangeRenderedPalette(null);
+                                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+                                var newPalette = new ProjectilePaletteModel();
+                                newPalette.Name = prevCharacter.Palettes[i].Name;
+                                projectile.Palettes.Add(newPalette);
+                                if (i == 0)
+                                {
+                                    paletteInEditor = newPalette;
+                                    editorMode = EditorMode.Palette;
+                                    ChangeRenderedPalette(newPalette);
+                                }
                             }
+                        }
 
-                            projectile.Palettes.RemoveAt(i);
+                        if (prevCharacter != selectedCharacter)
+                        {
+                            projectile.Palettes.Clear();
+                            for (int i = 0; i < selectedCharacter.Palettes.Count; i++)
+                            {
+                                ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
+                                var newPalette = new ProjectilePaletteModel();
+                                newPalette.Name = selectedCharacter.Palettes[i].Name;
+                                projectile.Palettes.Add(newPalette);
+                                if (i == 0)
+                                {
+                                    paletteInEditor = newPalette;
+                                    editorMode = EditorMode.Palette;
+                                    ChangeRenderedPalette(newPalette);
+                                }
+                            }
+                        }
+
+                        for (int i = 0; i < projectile.Palettes.Count; i++)
+                        {
+                            var palette = projectile.Palettes[i];
+
+                            var paletteSelected = paletteInEditor == palette;
+
+                            ImguiDrawingHelper.DrawSelectable(() =>
+                            {
+                                paletteInEditor = palette;
+                                editorMode = EditorMode.Palette;
+                                ChangeRenderedPalette(palette);
+                            }, palette.Name, paletteSelected, i);
                         }
                     }
                 }
@@ -524,22 +555,11 @@ namespace CharacterDataEditor.Screens
             }
             else
             {
-                if (!basePalette)
-                {
-                    var name = paletteInEditor.Name;
-
-                    ImguiDrawingHelper.DrawStringInput("paletteName", ref name);
-
-                    paletteInEditor.Name = name;
-                }
-                else
-                {
-                    ImGui.Columns(2);
-                    ImGui.Text("Palette Name");
-                    ImGui.NextColumn();
-                    ImGui.Text(paletteInEditor.Name);
-                    ImGui.Columns(1);
-                }
+                ImGui.Columns(2);
+                ImGui.Text("Palette Name");
+                ImGui.NextColumn();
+                ImGui.Text(paletteInEditor.Name);
+                ImGui.Columns(1);
 
                 if (paletteInEditor.ColorPalette == null)
                 {

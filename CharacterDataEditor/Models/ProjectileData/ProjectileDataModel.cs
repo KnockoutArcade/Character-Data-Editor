@@ -32,7 +32,7 @@ namespace CharacterDataEditor.Models.ProjectileData
         #endregion
         public ProjectilePaletteModel BaseColor { get; set; } = new ProjectilePaletteModel();
         public bool CopyCharacterPalette { get; set; } = false;
-        public string Character { get; set; } = string.Empty;
+        public string Character { get; set; } = "Russel";
         public List<ProjectilePaletteModel> Palettes { get; set; } = new List<ProjectilePaletteModel>();
         public int NumberOfHitboxes { get { return AttackData?.Count ?? 0; } }
         public List<ProjectileAttackDataModel> AttackData { get; set; } = new List<ProjectileAttackDataModel>();

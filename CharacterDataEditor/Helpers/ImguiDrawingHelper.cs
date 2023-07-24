@@ -374,5 +374,13 @@ namespace CharacterDataEditor.Helpers
             ImGui.EndTable();
             return false;
         }
+
+        public static void DrawSelectable(Action selectAction, string label, bool selected, int id = -1)
+        {
+            if (ImGui.Selectable($"{label}##{id}", selected))
+            {
+                selectAction();
+            }
+        }
     }
 }
