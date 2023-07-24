@@ -326,7 +326,7 @@ namespace CharacterDataEditor.Screens
         private void DrawExistingCharacterPanel(float scale, IScreenManager screenManager)
         {
             ImGui.SetNextWindowPos(new Vector2(20 * scale, 100 * scale));
-            var windowSize = new Vector2(200 * scale, 530 * scale);
+            var windowSize = new Vector2(200 * scale, 480 * scale);
             ImGui.SetNextWindowSize(windowSize);
 
             if (ImGui.Begin("Existing Characters", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -380,7 +380,7 @@ namespace CharacterDataEditor.Screens
         private void DrawExistingProjectilePanel(float scale, IScreenManager screenManager)
         {
             ImGui.SetNextWindowPos(new Vector2(240 * scale, 100 * scale));
-            var windowSize = new Vector2(200 * scale, 530 * scale);
+            var windowSize = new Vector2(200 * scale, 480 * scale);
             ImGui.SetNextWindowSize(windowSize);
 
             if (ImGui.Begin("Existing Projectiles", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))

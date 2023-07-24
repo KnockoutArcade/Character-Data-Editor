@@ -99,12 +99,12 @@ namespace CharacterDataEditor.Screens
 
         public void Init(dynamic screenData)
         {
-            Raylib.SetWindowTitle(TitleConstants.EditCharacterTitle);
+            Raylib.SetWindowTitle(TitleConstants.EditProjectileTitle);
 
             spriteToDraw = string.Empty;
             prevSpriteToDraw = string.Empty;
             spriteData = null;
-            editorMode = EditorMode.None;
+            editorMode = EditorMode.BasePalette;
 
             paletteInEditor = null;
             unsaved = false;
@@ -435,7 +435,7 @@ namespace CharacterDataEditor.Screens
             //set the window size, scale as necessary
             var windowSize = new Vector2();
             windowSize.X = 320 * scale;
-            windowSize.Y = 620 * scale;
+            windowSize.Y = 560 * scale;
 
             ImGui.SetNextWindowPos(new Vector2(10 * scale, 20 * scale));
             ImGui.SetNextWindowSize(windowSize);
@@ -588,10 +588,10 @@ namespace CharacterDataEditor.Screens
         private void RenderEditor(float scale)
         {
             var windowSize = new Vector2();
-            windowSize.X = 450 * scale;
-            windowSize.Y = 250 * scale;
+            windowSize.X = 350 * scale;
+            windowSize.Y = 220 * scale;
 
-            float windowYPos = height - 24 - windowSize.Y;
+            float windowYPos = height - 8 - windowSize.Y;
 
             var windowPos = new Vector2(width / 2 - windowSize.X / 2, windowYPos);
 
@@ -753,7 +753,7 @@ namespace CharacterDataEditor.Screens
         {
             var windowSize = new Vector2();
             windowSize.X = 320 * scale;
-            windowSize.Y = 620 * scale;
+            windowSize.Y = 560 * scale;
 
             ImGui.SetNextWindowPos(new Vector2(width - windowSize.X - 10 * scale, 20 * scale));
             ImGui.SetNextWindowSize(windowSize);
@@ -920,6 +920,23 @@ namespace CharacterDataEditor.Screens
                     if (hitboxCount < 0)
                     {
                         hitboxCount = 0;
+                    }
+
+                    if (hitboxCount < projectile.NumberOfHitboxes)
+                    {
+                        while (hitboxCount < projectile.NumberOfHitboxes)
+                        {
+                            projectile.CounterData.RemoveAt(projectile.NumberOfHitboxes - 1);
+                            projectile.AttackData.RemoveAt(projectile.NumberOfHitboxes - 1);
+                        }
+                    }
+                    else
+                    {
+                        while (hitboxCount > projectile.NumberOfHitboxes)
+                        {
+                            projectile.AttackData.Add(new ProjectileAttackDataModel());
+                            projectile.CounterData.Add(new ProjectileCounterHitDataModel());
+                        }
                     }
 
                     if (hitboxCount == 0)
@@ -1233,8 +1250,8 @@ namespace CharacterDataEditor.Screens
             {
                 if (ImGui.MenuItem("Save"))
                 {
-                    //exports json to the characterdata folder in the game
-                    SaveCharacter();
+                    //exports json to the projectiledata folder in the game
+                    SaveProjectile();
                 }
 
                 if (ImGui.MenuItem("Export..."))
@@ -1242,7 +1259,7 @@ namespace CharacterDataEditor.Screens
                     //shows windows modal to allow saving json to anywhere
                     var saveFile = Win32DialogHelper.ShowSaveFileDialog(
                         "JSON File (*.json)\0*.json\0All Files (*.*)\0*.*\0",
-                        "Save Character JSON Output",
+                        "Save Projectile JSON Output",
                         projectData.ProjectPathOnly,
                         ".json");
 
@@ -1257,12 +1274,12 @@ namespace CharacterDataEditor.Screens
 
                 if (ImGui.MenuItem("Clear all data (reset)"))
                 {
-                    Init(new { width, height, projectData, action, character = new CharacterDataModel() });
+                    Init(new { width, height, projectData, action, projectile = new ProjectileDataModel() });
                 }
 
                 ImGui.Separator();
 
-                if (ImGui.MenuItem("Close Character"))
+                if (ImGui.MenuItem("Close Projectile"))
                 {
                     _logger.LogInformation("Project closed");
                     if (unsaved)
@@ -1271,7 +1288,7 @@ namespace CharacterDataEditor.Screens
                         {
                             if (keycode == (int)KeyboardKey.KEY_S)
                             {
-                                SaveCharacter();
+                                SaveProjectile();
                                 screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
                             }
                             else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1303,7 +1320,7 @@ namespace CharacterDataEditor.Screens
                         {
                             if (keycode == (int)KeyboardKey.KEY_S)
                             {
-                                SaveCharacter();
+                                SaveProjectile();
                                 screenManager.NavigateTo(typeof(MainScreen), new { height, width });
                             }
                             else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1336,7 +1353,7 @@ namespace CharacterDataEditor.Screens
                         {
                             if (keycode == (int)KeyboardKey.KEY_S)
                             {
-                                SaveCharacter();
+                                SaveProjectile();
                                 screenManager.ExitWindow = true;
                             }
                             else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1373,7 +1390,7 @@ namespace CharacterDataEditor.Screens
                 {
                     if (keycode == (int)KeyboardKey.KEY_S)
                     {
-                        SaveCharacter();
+                        SaveProjectile();
                         screenManager.ExitWindow = true;
                     }
                     else if (keycode == (int)KeyboardKey.KEY_X)
@@ -1394,7 +1411,7 @@ namespace CharacterDataEditor.Screens
             }
         }
 
-        private void SaveCharacter()
+        private void SaveProjectile()
         {
             _projectileOperations.SaveProjectile(projectile, projectData.ProjectPathOnly);
             originalProjectile = projectile.Clone();
