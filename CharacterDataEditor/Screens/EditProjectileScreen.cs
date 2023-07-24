@@ -54,11 +54,6 @@ namespace CharacterDataEditor.Screens
         private string spriteToDraw;
         private string prevSpriteToDraw;
         private SpriteDataModel spriteData;
-        private SpriteDataModel moveSprite;
-        private SpriteDataModel walkForwardSprite;
-        private SpriteDataModel walkBackwardSprite;
-        private SpriteDataModel runForwardSprite;
-        private SpriteDataModel runBackwardSprite;
         private ProjectilePaletteModel paletteData;
         private SpriteDrawingHelper spriteDrawer;
         private Vector2 spriteDrawPosition;
@@ -109,11 +104,6 @@ namespace CharacterDataEditor.Screens
             spriteToDraw = string.Empty;
             prevSpriteToDraw = string.Empty;
             spriteData = null;
-            moveSprite = null;
-            walkForwardSprite = null;
-            walkBackwardSprite = null;
-            runForwardSprite = null;
-            runBackwardSprite = null;
             editorMode = EditorMode.None;
 
             paletteInEditor = null;

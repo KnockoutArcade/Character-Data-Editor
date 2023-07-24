@@ -53,7 +53,7 @@ namespace CharacterDataEditor.Services
 
             _logger.LogInformation("Window created with Raylib and sent to video card");
 
-            _screenManager.ScreenScale = clientWindow.Y / 650.0f;
+            _screenManager.ScreenScale = monitorSize.Y / 650.0f;
             _screenManager.BackgroundColor = Color.DARKGRAY;
 
             _logger.LogInformation($"GUI Scaling calculated to be: {_screenManager.ScreenScale}");

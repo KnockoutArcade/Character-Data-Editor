@@ -43,10 +43,11 @@ namespace CharacterDataEditor.Screens
         private delegate void AfterConfirmAction(int keyCode, IScreenManager screenManager);
         private AfterConfirmAction afterConfirmAction;
 
-        public ProjectHomeScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations)
+        public ProjectHomeScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations, IProjectileOperations projectileOperations)
         {
             _logger = logger;
             _characterOperations = characterOperations;
+            _projectileOperations = projectileOperations;
         }
 
         public void CheckForExit(IScreenManager screenManager)
