@@ -4,6 +4,7 @@ using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using CharacterDataEditor.Services;
 using CharacterDataEditor.NAudio;
 using ImGuiNET;
@@ -26,6 +27,7 @@ namespace CharacterDataEditor.Screens
     {
         private readonly ILogger<IScreen> _logger;
         private readonly ICharacterOperations _characterOperations;
+        private readonly IProjectileOperations _projectileOperations;
 
         private float width;
         private float height;
@@ -60,7 +62,8 @@ namespace CharacterDataEditor.Screens
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<SoundDataModel> allSounds;
-        private List<ObjectDataModel> allProjectiles;
+        private List<ProjectileDataModel> projectiles = new List<ProjectileDataModel>();
+        private List<string> projectileNames = new List<string>();
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -109,10 +112,11 @@ namespace CharacterDataEditor.Screens
         private delegate void AfterConfirmAction(int keyCode);
         private AfterConfirmAction exitConfirmAction;
 
-        public EditCharacterScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations)
+        public EditCharacterScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations, IProjectileOperations projectileOperations)
         {
             _logger = logger;
             _characterOperations = characterOperations;
+            _projectileOperations = projectileOperations;
         }
 
         public void Init(dynamic screenData)
@@ -144,7 +148,7 @@ namespace CharacterDataEditor.Screens
             // Add every character to this list
             spiritCharacters = _characterOperations.GetCharactersFromProject<CharacterDataModel>(projectData.ProjectPathOnly);
             List<CharacterDataModel> spiritsToRemove = new List<CharacterDataModel>();
-            // Find which character need to be removed from this list
+            // Find which character needs to be removed from this list
             foreach (var spiritCharacter in spiritCharacters)
             {
                 if (spiritCharacter.UniqueData.SpiritData != SpiritDataType.IsSpirit)
@@ -168,7 +172,14 @@ namespace CharacterDataEditor.Screens
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
             allSounds = _characterOperations.GetAllGameData<SoundDataModel>(projectData.ProjectPathOnly);
-            allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
+
+            projectiles = _projectileOperations.GetProjectilesFromProject<ProjectileDataModel>(projectData.ProjectPathOnly);
+            projectileNames.Clear();
+            projectileNames.Add("None");
+            foreach (var projectile in projectiles)
+            {
+                projectileNames.Add(projectile.Name);
+            }
 
             playSound = false;
             soundPlayers = new List<CachedSound>();
@@ -1720,9 +1731,9 @@ namespace CharacterDataEditor.Screens
                                 int spawnFrame = currentProjectile.SpawnFrame;
 
                                 var objId = currentProjectile.ProjectileObject ?? string.Empty;
-                                var selectedObjectIndex = objId != string.Empty ? allProjectiles.IndexOf(allProjectiles.First(x => x.Name == objId)) : -1;
-                                ImguiDrawingHelper.DrawComboInput("projectileObject", allProjectiles.Select(x => x.Name).ToArray(), ref selectedObjectIndex);
-                                currentProjectile.ProjectileObject = selectedObjectIndex != -1 ? allProjectiles[selectedObjectIndex].Name : string.Empty;
+                                int selectedObjectIndex = projectileNames.IndexOf(objId);
+                                ImguiDrawingHelper.DrawComboInput("projectile", projectileNames.ToArray(), ref selectedObjectIndex);
+                                currentProjectile.ProjectileObject = selectedObjectIndex != -1 ? projectileNames[selectedObjectIndex] : string.Empty;
 
                                 ImguiDrawingHelper.DrawIntInput("spawnFrame", ref spawnFrame, 0);
                                 ImguiDrawingHelper.DrawIntInput("spawnOffsetX", ref spawnX);

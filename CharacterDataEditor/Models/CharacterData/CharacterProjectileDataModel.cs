@@ -7,7 +7,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public int SpawnFrame { get; set; } = 0;
         public int SpawnXOffset { get; set; } = 0;
         public int SpawnYOffset { get; set; } = 0;
-        public string ProjectileObject { get; set; } = string.Empty;
+        public string ProjectileObject { get; set; } = "None";
 
         public override int GetHashCode()
         {

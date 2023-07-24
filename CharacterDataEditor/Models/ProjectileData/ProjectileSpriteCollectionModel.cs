@@ -11,11 +11,11 @@ namespace CharacterDataEditor.Models.ProjectileData
     public class ProjectileSpriteCollectionModel
     {
         public string Sprite { get; set; } = string.Empty;
-        public string Impact { get; set; } = string.Empty;
+        public string Destroy { get; set; } = string.Empty;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Sprite, Impact);
+            var hash = HashCode.Combine(Sprite, Destroy);
 
             return hash;
         }
@@ -35,7 +35,7 @@ namespace CharacterDataEditor.Models.ProjectileData
             var objAsCharacterSpriteCollection = obj as ProjectileSpriteCollectionModel;
 
             if (objAsCharacterSpriteCollection.Sprite.Equals(Sprite) &&
-                objAsCharacterSpriteCollection.Impact.Equals(Impact))
+                objAsCharacterSpriteCollection.Destroy.Equals(Destroy))
             {
                 return true;
             }

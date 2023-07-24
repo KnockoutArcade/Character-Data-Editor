@@ -3,6 +3,7 @@ using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Models.CharacterData;
 using CharacterDataEditor.Models.ProjectileData;
 using CharacterDataEditor.Services;
 using CharacterDataEditor.NAudio;
@@ -19,13 +20,13 @@ using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using NAudio.Wave;
-using CharacterDataEditor.Models.CharacterData;
 
 namespace CharacterDataEditor.Screens
 {
     public class EditProjectileScreen : IScreen
     {
         private readonly ILogger<IScreen> _logger;
+        private readonly ICharacterOperations _characterOperations;
         private readonly IProjectileOperations _projectileOperations;
 
         private float width;
@@ -91,9 +92,10 @@ namespace CharacterDataEditor.Screens
         private delegate void AfterConfirmAction(int keyCode);
         private AfterConfirmAction exitConfirmAction;
 
-        public EditProjectileScreen(ILogger<IScreen> logger, IProjectileOperations projectileOperations)
+        public EditProjectileScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations, IProjectileOperations projectileOperations)
         {
             _logger = logger;
+            _characterOperations = characterOperations;
             _projectileOperations = projectileOperations;
         }
 
@@ -850,8 +852,8 @@ namespace CharacterDataEditor.Screens
                         numberOfBounces = 0;
                         bounciness = 0;
                     }
-                    ImguiDrawingHelper.DrawBoolInput("transcendent", ref transcendent);
-                    ImguiDrawingHelper.DrawIntInput("health", ref health, int.MinValue, null, "The number of times a projectile hits something before disappearing.");
+                    ImguiDrawingHelper.DrawBoolInput("transcendent", ref transcendent, "Whether this projectile will phase through other projectiles.");
+                    ImguiDrawingHelper.DrawIntInput("health", ref health, int.MinValue, null, "The number of times the projectile hits something before disappearing.");
 
                     projectile.HasLifetime = hasLifetime;
                     projectile.Lifetime = lifetime;
@@ -876,10 +878,10 @@ namespace CharacterDataEditor.Screens
                 if (ImGui.CollapsingHeader("Sprite Data", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     var Sprite = projectile.ProjectileSprites.Sprite;
-                    var Impact = projectile.ProjectileSprites.Impact;
+                    var Destroy = projectile.ProjectileSprites.Destroy;
 
                     int spriteSelected = string.IsNullOrWhiteSpace(Sprite) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Sprite));
-                    int impactSelected = string.IsNullOrWhiteSpace(Impact) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Impact));
+                    int DestroySelected = string.IsNullOrWhiteSpace(Destroy) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Destroy));
 
                     var selectionAction = (int selectedIndex) =>
                     {
@@ -914,10 +916,10 @@ namespace CharacterDataEditor.Screens
                         index != -1 && spriteData == allSprites[index] ? "*" : "";
 
                     ImguiDrawingHelper.DrawSelectableComboInput($"sprite{isPlaying(spriteSelected)}", allSprites.Select(x => x.Name).ToArray(), ref spriteSelected, selectionAction, changeAction);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"impact{isPlaying(impactSelected)}", allSprites.Select(x => x.Name).ToArray(), ref impactSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"Destroy{isPlaying(DestroySelected)}", allSprites.Select(x => x.Name).ToArray(), ref DestroySelected, selectionAction, changeAction);
 
                     projectile.ProjectileSprites.Sprite = spriteSelected != -1 ? allSprites[spriteSelected].Name : string.Empty;
-                    projectile.ProjectileSprites.Impact = impactSelected != -1 ? allSprites[impactSelected].Name : string.Empty;
+                    projectile.ProjectileSprites.Destroy = DestroySelected != -1 ? allSprites[DestroySelected].Name : string.Empty;
 
                     spriteIndex = spriteSelected;
                 }
