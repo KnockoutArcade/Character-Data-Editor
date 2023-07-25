@@ -407,13 +407,27 @@ namespace CharacterDataEditor.Screens
                             var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
                             var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
 
-                            var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                            var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
+                            var xOffsetAdjusted = hitboxRects[i][0].x * spriteFinalScale;
+                            var yOffsetAdjusted = hitboxRects[i][0].y * spriteFinalScale;
 
                             var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
                             var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                            var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                            var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
+                            var finalWidth = hitboxRects[i][0].width * spriteFinalScale;
+                            var finalHeight = hitboxRects[i][0].height * spriteFinalScale;
+
+                            if (currentFrame <= hitboxRects[i].Count)
+                            {
+                                xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
+                                yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
+
+                                xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
+                                yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
+
+                                xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
+                                yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
+                                finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
+                                finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
+                            }
 
                             yDrawPos -= yOffsetAdjusted;
                             xDrawPos += xOffsetAdjusted;
@@ -840,10 +854,15 @@ namespace CharacterDataEditor.Screens
                     var health = projectile.Health;
                     var spriteCollection = projectile.ProjectileSprites;
 
+                    var prevHasLifetime = lifetime;
                     ImguiDrawingHelper.DrawBoolInput("hasLifetime", ref hasLifetime);
                     if (hasLifetime)
                     {
                         var adjustLifetime = ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
+                        if (prevHasLifetime != lifetime)
+                        {
+                            currentFrame = 1;
+                        }
                         totalFrames = lifetime;
                         if (adjustLifetime)
                         {
@@ -856,7 +875,11 @@ namespace CharacterDataEditor.Screens
                     else
                     {
                         lifetime = 0;
-                        totalFrames = 1;
+                        if (prevHasLifetime != lifetime)
+                        {
+                            currentFrame = 1;
+                        }
+                        totalFrames = spriteData != null ? spriteData.Frames.Count : 0;
                     }
                     ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
