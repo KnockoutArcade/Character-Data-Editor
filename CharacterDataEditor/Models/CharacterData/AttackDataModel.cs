@@ -13,6 +13,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public int HeightOffset { get; set; } = 0;
         public int Group { get; set; } = 0;
         public int Damage { get; set; } = 0;
+        public float MeterGain { get; set; } = 0.0f;
+        public float ComboScaling { get; set; } = 0.0f;
         public int AttackHitStop { get; set; } = 0;
         public int AttackHitStun { get; set; } = 0;
         public AttackType AttackType { get; set; } = AttackType.Low;
@@ -23,6 +25,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public bool Launches { get; set; } = false;
         public float LaunchKnockbackVertical { get; set; } = 0.0f;
         public float LaunchKnockbackHorizontal { get; set; } = 0.0f;
+        public float GravityScaling { get; set; } = 0.0f;
         public float Pushback { get; set; } = 0;
         public int ParticleXOffset { get; set; } = 0;
         public int ParticleYOffset { get; set; } = 0;
@@ -30,17 +33,16 @@ namespace CharacterDataEditor.Models.CharacterData
         public int ParticleDuration { get; set; } = 0;
         public int HoldXOffset { get; set; } = 0;
         public int HoldYOffset { get; set; } = 0;
-        public float MeterGain { get; set; } = 0.0f;
-        public float ComboScaling { get; set; } = 0.0f;
         public bool CausesWallbounce { get; set; } = false;
         public string HitSound { get; set; } = "";
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Start, Lifetime, AttackWidth, AttackHeight, WidthOffset, HeightOffset, Group, Damage);
-            hash = HashCode.Combine(hash, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack, AirKnockbackHorizontal, AirKnockbackVertical);
-            hash = HashCode.Combine(hash, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, Pushback, ParticleXOffset, ParticleYOffset, ParticleEffect);
-            hash = HashCode.Combine(hash, ParticleDuration, HoldXOffset, HoldYOffset, MeterGain, ComboScaling, CausesWallbounce, HitSound);
+            hash = HashCode.Combine(hash, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack);
+            hash = HashCode.Combine(hash, AirKnockbackHorizontal, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback);
+            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset,  CausesWallbounce);
+            hash = HashCode.Combine(hash, HitSound);
 
             return hash;
         }
@@ -115,7 +117,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                                     {
                                                                                                                         if (objAsAttackData.HitSound == HitSound)
                                                                                                                         {
-                                                                                                                            return true;
+                                                                                                                            if (objAsAttackData.GravityScaling == GravityScaling)
+                                                                                                                            {
+                                                                                                                                return true;
+                                                                                                                            }
                                                                                                                         }
                                                                                                                     }
                                                                                                                 }

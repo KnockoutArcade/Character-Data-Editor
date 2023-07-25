@@ -1,6 +1,7 @@
 ﻿using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -295,6 +296,40 @@ namespace CharacterDataEditor.Helpers
             ImGui.EndTable();
         }
 
+        public static void DrawPaletteEditor(ref List<ProjectileRGBModel> palettes, float scale)
+        {
+            ImGui.BeginTable("paletteEditor", 2, ImGuiTableFlags.NoBordersInBody);
+
+            var tableFlags = ImGuiTableColumnFlags.NoSort;
+            ImGui.TableSetupColumn("", tableFlags, 100.0f * scale);
+            ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthStretch);
+
+            for (int i = 0; i < palettes.Count; i++)
+            {
+                ImGui.TableNextColumn();
+                //for shortness, grab the item we're manipulating
+                var rgbPalette = palettes[i];
+
+                //Put colors into a vector 3 for the imgui control
+                var selectedColors = new Vector3(
+                    rgbPalette.Red,
+                    rgbPalette.Green,
+                    rgbPalette.Blue);
+
+                //draw the actual control
+                ImGui.Text($"Color {i}");
+
+                ImGui.TableNextColumn();
+
+                ImGui.ColorEdit3($"##Color{i}", ref selectedColors);
+
+                //store values back into palette
+                palettes[i] = new ProjectileRGBModel(selectedColors.X, selectedColors.Y, selectedColors.Z);
+            }
+
+            ImGui.EndTable();
+        }
+
         public static void DrawVerticalSpacing(float scale, float unitsToMove)
         {
             var cursorPos = ImGui.GetCursorPos();
@@ -338,6 +373,14 @@ namespace CharacterDataEditor.Helpers
 
             ImGui.EndTable();
             return false;
+        }
+
+        public static void DrawSelectable(Action selectAction, string label, bool selected, int id = -1)
+        {
+            if (ImGui.Selectable($"{label}##{id}", selected))
+            {
+                selectAction();
+            }
         }
     }
 }

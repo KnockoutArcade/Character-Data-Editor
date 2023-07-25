@@ -1,5 +1,6 @@
 ﻿using CharacterDataEditor.Enums;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Numerics;

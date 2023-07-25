@@ -22,7 +22,7 @@ namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103
         public int NumberOfHurtboxes { get { return HurtboxData?.Count ?? 0; } }
         public List<HurtboxDataModel> HurtboxData { get; set; } = new List<HurtboxDataModel>();
         public int NumberOfProjectiles { get { return ProjectileData?.Count ?? 0; } }
-        public List<ProjectileDataModel> ProjectileData { get; set; } = new List<ProjectileDataModel>();
+        public List<CharacterProjectileDataModel> ProjectileData { get; set; } = new List<CharacterProjectileDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
         public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
         public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();

@@ -3,6 +3,7 @@ using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using OriginalVersion = CharacterDataEditor.Models.CharacterData.PreviousVersions.Original;
 using Ver095 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095;
 using Ver103 = CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103;
@@ -15,6 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace CharacterDataEditor.Screens
 {
@@ -22,16 +24,19 @@ namespace CharacterDataEditor.Screens
     {
         private readonly ILogger<IScreen> _logger;
         private readonly ICharacterOperations _characterOperations;
+        private readonly IProjectileOperations _projectileOperations;
 
         SpriteDrawingHelper spriteDrawer;
         private float height;
         private float width;
         private RecentProjectModel projectData;
         private List<CharacterDataModel> characters;
+        private List<ProjectileDataModel> projectiles;
         private SpriteDataModel spriteData;
         private List<SpriteDataModel> allSprites;
 
-        private bool[] itemSelected;
+        private bool[] characterItemSelected;
+        private bool[] projectileItemSelected;
 
         private bool upgradeMessageShown;
         private string upgradeMessageText;
@@ -39,10 +44,11 @@ namespace CharacterDataEditor.Screens
         private delegate void AfterConfirmAction(int keyCode, IScreenManager screenManager);
         private AfterConfirmAction afterConfirmAction;
 
-        public ProjectHomeScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations)
+        public ProjectHomeScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations, IProjectileOperations projectileOperations)
         {
             _logger = logger;
             _characterOperations = characterOperations;
+            _projectileOperations = projectileOperations;
         }
 
         public void CheckForExit(IScreenManager screenManager)
@@ -116,6 +122,7 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver112:
                         case VersionConstants.Ver113:
                         case VersionConstants.Ver114:
+                        case VersionConstants.Ver120:
                         default:
                             {
                                 results = characterNeedingUpgrade.Upgrade();
@@ -152,7 +159,7 @@ namespace CharacterDataEditor.Screens
                             upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
 
                             // resize the flags for selection
-                            itemSelected = new bool[characters.Count];
+                            characterItemSelected = new bool[characters.Count];
 
                             // disable the message
                             upgradeMessageShown = false;
@@ -168,13 +175,97 @@ namespace CharacterDataEditor.Screens
                     upgradedCharacters.ForEach(x => _characterOperations.SaveCharacter(x, projectData.ProjectPathOnly));
 
                     // resize the flags for selection
-                    itemSelected = new bool[characters.Count];
+                    characterItemSelected = new bool[characters.Count];
                 }
             }
 
-            itemSelected = new bool[characters.Count];
+            characterItemSelected = new bool[characters.Count];
 
-            allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
+            // initially attempt to get projectiles with the current version of the project data structure
+            projectiles = _projectileOperations.GetProjectilesFromProject<ProjectileDataModel>(projectData.ProjectPathOnly);
+            if (projectiles == null)
+            {
+                _logger.LogCritical("Unable to load projectiles, path may be inaccessable. Throwing Exception");
+                throw new FileNotFoundException("Unable to load projectiles, path may be inaccessable.", projectData.FullPath);
+            }
+
+            // if any of the projectiles need an upgrade, generate an error message and display with options for the user
+            var projectilesNeedingUpgrade = projectiles.Where(x => x.UpgradeNeeded).ToList();
+
+            // remove the projectiles that need an upgrade from the open list until they're upgraded
+            projectilesNeedingUpgrade.ForEach(x => projectiles.Remove(x));
+
+            if (projectilesNeedingUpgrade.Any())
+            {
+                string fullErrorMessage = string.Empty;
+                List<ProjectileDataModel> upgradedProjectiles = new List<ProjectileDataModel>();
+
+                foreach (var projectileNeedingUpgrade in projectilesNeedingUpgrade)
+                {
+                    UpgradeResults results;
+
+                    switch (projectileNeedingUpgrade.Version)
+                    {
+                        // Right now, this is the original version of the projectile data
+                        default:
+                            {
+                                results = projectileNeedingUpgrade.Upgrade();
+                                break;
+                            }
+                    }
+
+                    if (results.IsDataLossSuspected)
+                    {
+                        fullErrorMessage += $"\nProjectile {projectileNeedingUpgrade.Name}'s data needs to be upgraded. Upgrade specific messages follow:\n{results.Message}\n";
+                    }
+
+                    // add the upgraded projectile to the list
+                    upgradedProjectiles.Add(results.UpgradedProjectileData);
+                }
+
+                if (fullErrorMessage != string.Empty)
+                {
+                    upgradeMessageText = fullErrorMessage;
+                    upgradeMessageShown = true;
+
+                    afterConfirmAction = (keycode, screenManager) =>
+                    {
+                        if (keycode == (int)KeyboardKey.KEY_C)
+                        {
+                            screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                        }
+                        else if (keycode == (int)KeyboardKey.KEY_U)
+                        {
+                            // add projectiles to the list
+                            projectiles.AddRange(upgradedProjectiles);
+
+                            // save the updated projectiles
+                            upgradedProjectiles.ForEach(x => _projectileOperations.SaveProjectile(x, projectData.ProjectPathOnly));
+
+                            // resize the flags for selection
+                            projectileItemSelected = new bool[projectiles.Count];
+
+                            // disable the message
+                            upgradeMessageShown = false;
+                        }
+                    };
+                }
+                else if (upgradedProjectiles.Count > 0)
+                {
+                    // add projectiles to the list
+                    projectiles.AddRange(upgradedProjectiles);
+
+                    // save the updated projectiles
+                    upgradedProjectiles.ForEach(x => _projectileOperations.SaveProjectile(x, projectData.ProjectPathOnly));
+
+                    // resize the flags for selection
+                    projectileItemSelected = new bool[projectiles.Count];
+                }
+            }
+
+            projectileItemSelected = new bool[projectiles.Count];
+
+            allSprites = _projectileOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
         }
 
         public void RenderImGui(IScreenManager screenManager)
@@ -182,6 +273,7 @@ namespace CharacterDataEditor.Screens
             DrawMainMenu(screenManager.ScreenScale, screenManager);
             DrawNewCharacterPanel(screenManager.ScreenScale, screenManager);
             DrawExistingCharacterPanel(screenManager.ScreenScale, screenManager);
+            DrawExistingProjectilePanel(screenManager.ScreenScale, screenManager);
         }
 
         public void RenderAfterImGui(IScreenManager screenManager)
@@ -227,10 +319,15 @@ namespace CharacterDataEditor.Screens
             screenManager.NavigateTo(typeof(EditCharacterScreen), new { width, height, projectData, action = "new" });
         }
 
+        private void CreateNewProjectile(IScreenManager screenManager)
+        {
+            screenManager.NavigateTo(typeof(EditProjectileScreen), new { width, height, projectData, action = "new" });
+        }
+
         private void DrawExistingCharacterPanel(float scale, IScreenManager screenManager)
         {
-            ImGui.SetNextWindowPos(new Vector2(20 * scale, 80 * scale));
-            var windowSize = new Vector2(400 * scale, 550 * scale);
+            ImGui.SetNextWindowPos(new Vector2(20 * scale, 100 * scale));
+            var windowSize = new Vector2(200 * scale, 480 * scale);
             ImGui.SetNextWindowSize(windowSize);
 
             if (ImGui.Begin("Existing Characters", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -245,12 +342,12 @@ namespace CharacterDataEditor.Screens
                 {
                     foreach (var character in characters)
                     {
-                        if (ImGui.Selectable(character.Name, itemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
+                        if (ImGui.Selectable(character.Name, characterItemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
                         {
                             var sprite = allSprites.Where(x => x.Name == character.CharacterSprites?.Idle).FirstOrDefault();
                             spriteData = sprite;
 
-                            SetItemAsSelected(characters.IndexOf(character));
+                            SetCharacterItemAsSelected(characters.IndexOf(character));
 
                             if (ImGui.IsMouseDoubleClicked(0))
                             {
@@ -281,12 +378,47 @@ namespace CharacterDataEditor.Screens
             });
         }
 
+        private void DrawExistingProjectilePanel(float scale, IScreenManager screenManager)
+        {
+            ImGui.SetNextWindowPos(new Vector2(240 * scale, 100 * scale));
+            var windowSize = new Vector2(200 * scale, 480 * scale);
+            ImGui.SetNextWindowSize(windowSize);
+
+            if (ImGui.Begin("Existing Projectiles", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.SetWindowFontScale(scale);
+
+                if (projectiles.Count == 0)
+                {
+                    ImGui.Text("No Projectiles found...");
+                }
+                else
+                {
+                    foreach (var projectile in projectiles)
+                    {
+                        if (ImGui.Selectable(projectile.Name, projectileItemSelected[projectiles.IndexOf(projectile)], ImGuiSelectableFlags.AllowDoubleClick))
+                        {
+                            var sprite = allSprites.Where(x => x.Name == projectile.ProjectileSprites?.Sprite).FirstOrDefault();
+                            spriteData = sprite;
+
+                            SetProjectileItemAsSelected(projectiles.IndexOf(projectile));
+
+                            if (ImGui.IsMouseDoubleClicked(0))
+                            {
+                                screenManager.NavigateTo(typeof(EditProjectileScreen), new { width, height, projectile, projectData, action = "edit" });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private void DrawNewCharacterPanel(float scale, IScreenManager screenManager)
         {
             ImGui.SetNextWindowPos(new Vector2(20 * scale, 20 * scale));
-            var windowSize = ImGui.CalcTextSize("Create New Character");
-            windowSize.X = (windowSize.X + 18) * scale;
-            windowSize.Y = (windowSize.Y + 25) * scale;
+            var windowSize = ImGui.CalcTextSize("Create New Projectile");
+            windowSize.X = (windowSize.X + 25) * scale;
+            windowSize.Y = (windowSize.Y + 55) * scale;
             ImGui.SetNextWindowSize(windowSize);
 
             if (ImGui.Begin("New", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -297,6 +429,11 @@ namespace CharacterDataEditor.Screens
                 {
                     // go to create character screen
                     CreateNewCharacter(screenManager);
+                }
+                if (ImGui.Button("Create New Projectile"))
+                {
+                    // go to create projectile screen
+                    CreateNewProjectile(screenManager);
                 }
             }
         }
@@ -335,14 +472,24 @@ namespace CharacterDataEditor.Screens
             ImGui.EndMainMenuBar();
         }
 
-        private void SetItemAsSelected(int index)
+        private void SetCharacterItemAsSelected(int index)
         {
-            for (int i = 0; i < itemSelected.Length; i++)
+            for (int i = 0; i < characterItemSelected.Length; i++)
             {
-                itemSelected[i] = false;
+                characterItemSelected[i] = false;
             }
 
-            itemSelected[index] = true;
+            characterItemSelected[index] = true;
+        }
+
+        private void SetProjectileItemAsSelected(int index)
+        {
+            for (int i = 0; i < projectileItemSelected.Length; i++)
+            {
+                projectileItemSelected[i] = false;
+            }
+
+            projectileItemSelected[index] = true;
         }
     }
 }
