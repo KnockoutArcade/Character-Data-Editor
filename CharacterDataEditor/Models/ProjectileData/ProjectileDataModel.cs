@@ -14,6 +14,7 @@ namespace CharacterDataEditor.Models.ProjectileData
         #region Base Stats
         public bool HasLifetime { get; set; } = false;
         public int Lifetime { get; set; } = 0;
+        public int AnimationSpeed { get; set; } = 0;
         public float HorizontalSpeed { get; set; } = 0.0f;
         public float VerticalSpeed { get; set; } = 0.0f;
         public int EnvironmentalDisplacement { get; set; } = 0;
@@ -43,10 +44,10 @@ namespace CharacterDataEditor.Models.ProjectileData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Name, HasLifetime, Lifetime, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, FallSpeed, GroundTraction);
-            hash = HashCode.Combine(hash, AirTraction, DestroyOnFloor, DestroyOnWall, BounceOnFloor, BounceOnWall, NumberOfBounces, Bounciness);
-            hash = HashCode.Combine(hash, Transcendent, Health, ProjectileSprites, BaseColor, CopyCharacterPalette, Character, Palettes);
-            hash = HashCode.Combine(hash, NumberOfFrames, FrameData, NumberOfHitboxes, AttackData, CounterData, RehitData);
+            var hash = HashCode.Combine(Name, HasLifetime, Lifetime, AnimationSpeed, HorizontalSpeed, VerticalSpeed, EnvironmentalDisplacement, FallSpeed);
+            hash = HashCode.Combine(hash, GroundTraction, AirTraction, DestroyOnFloor, DestroyOnWall, BounceOnFloor, BounceOnWall, NumberOfBounces);
+            hash = HashCode.Combine(hash, Bounciness, Transcendent, Health, ProjectileSprites, BaseColor, CopyCharacterPalette, Character);
+            hash = HashCode.Combine(hash, Palettes, NumberOfFrames, FrameData, NumberOfHitboxes, AttackData, CounterData, RehitData);
 
             return hash;
         }
@@ -68,6 +69,7 @@ namespace CharacterDataEditor.Models.ProjectileData
             if (objAsProjectileDataModel.Name.Equals(Name) &&
                 objAsProjectileDataModel.HasLifetime.Equals(HasLifetime) &&
                 objAsProjectileDataModel.Lifetime.Equals(Lifetime) &&
+                objAsProjectileDataModel.AnimationSpeed.Equals(AnimationSpeed) &&
                 objAsProjectileDataModel.HorizontalSpeed.Equals(HorizontalSpeed) &&
                 objAsProjectileDataModel.VerticalSpeed.Equals(VerticalSpeed) &&
                 objAsProjectileDataModel.EnvironmentalDisplacement.Equals(EnvironmentalDisplacement) &&

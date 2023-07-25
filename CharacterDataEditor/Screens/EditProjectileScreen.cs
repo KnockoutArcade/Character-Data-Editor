@@ -838,6 +838,7 @@ namespace CharacterDataEditor.Screens
 
                     var hasLifetime = projectile.HasLifetime;
                     var lifetime = projectile.Lifetime;
+                    int animationSpeed = projectile.AnimationSpeed;
                     var horizontalSpeed = projectile.HorizontalSpeed;
                     var verticalSpeed = projectile.VerticalSpeed;
                     var envDisplacement = projectile.EnvironmentalDisplacement;
@@ -859,6 +860,7 @@ namespace CharacterDataEditor.Screens
                     if (hasLifetime)
                     {
                         var adjustLifetime = ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
+                        animationSpeed = 0;
                         if (prevHasLifetime != lifetime)
                         {
                             currentFrame = 1;
@@ -874,6 +876,7 @@ namespace CharacterDataEditor.Screens
                     }
                     else
                     {
+                        ImguiDrawingHelper.DrawIntInput("animationSpeed", ref animationSpeed);
                         lifetime = 0;
                         if (prevHasLifetime != lifetime)
                         {
@@ -920,6 +923,7 @@ namespace CharacterDataEditor.Screens
 
                     projectile.HasLifetime = hasLifetime;
                     projectile.Lifetime = lifetime;
+                    projectile.AnimationSpeed = animationSpeed;
                     projectile.HorizontalSpeed = horizontalSpeed;
                     projectile.VerticalSpeed = verticalSpeed;
                     projectile.EnvironmentalDisplacement = envDisplacement;
