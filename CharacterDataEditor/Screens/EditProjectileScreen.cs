@@ -1001,58 +1001,66 @@ namespace CharacterDataEditor.Screens
                 // Windows dropdown
                 if (ImGui.CollapsingHeader("Windows", ImGuiTreeNodeFlags.DefaultOpen))
                 {
-                    int windowCount = projectile.NumberOfFrames;
-
-                    ImguiDrawingHelper.DrawIntInput("numberOfWindows", ref windowCount);
-
-                    if (windowCount < 0)
+                    if (projectile.HasLifetime)
                     {
-                        windowCount = 0;
-                    }
+                        int windowCount = projectile.NumberOfFrames;
 
-                    if (windowCount < projectile.NumberOfFrames)
-                    {
-                        while (windowCount < projectile.NumberOfFrames)
+                        ImguiDrawingHelper.DrawIntInput("numberOfWindows", ref windowCount);
+
+                        if (windowCount < 0)
                         {
-                            projectile.FrameData.RemoveAt(projectile.NumberOfFrames - 1);
+                            windowCount = 0;
                         }
-                    }
-                    else
-                    {
-                        while (windowCount > projectile.NumberOfFrames)
-                        {
-                            projectile.FrameData.Add(new FrameDataModel());
-                        }
-                    }
 
-                    if (windowCount == 0)
-                    {
-                        ImGui.Text("No windows");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < projectile.NumberOfFrames; i++)
+                        if (windowCount < projectile.NumberOfFrames)
                         {
-                            var windowItem = projectile.FrameData[i];
-
-                            if (ImGui.TreeNode($"Window [{i}]"))
+                            while (windowCount < projectile.NumberOfFrames)
                             {
-                                int imageIndex = windowItem.ImageIndex;
-                                int length = windowItem.Length;
-
-                                ImguiDrawingHelper.DrawIntInput("imageIndex", ref imageIndex);
-                                ImguiDrawingHelper.DrawIntInput("length", ref length);
-
-                                windowItem.ImageIndex = imageIndex;
-                                windowItem.Length = length;
-
-                                ImGui.TreePop();
+                                projectile.FrameData.RemoveAt(projectile.NumberOfFrames - 1);
                             }
                         }
-                    }
+                        else
+                        {
+                            while (windowCount > projectile.NumberOfFrames)
+                            {
+                                projectile.FrameData.Add(new FrameDataModel());
+                            }
+                        }
 
-                    // Fill windows list with animation frame indexes for each frame
-                    ChangeWindowArray();
+                        if (windowCount == 0)
+                        {
+                            ImGui.Text("No windows");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < projectile.NumberOfFrames; i++)
+                            {
+                                var windowItem = projectile.FrameData[i];
+
+                                if (ImGui.TreeNode($"Window [{i}]"))
+                                {
+                                    int imageIndex = windowItem.ImageIndex;
+                                    int length = windowItem.Length;
+
+                                    ImguiDrawingHelper.DrawIntInput("imageIndex", ref imageIndex);
+                                    ImguiDrawingHelper.DrawIntInput("length", ref length);
+
+                                    windowItem.ImageIndex = imageIndex;
+                                    windowItem.Length = length;
+
+                                    ImGui.TreePop();
+                                }
+                            }
+                        }
+
+                        // Fill windows list with animation frame indexes for each frame
+                        ChangeWindowArray();
+                    }
+                    else
+                    {
+                        projectile.FrameData.Clear();
+                        ImGui.Text("Doesn't have a lifetime...");
+                    }
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -1338,62 +1346,70 @@ namespace CharacterDataEditor.Screens
                 // Rehit Data dropdown
                 if (ImGui.CollapsingHeader("Rehit Data"))
                 {
-                    int rehitHitbox = projectile.RehitData.HitBox;
-                    int numberOfRepeats = projectile.RehitData.NumberOfHits;
+                    if (projectile.HasLifetime)
+                    {
+                        int rehitHitbox = projectile.RehitData.HitBox;
+                        int numberOfRepeats = projectile.RehitData.NumberOfHits;
 
-                    ImguiDrawingHelper.DrawIntInput("hitboxToRepeat", ref rehitHitbox, 0);
-                    ImguiDrawingHelper.DrawIntInput("numberOfRepeats", ref numberOfRepeats, 0);
+                        ImguiDrawingHelper.DrawIntInput("hitboxToRepeat", ref rehitHitbox, 0);
+                        ImguiDrawingHelper.DrawIntInput("numberOfRepeats", ref numberOfRepeats, 0);
 
-                    if (rehitHitbox < 1)
-                    {
-                        rehitHitbox = 1;
-                    }
-                    if (rehitHitbox > projectile.NumberOfHitboxes)
-                    {
-                        rehitHitbox = projectile.NumberOfHitboxes;
-                    }
-                    if (numberOfRepeats < 0)
-                    {
-                        numberOfRepeats = 0;
-                    }
-
-                    if (numberOfRepeats < projectile.RehitData.NumberOfHits)
-                    {
-                        while (numberOfRepeats < projectile.RehitData.NumberOfHits)
+                        if (rehitHitbox < 1)
                         {
-                            projectile.RehitData.HitOnFrames.RemoveAt(projectile.RehitData.NumberOfHits - 1);
+                            rehitHitbox = 1;
                         }
-                    }
-                    else
-                    {
-                        while (numberOfRepeats > projectile.RehitData.NumberOfHits)
+                        if (rehitHitbox > projectile.NumberOfHitboxes)
                         {
-                            projectile.RehitData.HitOnFrames.Add(0);
+                            rehitHitbox = projectile.NumberOfHitboxes;
                         }
-                    }
-
-                    if (numberOfRepeats == 0)
-                    {
-                        ImGui.Text("No Repeat Frame Information");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < numberOfRepeats; i++)
+                        if (numberOfRepeats < 0)
                         {
-                            var currentFrame = projectile.RehitData.HitOnFrames[i];
+                            numberOfRepeats = 0;
+                        }
 
-                            if (ImGui.TreeNode($"Hit On Frame [{i}]"))
+                        if (numberOfRepeats < projectile.RehitData.NumberOfHits)
+                        {
+                            while (numberOfRepeats < projectile.RehitData.NumberOfHits)
                             {
-                                ImguiDrawingHelper.DrawIntInput("repeatFrameIndex", ref currentFrame);
-
-                                ImGui.TreePop();
+                                projectile.RehitData.HitOnFrames.RemoveAt(projectile.RehitData.NumberOfHits - 1);
                             }
-
-                            projectile.RehitData.HitOnFrames[i] = currentFrame;
                         }
-                    }
+                        else
+                        {
+                            while (numberOfRepeats > projectile.RehitData.NumberOfHits)
+                            {
+                                projectile.RehitData.HitOnFrames.Add(0);
+                            }
+                        }
 
-                    projectile.RehitData.HitBox = rehitHitbox;
+                        if (numberOfRepeats == 0)
+                        {
+                            ImGui.Text("No Repeat Frame Information");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < numberOfRepeats; i++)
+                            {
+                                var currentFrame = projectile.RehitData.HitOnFrames[i];
+
+                                if (ImGui.TreeNode($"Hit On Frame [{i}]"))
+                                {
+                                    ImguiDrawingHelper.DrawIntInput("repeatFrameIndex", ref currentFrame);
+
+                                    ImGui.TreePop();
+                                }
+
+                                projectile.RehitData.HitOnFrames[i] = currentFrame;
+                            }
+                        }
+
+                        projectile.RehitData.HitBox = rehitHitbox;
+                    }
+                    else
+                    {
+                        projectile.RehitData.HitOnFrames.Clear();
+                        ImGui.Text("Doesn't have a lifetime...");
+                    }
                 }
 
                 ImGui.End();

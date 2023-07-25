@@ -26,6 +26,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver114:
+                    return (originalCharacter as CharacterDataModel).Upgrade114to120();
                 case VersionConstants.Ver113:
                     return (originalCharacter as CharacterDataModel).Upgrade113to114();
                 case VersionConstants.Ver112:
@@ -317,6 +319,19 @@ namespace CharacterDataEditor.Extensions
             }
 
             previous.Version = VersionConstants.Ver114;
+
+            return new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            };
+        }
+
+        private static UpgradeResults Upgrade114to120(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            previous.Version = VersionConstants.Ver120;
 
             return new UpgradeResults
             {
