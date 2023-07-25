@@ -18,6 +18,7 @@ namespace CharacterDataEditor
             services.AddSingleton<IRecentFiles, RecentFiles>();
             services.AddSingleton<IEditorOptions, EditorOptions>();
             services.AddSingleton<ICharacterOperations, CharacterOperations>();
+            services.AddSingleton<IProjectileOperations, ProjectileOperations>();
 
             //register screens
             services.RegisterScreens();

@@ -15,5 +15,6 @@
         public const string BullseyePath = "Resources/bullseye.png";
 
         public const string CharacterDataPathStub = "datafiles/characterdata";
+        public const string ProjectileDataPathStub = "datafiles/projectiledata";
     }
 }

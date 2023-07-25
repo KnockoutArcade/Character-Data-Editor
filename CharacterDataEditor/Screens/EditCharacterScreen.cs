@@ -4,6 +4,7 @@ using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Helpers;
 using CharacterDataEditor.Models;
 using CharacterDataEditor.Models.CharacterData;
+using CharacterDataEditor.Models.ProjectileData;
 using CharacterDataEditor.Services;
 using CharacterDataEditor.NAudio;
 using ImGuiNET;
@@ -26,6 +27,7 @@ namespace CharacterDataEditor.Screens
     {
         private readonly ILogger<IScreen> _logger;
         private readonly ICharacterOperations _characterOperations;
+        private readonly IProjectileOperations _projectileOperations;
 
         private float width;
         private float height;
@@ -60,7 +62,8 @@ namespace CharacterDataEditor.Screens
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<SoundDataModel> allSounds;
-        private List<ObjectDataModel> allProjectiles;
+        private List<ProjectileDataModel> projectiles = new List<ProjectileDataModel>();
+        private List<string> projectileNames = new List<string>();
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -109,10 +112,11 @@ namespace CharacterDataEditor.Screens
         private delegate void AfterConfirmAction(int keyCode);
         private AfterConfirmAction exitConfirmAction;
 
-        public EditCharacterScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations)
+        public EditCharacterScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations, IProjectileOperations projectileOperations)
         {
             _logger = logger;
             _characterOperations = characterOperations;
+            _projectileOperations = projectileOperations;
         }
 
         public void Init(dynamic screenData)
@@ -144,7 +148,7 @@ namespace CharacterDataEditor.Screens
             // Add every character to this list
             spiritCharacters = _characterOperations.GetCharactersFromProject<CharacterDataModel>(projectData.ProjectPathOnly);
             List<CharacterDataModel> spiritsToRemove = new List<CharacterDataModel>();
-            // Find which character need to be removed from this list
+            // Find which character needs to be removed from this list
             foreach (var spiritCharacter in spiritCharacters)
             {
                 if (spiritCharacter.UniqueData.SpiritData != SpiritDataType.IsSpirit)
@@ -168,7 +172,14 @@ namespace CharacterDataEditor.Screens
             allSprites = _characterOperations.GetAllGameData<SpriteDataModel>(projectData.ProjectPathOnly);
             allScripts = _characterOperations.GetAllGameData<ScriptDataModel>(projectData.ProjectPathOnly);
             allSounds = _characterOperations.GetAllGameData<SoundDataModel>(projectData.ProjectPathOnly);
-            allProjectiles = _characterOperations.GetAllGameData<ObjectDataModel>(projectData.ProjectPathOnly).Where(x => x.ContainerInfo?.ContainingFolder == "Projectiles").ToList();
+
+            projectiles = _projectileOperations.GetProjectilesFromProject<ProjectileDataModel>(projectData.ProjectPathOnly);
+            projectileNames.Clear();
+            projectileNames.Add("None");
+            foreach (var projectile in projectiles)
+            {
+                projectileNames.Add(projectile.Name);
+            }
 
             playSound = false;
             soundPlayers = new List<CachedSound>();
@@ -629,7 +640,7 @@ namespace CharacterDataEditor.Screens
             //set the window size, scale as necessary
             var windowSize = new Vector2();
             windowSize.X = 320 * scale;
-            windowSize.Y = 620 * scale;
+            windowSize.Y = 560 * scale;
 
             ImGui.SetNextWindowPos(new Vector2(10 * scale, 20 * scale));
             ImGui.SetNextWindowSize(windowSize);
@@ -1096,6 +1107,8 @@ namespace CharacterDataEditor.Screens
                                 int heightOffset = attackDataItem.HeightOffset;
                                 int group = attackDataItem.Group;
                                 int damage = attackDataItem.Damage;
+                                float meterGain = attackDataItem.MeterGain;
+                                float comboScaling = attackDataItem.ComboScaling;
                                 int attackHitstop = attackDataItem.AttackHitStop;
                                 int attackHitstun = attackDataItem.AttackHitStun;
                                 AttackType attackType = attackDataItem.AttackType;
@@ -1106,6 +1119,7 @@ namespace CharacterDataEditor.Screens
                                 bool launches = attackDataItem.Launches;
                                 float launchKnockbackV = attackDataItem.LaunchKnockbackVertical;
                                 float launchKnockbackH = attackDataItem.LaunchKnockbackHorizontal;
+                                float gravityScaling = attackDataItem.GravityScaling;
                                 float pushback = attackDataItem.Pushback;
                                 int particleOffsetX = attackDataItem.ParticleXOffset;
                                 int particleOffsetY = attackDataItem.ParticleYOffset;
@@ -1113,14 +1127,11 @@ namespace CharacterDataEditor.Screens
                                 int particleDuration = attackDataItem.ParticleDuration;
                                 int holdOffsetX = attackDataItem.HoldXOffset;
                                 int holdOffsetY = attackDataItem.HoldYOffset;
-                                float comboScaling = attackDataItem.ComboScaling;
-                                float meterGain = attackDataItem.MeterGain;
                                 bool causesWallbounce = attackDataItem.CausesWallbounce;
                                 string hitSound = attackDataItem.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("start", ref start);
                                 ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
-                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
                                 ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
                                 ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
                                 ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
@@ -1140,8 +1151,17 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
                                 ImguiDrawingHelper.DrawBoolInput("launches", ref launches);
-                                ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref launchKnockbackV);
-                                ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref launchKnockbackH);
+                                if (launches)
+                                {
+                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref launchKnockbackV);
+                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref launchKnockbackH);
+                                }
+                                else
+                                {
+                                    launchKnockbackV = 0;
+                                    launchKnockbackH = 0;
+                                }
+                                ImguiDrawingHelper.DrawDecimalInput("gravityScaling", ref gravityScaling);
                                 ImguiDrawingHelper.DrawDecimalInput("pushback", ref pushback);
                                 ImguiDrawingHelper.DrawIntInput("particleOffsetX", ref particleOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("particleOffsetY", ref particleOffsetY);
@@ -1150,6 +1170,7 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
                                 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref particleDuration);
+                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
 
@@ -1166,6 +1187,8 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.HeightOffset = heightOffset;
                                 attackDataItem.Group = group;
                                 attackDataItem.Damage = damage;
+                                attackDataItem.MeterGain = meterGain;
+                                attackDataItem.ComboScaling = comboScaling;
                                 attackDataItem.AttackHitStop = attackHitstop;
                                 attackDataItem.AttackHitStun = attackHitstun;
                                 attackDataItem.AttackType = (AttackType)selectedAttackType;
@@ -1176,6 +1199,7 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.Launches = launches;
                                 attackDataItem.LaunchKnockbackHorizontal = launchKnockbackH;
                                 attackDataItem.LaunchKnockbackVertical = launchKnockbackV;
+                                attackDataItem.GravityScaling = gravityScaling;
                                 attackDataItem.Pushback = pushback;
                                 attackDataItem.ParticleXOffset = particleOffsetX;
                                 attackDataItem.ParticleYOffset = particleOffsetY;
@@ -1183,8 +1207,6 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.ParticleDuration = particleDuration;
                                 attackDataItem.HoldXOffset = holdOffsetX;
                                 attackDataItem.HoldYOffset = holdOffsetY;
-                                attackDataItem.ComboScaling = comboScaling;
-                                attackDataItem.MeterGain = meterGain;
                                 attackDataItem.CausesWallbounce = causesWallbounce;
                                 attackDataItem.HitSound = hitSound;
 
@@ -1242,33 +1264,32 @@ namespace CharacterDataEditor.Screens
                                 int Group = currentCounterData.Group;
                                 int Damage = currentCounterData.Damage;
                                 float MeterGain = currentCounterData.MeterGain;
+                                float ComboScaling = currentCounterData.ComboScaling;
                                 int AttackHitStop = currentCounterData.AttackHitStop;
                                 int AttackHitStun = currentCounterData.AttackHitStun;
                                 float KnockBack = currentCounterData.KnockBack;
                                 float AirKnockbackVertical = currentCounterData.AirKnockbackVertical;
                                 float AirKnockbackHorizontal = currentCounterData.AirKnockbackHorizontal;
+                                bool Launches = currentCounterData.Launches;
+                                float LaunchKnockbackVertical = currentCounterData.LaunchKnockbackVertical;
+                                float LaunchKnockbackHorizontal = currentCounterData.LaunchKnockbackHorizontal;
+                                float GravtyScaling = currentCounterData.GravityScaling;
                                 float Pushback = currentCounterData.Pushback;
                                 int ParticleXOffset = currentCounterData.ParticleXOffset;
                                 int ParticleYOffset = currentCounterData.ParticleYOffset;
                                 string ParticleEffect = currentCounterData.ParticleEffect;
                                 int ParticleDuration = currentCounterData.ParticleDuration;
-                                bool Launches = currentCounterData.Launches;
-                                float LaunchKnockbackVertical = currentCounterData.LaunchKnockbackVertical;
-                                float LaunchKnockbackHorizontal = currentCounterData.LaunchKnockbackHorizontal;
-                                float ComboScaling = currentCounterData.ComboScaling;
                                 bool CausesWallbounce = currentCounterData.CausesWallbounce;
                                 string HitSound = currentCounterData.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("counterHitLevel", ref CounterHitLevel);
-                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
                                 ImguiDrawingHelper.DrawIntInput("group", ref Group);
                                 ImguiDrawingHelper.DrawIntInput("damage", ref Damage);
                                 ImguiDrawingHelper.DrawDecimalInput("meterGain", ref MeterGain);
                                 ImguiDrawingHelper.DrawDecimalInput("comboScaling", ref ComboScaling);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStop", ref AttackHitStop);
                                 ImguiDrawingHelper.DrawIntInput("attackHitStun", ref AttackHitStun);
-                                ImguiDrawingHelper.DrawDecimalInput("knockBack", ref KnockBack);
-                                ImguiDrawingHelper.DrawDecimalInput("pushback", ref Pushback);
+                                ImguiDrawingHelper.DrawDecimalInput("knockback", ref KnockBack);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref AirKnockbackVertical);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref AirKnockbackHorizontal);
                                 ImguiDrawingHelper.DrawBoolInput("launches", ref Launches);
@@ -1277,6 +1298,13 @@ namespace CharacterDataEditor.Screens
                                     ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref LaunchKnockbackVertical);
                                     ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref LaunchKnockbackHorizontal);
                                 }
+                                else
+                                {
+                                    LaunchKnockbackVertical = 0;
+                                    LaunchKnockbackHorizontal = 0;
+                                }
+                                ImguiDrawingHelper.DrawDecimalInput("gravityScaling", ref GravtyScaling);
+                                ImguiDrawingHelper.DrawDecimalInput("pushback", ref Pushback);
                                 ImguiDrawingHelper.DrawIntInput("particleOffset X", ref ParticleXOffset);
                                 ImguiDrawingHelper.DrawIntInput("particleOffset Y", ref ParticleYOffset);
 
@@ -1284,6 +1312,7 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref ParticleDuration);
+                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
 
                                 var hitSoundId = currentCounterData.HitSound ?? string.Empty;
                                 var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == currentCounterData.HitSound)) : -1;
@@ -1294,20 +1323,21 @@ namespace CharacterDataEditor.Screens
                                 currentCounterData.Group = Group;
                                 currentCounterData.Damage = Damage;
                                 currentCounterData.MeterGain = MeterGain;
+                                currentCounterData.ComboScaling = ComboScaling;
                                 currentCounterData.AttackHitStop = AttackHitStop;
                                 currentCounterData.AttackHitStun = AttackHitStun;
                                 currentCounterData.KnockBack = KnockBack;
                                 currentCounterData.AirKnockbackVertical = AirKnockbackVertical;
                                 currentCounterData.AirKnockbackHorizontal = AirKnockbackHorizontal;
+                                currentCounterData.Launches = Launches;
+                                currentCounterData.LaunchKnockbackVertical = LaunchKnockbackVertical;
+                                currentCounterData.LaunchKnockbackHorizontal = LaunchKnockbackHorizontal;
+                                currentCounterData.GravityScaling = GravtyScaling;
                                 currentCounterData.Pushback = Pushback;
                                 currentCounterData.ParticleXOffset = ParticleXOffset;
                                 currentCounterData.ParticleYOffset = ParticleYOffset;
                                 currentCounterData.ParticleEffect = allSprites[selectedParticleEffect].Name;
                                 currentCounterData.ParticleDuration = ParticleDuration;
-                                currentCounterData.Launches = Launches;
-                                currentCounterData.ComboScaling = ComboScaling;
-                                currentCounterData.LaunchKnockbackVertical = LaunchKnockbackVertical;
-                                currentCounterData.LaunchKnockbackHorizontal= LaunchKnockbackHorizontal;
                                 currentCounterData.CausesWallbounce = CausesWallbounce;
                                 currentCounterData.HitSound = HitSound;
 
@@ -1680,7 +1710,7 @@ namespace CharacterDataEditor.Screens
                     {
                         while (projectileCount > moveInEditor.NumberOfProjectiles)
                         {
-                            moveInEditor.ProjectileData.Add(new ProjectileDataModel());
+                            moveInEditor.ProjectileData.Add(new CharacterProjectileDataModel());
                         }
                     }
 
@@ -1701,9 +1731,9 @@ namespace CharacterDataEditor.Screens
                                 int spawnFrame = currentProjectile.SpawnFrame;
 
                                 var objId = currentProjectile.ProjectileObject ?? string.Empty;
-                                var selectedObjectIndex = objId != string.Empty ? allProjectiles.IndexOf(allProjectiles.First(x => x.Name == objId)) : -1;
-                                ImguiDrawingHelper.DrawComboInput("projectileObject", allProjectiles.Select(x => x.Name).ToArray(), ref selectedObjectIndex);
-                                currentProjectile.ProjectileObject = selectedObjectIndex != -1 ? allProjectiles[selectedObjectIndex].Name : string.Empty;
+                                int selectedObjectIndex = projectileNames.IndexOf(objId);
+                                ImguiDrawingHelper.DrawComboInput("projectile", projectileNames.ToArray(), ref selectedObjectIndex);
+                                currentProjectile.ProjectileObject = selectedObjectIndex != -1 ? projectileNames[selectedObjectIndex] : string.Empty;
 
                                 ImguiDrawingHelper.DrawIntInput("spawnFrame", ref spawnFrame, 0);
                                 ImguiDrawingHelper.DrawIntInput("spawnOffsetX", ref spawnX);
@@ -2113,10 +2143,10 @@ namespace CharacterDataEditor.Screens
         private void RenderEditor(float scale)
         {
             var windowSize = new Vector2();
-            windowSize.X = 450 * scale;
-            windowSize.Y = 250 * scale;
+            windowSize.X = 350 * scale;
+            windowSize.Y = 220 * scale;
 
-            float windowYPos = height - 24 - windowSize.Y;
+            float windowYPos = height - 8 - windowSize.Y;
 
             var windowPos = new Vector2(width / 2 - windowSize.X / 2, windowYPos);
 
@@ -2281,7 +2311,7 @@ namespace CharacterDataEditor.Screens
         {
             var windowSize = new Vector2();
             windowSize.X = 320 * scale;
-            windowSize.Y = 620 * scale;
+            windowSize.Y = 560 * scale;
             
             ImGui.SetNextWindowPos(new Vector2(width - windowSize.X - 10 * scale, 20 * scale));
             ImGui.SetNextWindowSize(windowSize);
@@ -2479,10 +2509,22 @@ namespace CharacterDataEditor.Screens
 
                     idleIndex = idleSelected;
 
-                    walkForwardSprite = allSprites[walkForwardSelected];
-                    walkBackwardSprite = allSprites[walkBackwardSelected];
-                    runForwardSprite = allSprites[runForwardSelected];
-                    runBackwardSprite = allSprites[runBackwardSelected];
+                    if (walkForwardSelected > -1)
+                    {
+                        walkForwardSprite = allSprites[walkForwardSelected];
+                    }
+                    if (walkBackwardSelected > -1)
+                    {
+                        walkBackwardSprite = allSprites[walkBackwardSelected];
+                    }
+                    if (runForwardSelected > -1)
+                    {
+                        runForwardSprite = allSprites[runForwardSelected];
+                    }
+                    if (runBackwardSelected > -1)
+                    {
+                        runBackwardSprite = allSprites[runBackwardSelected];
+                    }
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
@@ -2506,333 +2548,336 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawComboInput("runFootstep", allSounds.Select(x => x.Name).ToArray(), ref selectedRunSoundIndex);
                     runningSoundEffect = selectedRunSoundIndex != -1 ? allSounds[selectedRunSoundIndex].Name : string.Empty;
 
-                    if (spriteData == walkForwardSprite && walkForwardSprite.Frames.Count > 0)
+                    if (walkForwardSprite != null && walkBackwardSprite != null && runForwardSprite != null && runBackwardSprite != null)
                     {
-                        if (walkingSoundEffect != string.Empty)
+                        if (spriteData == walkForwardSprite && walkForwardSprite.Frames.Count > 0)
                         {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
+                            if (walkingSoundEffect != string.Empty)
                             {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                walkingSoundEffect = "";
-                            }
-                            else
-                            {
-                                if (footstepSoundPlayer != null)
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                                if (!File.Exists(filePath))
                                 {
-                                    string currentPath = footstepSoundPlayer.filePath;
-                                    if (currentPath != filePath)
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    walkingSoundEffect = "";
+                                }
+                                else
+                                {
+                                    if (footstepSoundPlayer != null)
+                                    {
+                                        string currentPath = footstepSoundPlayer.filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            footstepSoundPlayer = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
                                     {
                                         footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
-                                else
+                            }
+
+                            // Create list of checkboxes for walking forward footsteps
+                            ImGui.Columns(2);
+                            ImGui.Text("Footstep Frames:");
+                            ImGui.SameLine();
+                            ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                            ImGui.Columns(1);
+
+                            // Shortens length of the list
+                            while (walkForwardFootsteps.Count > walkForwardSprite.Frames.Count)
+                            {
+                                walkForwardFootsteps.RemoveAt(walkForwardSprite.Frames.Count);
+                            }
+
+                            // Removes sprite frames that are out of the range of possible sprite frames
+                            int numberOfInvalidFrames = 0;
+                            List<int> invalidFrames = new List<int>();
+                            foreach (int frame in walkForwardFootsteps)
+                            {
+                                if (frame > walkForwardSprite.Frames.Count)
                                 {
-                                    footstepSoundPlayer = new CachedSound(filePath);
+                                    numberOfInvalidFrames++;
+                                    invalidFrames.Add(frame);
                                 }
                             }
-                        }
-
-                        // Create list of checkboxes for walking forward footsteps
-                        ImGui.Columns(2);
-                        ImGui.Text("Footstep Frames:");
-                        ImGui.SameLine();
-                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
-                        ImGui.Columns(1);
-
-                        // Shortens length of the list
-                        while (walkForwardFootsteps.Count > walkForwardSprite.Frames.Count)
-                        {
-                            walkForwardFootsteps.RemoveAt(walkForwardSprite.Frames.Count);
-                        }
-
-                        // Removes sprite frames that are out of the range of possible sprite frames
-                        int numberOfInvalidFrames = 0;
-                        List<int> invalidFrames = new List<int>();
-                        foreach (int frame in walkForwardFootsteps)
-                        {
-                            if (frame > walkForwardSprite.Frames.Count)
+                            while (numberOfInvalidFrames > 0)
                             {
-                                numberOfInvalidFrames++;
-                                invalidFrames.Add(frame);
-                            }
-                        }
-                        while (numberOfInvalidFrames > 0)
-                        {
-                            walkForwardFootsteps.Remove(invalidFrames[0]);
-                            invalidFrames.RemoveAt(0);
-                            numberOfInvalidFrames--;
-                        }
-
-                        // Create a list of checkboxes, one checkbox for each moveset
-                        for (int i = 0; i < walkForwardSprite.Frames.Count; i++)
-                        {
-                            var isSelected = false;
-                            if (walkForwardFootsteps.Contains(i + 1))
-                            {
-                                isSelected = true;
+                                walkForwardFootsteps.Remove(invalidFrames[0]);
+                                invalidFrames.RemoveAt(0);
+                                numberOfInvalidFrames--;
                             }
 
-                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
-                            if (isSelected && !walkForwardFootsteps.Contains(i + 1))
+                            // Create a list of checkboxes, one checkbox for each moveset
+                            for (int i = 0; i < walkForwardSprite.Frames.Count; i++)
                             {
-                                walkForwardFootsteps.Add(i + 1);
-                            }
-                            else if (!isSelected && walkForwardFootsteps.Contains(i + 1))
-                            {
-                                walkForwardFootsteps.Remove(i + 1);
-                            }
-                        }
-                        walkForwardFootsteps.Sort();
-                    }
-                    else if (spriteData == walkBackwardSprite && walkBackwardSprite.Frames.Count > 0)
-                    {
-                        if (walkingSoundEffect != string.Empty)
-                        {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
-                            {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                walkingSoundEffect = "";
-                            }
-                            else
-                            {
-                                if (footstepSoundPlayer != null)
+                                var isSelected = false;
+                                if (walkForwardFootsteps.Contains(i + 1))
                                 {
-                                    string currentPath = footstepSoundPlayer.filePath;
-                                    if (currentPath != filePath)
+                                    isSelected = true;
+                                }
+
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                if (isSelected && !walkForwardFootsteps.Contains(i + 1))
+                                {
+                                    walkForwardFootsteps.Add(i + 1);
+                                }
+                                else if (!isSelected && walkForwardFootsteps.Contains(i + 1))
+                                {
+                                    walkForwardFootsteps.Remove(i + 1);
+                                }
+                            }
+                            walkForwardFootsteps.Sort();
+                        }
+                        else if (spriteData == walkBackwardSprite && walkBackwardSprite.Frames.Count > 0)
+                        {
+                            if (walkingSoundEffect != string.Empty)
+                            {
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + walkingSoundEffect + @"\" + walkingSoundEffect + ".wav";
+                                if (!File.Exists(filePath))
+                                {
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    walkingSoundEffect = "";
+                                }
+                                else
+                                {
+                                    if (footstepSoundPlayer != null)
+                                    {
+                                        string currentPath = footstepSoundPlayer.filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            footstepSoundPlayer = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
                                     {
                                         footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
-                                else
+                            }
+
+                            // Create list of checkboxes for walking backward footsteps
+                            ImGui.Columns(2);
+                            ImGui.Text("Footstep Frames:");
+                            ImGui.SameLine();
+                            ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                            ImGui.Columns(1);
+
+                            // Shortens length of the list
+                            while (walkBackwardFootsteps.Count > walkBackwardSprite.Frames.Count)
+                            {
+                                walkBackwardFootsteps.RemoveAt(walkBackwardSprite.Frames.Count);
+                            }
+
+                            // Removes sprite frames that are out of the range of sprite frames
+                            int numberOfInvalidFrames = 0;
+                            List<int> invalidFrames = new List<int>();
+                            foreach (int frame in walkBackwardFootsteps)
+                            {
+                                if (frame > walkBackwardSprite.Frames.Count)
                                 {
-                                    footstepSoundPlayer = new CachedSound(filePath);
+                                    numberOfInvalidFrames++;
+                                    invalidFrames.Add(frame);
                                 }
                             }
-                        }
-
-                        // Create list of checkboxes for walking backward footsteps
-                        ImGui.Columns(2);
-                        ImGui.Text("Footstep Frames:");
-                        ImGui.SameLine();
-                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
-                        ImGui.Columns(1);
-
-                        // Shortens length of the list
-                        while (walkBackwardFootsteps.Count > walkBackwardSprite.Frames.Count)
-                        {
-                            walkBackwardFootsteps.RemoveAt(walkBackwardSprite.Frames.Count);
-                        }
-
-                        // Removes sprite frames that are out of the range of sprite frames
-                        int numberOfInvalidFrames = 0;
-                        List<int> invalidFrames = new List<int>();
-                        foreach (int frame in walkBackwardFootsteps)
-                        {
-                            if (frame > walkBackwardSprite.Frames.Count)
+                            while (numberOfInvalidFrames > 0)
                             {
-                                numberOfInvalidFrames++;
-                                invalidFrames.Add(frame);
-                            }
-                        }
-                        while (numberOfInvalidFrames > 0)
-                        {
-                            walkBackwardFootsteps.Remove(invalidFrames[0]);
-                            invalidFrames.RemoveAt(0);
-                            numberOfInvalidFrames--;
-                        }
-
-                        // Create a list of checkboxes, one checkbox for each moveset
-                        for (int i = 0; i < walkBackwardSprite.Frames.Count; i++)
-                        {
-                            var isSelected = false;
-                            if (walkBackwardFootsteps.Contains(i + 1))
-                            {
-                                isSelected = true;
+                                walkBackwardFootsteps.Remove(invalidFrames[0]);
+                                invalidFrames.RemoveAt(0);
+                                numberOfInvalidFrames--;
                             }
 
-                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
-                            if (isSelected && !walkBackwardFootsteps.Contains(i + 1))
+                            // Create a list of checkboxes, one checkbox for each moveset
+                            for (int i = 0; i < walkBackwardSprite.Frames.Count; i++)
                             {
-                                walkBackwardFootsteps.Add(i + 1);
-                            }
-                            else if (!isSelected && walkBackwardFootsteps.Contains(i + 1))
-                            {
-                                walkBackwardFootsteps.Remove(i + 1);
-                            }
-                        }
-                        walkBackwardFootsteps.Sort();
-                    }
-                    else if (spriteData == runForwardSprite && runForwardSprite.Frames.Count > 0)
-                    {
-                        if (runningSoundEffect != string.Empty)
-                        {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
-                            {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                runningSoundEffect = "";
-                            }
-                            else
-                            {
-                                if (footstepSoundPlayer != null)
+                                var isSelected = false;
+                                if (walkBackwardFootsteps.Contains(i + 1))
                                 {
-                                    string currentPath = footstepSoundPlayer.filePath;
-                                    if (currentPath != filePath)
+                                    isSelected = true;
+                                }
+
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                if (isSelected && !walkBackwardFootsteps.Contains(i + 1))
+                                {
+                                    walkBackwardFootsteps.Add(i + 1);
+                                }
+                                else if (!isSelected && walkBackwardFootsteps.Contains(i + 1))
+                                {
+                                    walkBackwardFootsteps.Remove(i + 1);
+                                }
+                            }
+                            walkBackwardFootsteps.Sort();
+                        }
+                        else if (spriteData == runForwardSprite && runForwardSprite.Frames.Count > 0)
+                        {
+                            if (runningSoundEffect != string.Empty)
+                            {
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                                if (!File.Exists(filePath))
+                                {
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    runningSoundEffect = "";
+                                }
+                                else
+                                {
+                                    if (footstepSoundPlayer != null)
+                                    {
+                                        string currentPath = footstepSoundPlayer.filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            footstepSoundPlayer = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
                                     {
                                         footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
-                                else
+                            }
+
+                            // Create list of checkboxes for running forward footsteps
+                            ImGui.Columns(2);
+                            ImGui.Text("Footstep Frames:");
+                            ImGui.SameLine();
+                            ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                            ImGui.Columns(1);
+
+                            // Shortens length of the list
+                            while (runForwardFootsteps.Count > runForwardSprite.Frames.Count)
+                            {
+                                runForwardFootsteps.RemoveAt(runForwardSprite.Frames.Count);
+                            }
+
+                            // Removes sprite frames that are out of the range of possible sprite frames
+                            int numberOfInvalidFrames = 0;
+                            List<int> invalidFrames = new List<int>();
+                            foreach (int frame in runForwardFootsteps)
+                            {
+                                if (frame > runForwardSprite.Frames.Count)
                                 {
-                                    footstepSoundPlayer = new CachedSound(filePath);
+                                    numberOfInvalidFrames++;
+                                    invalidFrames.Add(frame);
                                 }
                             }
-                        }
-
-                        // Create list of checkboxes for running forward footsteps
-                        ImGui.Columns(2);
-                        ImGui.Text("Footstep Frames:");
-                        ImGui.SameLine();
-                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
-                        ImGui.Columns(1);
-
-                        // Shortens length of the list
-                        while (runForwardFootsteps.Count > runForwardSprite.Frames.Count)
-                        {
-                            runForwardFootsteps.RemoveAt(runForwardSprite.Frames.Count);
-                        }
-
-                        // Removes sprite frames that are out of the range of possible sprite frames
-                        int numberOfInvalidFrames = 0;
-                        List<int> invalidFrames = new List<int>();
-                        foreach (int frame in runForwardFootsteps)
-                        {
-                            if (frame > runForwardSprite.Frames.Count)
+                            while (numberOfInvalidFrames > 0)
                             {
-                                numberOfInvalidFrames++;
-                                invalidFrames.Add(frame);
-                            }
-                        }
-                        while (numberOfInvalidFrames > 0)
-                        {
-                            runForwardFootsteps.Remove(invalidFrames[0]);
-                            invalidFrames.RemoveAt(0);
-                            numberOfInvalidFrames--;
-                        }
-
-                        // Create a list of checkboxes, one checkbox for each moveset
-                        for (int i = 0; i < runForwardSprite.Frames.Count; i++)
-                        {
-                            var isSelected = false;
-                            if (runForwardFootsteps.Contains(i + 1))
-                            {
-                                isSelected = true;
+                                runForwardFootsteps.Remove(invalidFrames[0]);
+                                invalidFrames.RemoveAt(0);
+                                numberOfInvalidFrames--;
                             }
 
-                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
-                            if (isSelected && !runForwardFootsteps.Contains(i + 1))
+                            // Create a list of checkboxes, one checkbox for each moveset
+                            for (int i = 0; i < runForwardSprite.Frames.Count; i++)
                             {
-                                runForwardFootsteps.Add(i + 1);
-                            }
-                            else if (!isSelected && runForwardFootsteps.Contains(i + 1))
-                            {
-                                runForwardFootsteps.Remove(i + 1);
-                            }
-                        }
-                        runForwardFootsteps.Sort();
-                    }
-                    else if (spriteData == runBackwardSprite && runBackwardSprite.Frames.Count > 0)
-                    {
-                        if (runningSoundEffect != string.Empty)
-                        {
-                            string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
-                            if (!File.Exists(filePath))
-                            {
-                                _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                runningSoundEffect = "";
-                            }
-                            else
-                            {
-                                if (footstepSoundPlayer != null)
+                                var isSelected = false;
+                                if (runForwardFootsteps.Contains(i + 1))
                                 {
-                                    string currentPath = footstepSoundPlayer.filePath;
-                                    if (currentPath != filePath)
+                                    isSelected = true;
+                                }
+
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                if (isSelected && !runForwardFootsteps.Contains(i + 1))
+                                {
+                                    runForwardFootsteps.Add(i + 1);
+                                }
+                                else if (!isSelected && runForwardFootsteps.Contains(i + 1))
+                                {
+                                    runForwardFootsteps.Remove(i + 1);
+                                }
+                            }
+                            runForwardFootsteps.Sort();
+                        }
+                        else if (spriteData == runBackwardSprite && runBackwardSprite.Frames.Count > 0)
+                        {
+                            if (runningSoundEffect != string.Empty)
+                            {
+                                string filePath = projectData.ProjectPathOnly + @"sounds\" + runningSoundEffect + @"\" + runningSoundEffect + ".wav";
+                                if (!File.Exists(filePath))
+                                {
+                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                    runningSoundEffect = "";
+                                }
+                                else
+                                {
+                                    if (footstepSoundPlayer != null)
+                                    {
+                                        string currentPath = footstepSoundPlayer.filePath;
+                                        if (currentPath != filePath)
+                                        {
+                                            footstepSoundPlayer = new CachedSound(filePath);
+                                        }
+                                    }
+                                    else
                                     {
                                         footstepSoundPlayer = new CachedSound(filePath);
                                     }
                                 }
-                                else
+                            }
+
+                            // Create list of checkboxes for running backward footsteps
+                            ImGui.Columns(2);
+                            ImGui.Text("Footstep Frames:");
+                            ImGui.SameLine();
+                            ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
+                            ImGui.Columns(1);
+
+                            // Shortens length of the list
+                            while (runBackwardFootsteps.Count > runBackwardSprite.Frames.Count)
+                            {
+                                runBackwardFootsteps.RemoveAt(runBackwardSprite.Frames.Count);
+                            }
+
+                            // Removes sprite frames that are out of the range of sprite frames
+                            int numberOfInvalidFrames = 0;
+                            List<int> invalidFrames = new List<int>();
+                            foreach (int frame in runBackwardFootsteps)
+                            {
+                                if (frame > runBackwardSprite.Frames.Count)
                                 {
-                                    footstepSoundPlayer = new CachedSound(filePath);
+                                    numberOfInvalidFrames++;
+                                    invalidFrames.Add(frame);
                                 }
                             }
-                        }
-
-                        // Create list of checkboxes for running backward footsteps
-                        ImGui.Columns(2);
-                        ImGui.Text("Footstep Frames:");
-                        ImGui.SameLine();
-                        ImguiDrawingHelper.DrawHelpMarker("If multiple walk/run cycles use the same sprite sheet, this will affect all of them.");
-                        ImGui.Columns(1);
-
-                        // Shortens length of the list
-                        while (runBackwardFootsteps.Count > runBackwardSprite.Frames.Count)
-                        {
-                            runBackwardFootsteps.RemoveAt(runBackwardSprite.Frames.Count);
-                        }
-
-                        // Removes sprite frames that are out of the range of sprite frames
-                        int numberOfInvalidFrames = 0;
-                        List<int> invalidFrames = new List<int>();
-                        foreach (int frame in runBackwardFootsteps)
-                        {
-                            if (frame > runBackwardSprite.Frames.Count)
+                            while (numberOfInvalidFrames > 0)
                             {
-                                numberOfInvalidFrames++;
-                                invalidFrames.Add(frame);
-                            }
-                        }
-                        while (numberOfInvalidFrames > 0)
-                        {
-                            runBackwardFootsteps.Remove(invalidFrames[0]);
-                            invalidFrames.RemoveAt(0);
-                            numberOfInvalidFrames--;
-                        }
-
-                        // Create a list of checkboxes, one checkbox for each moveset
-                        for (int i = 0; i < runBackwardSprite.Frames.Count; i++)
-                        {
-                            var isSelected = false;
-                            if (runBackwardFootsteps.Contains(i + 1))
-                            {
-                                isSelected = true;
+                                runBackwardFootsteps.Remove(invalidFrames[0]);
+                                invalidFrames.RemoveAt(0);
+                                numberOfInvalidFrames--;
                             }
 
-                            ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
-                            if (isSelected && !runBackwardFootsteps.Contains(i + 1))
+                            // Create a list of checkboxes, one checkbox for each moveset
+                            for (int i = 0; i < runBackwardSprite.Frames.Count; i++)
                             {
-                                runBackwardFootsteps.Add(i + 1);
+                                var isSelected = false;
+                                if (runBackwardFootsteps.Contains(i + 1))
+                                {
+                                    isSelected = true;
+                                }
+
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                if (isSelected && !runBackwardFootsteps.Contains(i + 1))
+                                {
+                                    runBackwardFootsteps.Add(i + 1);
+                                }
+                                else if (!isSelected && runBackwardFootsteps.Contains(i + 1))
+                                {
+                                    runBackwardFootsteps.Remove(i + 1);
+                                }
                             }
-                            else if (!isSelected && runBackwardFootsteps.Contains(i + 1))
-                            {
-                                runBackwardFootsteps.Remove(i + 1);
-                            }
+                            runBackwardFootsteps.Sort();
                         }
-                        runBackwardFootsteps.Sort();
+                        else
+                        {
+                            ImGui.Text("Choose a walking or running sprite.");
+                        }
+
+                        character.NonmoveSoundData.WalkingSoundEffect = walkingSoundEffect;
+                        character.NonmoveSoundData.WalkForwardFootsteps = walkForwardFootsteps;
+                        character.NonmoveSoundData.WalkBackwardFootsteps = walkBackwardFootsteps;
+                        character.NonmoveSoundData.RunningSoundEffect = runningSoundEffect;
+                        character.NonmoveSoundData.RunForwardFootsteps = runForwardFootsteps;
+                        character.NonmoveSoundData.RunBackwardFootsteps = runBackwardFootsteps;
                     }
-                    else
-                    {
-                        ImGui.Text("Choose a walking or running sprite.");
-                    }
-
-                    character.NonmoveSoundData.WalkingSoundEffect = walkingSoundEffect;
-                    character.NonmoveSoundData.WalkForwardFootsteps = walkForwardFootsteps;
-                    character.NonmoveSoundData.WalkBackwardFootsteps = walkBackwardFootsteps;
-                    character.NonmoveSoundData.RunningSoundEffect = runningSoundEffect;
-                    character.NonmoveSoundData.RunForwardFootsteps = runForwardFootsteps;
-                    character.NonmoveSoundData.RunBackwardFootsteps = runBackwardFootsteps;
                 }
 
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
