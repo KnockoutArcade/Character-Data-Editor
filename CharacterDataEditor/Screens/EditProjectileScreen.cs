@@ -134,7 +134,7 @@ namespace CharacterDataEditor.Screens
             if (action == "edit" && !string.IsNullOrWhiteSpace(projectile.ProjectileSprites?.Sprite))
             {
                 var sprite = allSprites.FirstOrDefault(x => x.Name == projectile.ProjectileSprites.Sprite);
-                ChangeAnimatedSprite(sprite);
+                ChangeAnimatedSprite(sprite, projectile.HasLifetime);
             }
 
             playButtonTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.PlayButtonPath));
@@ -873,6 +873,7 @@ namespace CharacterDataEditor.Screens
                             boxDrawMode = BoxDrawMode.None;
                             showHitHurtboxes = false;
                         }
+                        spriteData.Sequence.playbackSpeed = 0;
                     }
                     else
                     {
@@ -955,7 +956,7 @@ namespace CharacterDataEditor.Screens
                         if (selectedIndex > -1)
                         {
                             var sprite = allSprites[selectedIndex];
-                            ChangeAnimatedSprite(sprite);
+                            ChangeAnimatedSprite(sprite, projectile.HasLifetime);
                         }
 
                         if (spriteSelected == 0)
@@ -985,7 +986,7 @@ namespace CharacterDataEditor.Screens
                         if (selectedIndex > -1 && spriteData != allSprites[selectedIndex])
                         {
                             var sprite = allSprites[selectedIndex];
-                            ChangeAnimatedSprite(sprite);
+                            ChangeAnimatedSprite(sprite, projectile.HasLifetime);
                         }
                     };
 
