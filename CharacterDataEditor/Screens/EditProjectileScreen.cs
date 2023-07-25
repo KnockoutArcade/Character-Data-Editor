@@ -1000,7 +1000,7 @@ namespace CharacterDataEditor.Screens
                 ImguiDrawingHelper.DrawVerticalSpacing(scale, 5.0f);
 
                 // Windows dropdown
-                if (ImGui.CollapsingHeader("Windows"))
+                if (ImGui.CollapsingHeader("Windows", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     int windowCount = projectile.NumberOfFrames;
 
