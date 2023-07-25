@@ -76,7 +76,6 @@ namespace CharacterDataEditor.Screens
         private int totalFrames;
         private List<int> windows;
         private bool resetAnimation; // Resets the current animation in SpriteDrawingHelper whenever a different move is selected
-        private bool showingMove;
         private AnimatedSpriteReturnDataModel spriteDrawData;
 
         private int frameCounter; // This is used for checking unsaved work
@@ -176,7 +175,6 @@ namespace CharacterDataEditor.Screens
             totalFrames = 0;
             windows = new List<int>();
             resetAnimation = false;
-            showingMove = false;
             frameAdvance = FrameAdvance.None;
             boxDrawMode = BoxDrawMode.None;
             hitboxRects = new List<List<Rectangle>>();
@@ -691,7 +689,7 @@ namespace CharacterDataEditor.Screens
                 ImGui.SetCursorPos(cursorPos);
 
                 var currentAnimationSpeedLabel =
-                    currentAnimationSpeed == 0 ? (isMoveAnimationRender) ? "Set By Data" : "10 (default)" :
+                    currentAnimationSpeed == 0 ? (isMoveAnimationRender) ? "Set By Data" : "0" :
                     currentAnimationSpeed.ToString();
 
                 ImGui.Text(" ");
@@ -884,6 +882,10 @@ namespace CharacterDataEditor.Screens
                             currentFrame = 1;
                         }
                         totalFrames = spriteData != null ? spriteData.Frames.Count : 0;
+                        if (spriteData != null)
+                        {
+                            spriteData.Sequence.playbackSpeed = animationSpeed;
+                        }
                     }
                     ImguiDrawingHelper.DrawDecimalInput("horizontalSpeed", ref horizontalSpeed);
                     ImguiDrawingHelper.DrawDecimalInput("verticalSpeed", ref verticalSpeed);
@@ -959,14 +961,6 @@ namespace CharacterDataEditor.Screens
                             ChangeAnimatedSprite(sprite, projectile.HasLifetime);
                         }
 
-                        if (spriteSelected == 0)
-                        {
-                            showingMove = true;
-                        }
-                        else
-                        {
-                            showingMove = false;
-                        }
                         if (projectile.HasLifetime)
                         {
                             totalFrames = projectile.Lifetime;
