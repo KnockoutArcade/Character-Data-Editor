@@ -1079,11 +1079,11 @@ namespace CharacterDataEditor.Screens
                         var selectedType = superTypesList[superTypeIndex];
                         type = (SuperType)Enum.Parse(typeof(SuperType), selectedType.ToCamelCase());
 
-                        ImguiDrawingHelper.DrawIntInput("screenFreezeTime", ref screenFreezeTime);
+                        ImguiDrawingHelper.DrawIntInput("screenFreezeTime", ref screenFreezeTime, 30, null, "The duration and the window data must accomodate the screen freeze time so attacks don't happen during the screen freeze.");
 
                         if (type == SuperType.Attack)
                         {
-                            ImguiDrawingHelper.DrawBoolInput("finalBlowKill", ref finalBlowKO, "If true, you can set which hitbox is the final blow. Rehit hitboxes cannot be set as the final blow.");
+                            ImguiDrawingHelper.DrawBoolInput("finalBlowKill", ref finalBlowKO, "If true, only the final blow will finish the opponent. You can set which hitbox is the final blow, but rehit hitboxes cannot be set as the final blow.");
 
                             duration = 0;
                             increaseAttackBy = 0;
@@ -1094,8 +1094,8 @@ namespace CharacterDataEditor.Screens
                         else
                         {
                             ImguiDrawingHelper.DrawIntInput("duration", ref duration);
-                            ImguiDrawingHelper.DrawDecimalInput("increaseAttackBy(%)", ref increaseAttackBy);
-                            ImguiDrawingHelper.DrawDecimalInput("increaseSpeedBy(%)", ref increaseSpeedBy);
+                            ImguiDrawingHelper.DrawDecimalInput("increaseAttackBy (%%)", ref increaseAttackBy);
+                            ImguiDrawingHelper.DrawDecimalInput("increaseSpeedBy (%%)", ref increaseSpeedBy);
                             ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
                             if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
                             {
