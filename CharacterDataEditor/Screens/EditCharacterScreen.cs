@@ -1223,7 +1223,7 @@ namespace CharacterDataEditor.Screens
                                     ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
 
                                     ImguiDrawingHelper.DrawDecimalInput("blockStun", ref blockStun);
-                                    Math.Round(blockStun);
+                                    blockStun = (float)Math.Round(blockStun);
                                     ImguiDrawingHelper.DrawDecimalInput("knockback", ref knockBack);
                                     ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
                                     ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
