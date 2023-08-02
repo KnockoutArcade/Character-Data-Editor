@@ -1,11 +1,11 @@
 ## What's Changed?
 
-* Added projectile data.
-  * Projectiles have different data from regular characters.
-  * Projectiles can copy a character's palette to have different colors for each palette or it can just have one color across all palettes.
-  * Projectiles have window data for if they have a lifetime, giving them some extra flexibility with hitbox data.
-* Added gravity scaling for attacks.
-* Fixed some bugs and crashes.
+* Added super data.
+  * There are two types of supers: attack supers and install supers.
+    * Attack supers can have a final hit setting where only the final hit will KO the opponent.
+    * Install supers can alter different stats for a set amount of time.
+* Block stun now has to be whole numbers.
+* Fixed a bug with projectiles always saving even if you don't edit them.
 
 ## Known Bugs
 
