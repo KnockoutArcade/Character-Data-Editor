@@ -11,6 +11,7 @@ namespace CharacterDataEditor.Models.CharacterData
     {
         public SuperType Type { get; set; } = SuperType.Attack;
         public int ScreenFreezeTime { get; set; } = 0;
+        public int InvincibilityFrames { get; set; } = 0;
         public bool FinalBlowKO { get; set; } = false;
         public int Duration { get; set; } = 0;
         public float IncreaseAttackBy { get; set; } = 0.0f;
@@ -20,7 +21,8 @@ namespace CharacterDataEditor.Models.CharacterData
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Type, ScreenFreezeTime, FinalBlowKO, Duration, IncreaseAttackBy, IncreaseSpeedBy, JumpType, SpiritInstall);
+            var hash = HashCode.Combine(Type, ScreenFreezeTime, InvincibilityFrames, FinalBlowKO, Duration, IncreaseAttackBy, IncreaseSpeedBy, JumpType);
+            hash = HashCode.Combine(hash, SpiritInstall);
 
             return hash;
         }
@@ -42,6 +44,7 @@ namespace CharacterDataEditor.Models.CharacterData
             //objAsSuperData..Equals() &&
             if (objAsSuperData.Type.Equals(Type) &&
                  objAsSuperData.ScreenFreezeTime.Equals(ScreenFreezeTime) &&
+                 objAsSuperData.InvincibilityFrames.Equals(InvincibilityFrames) &&
                  objAsSuperData.FinalBlowKO.Equals(FinalBlowKO) &&
                  objAsSuperData.Duration.Equals(Duration) &&
                  objAsSuperData.IncreaseAttackBy.Equals(IncreaseAttackBy) &&

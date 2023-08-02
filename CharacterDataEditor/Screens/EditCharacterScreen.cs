@@ -1066,6 +1066,7 @@ namespace CharacterDataEditor.Screens
                     {
                         SuperType type = moveInEditor.SuperData.Type;
                         int screenFreezeTime = moveInEditor.SuperData.ScreenFreezeTime;
+                        int invincibilityFrames = moveInEditor.SuperData.InvincibilityFrames;
                         bool finalBlowKO = moveInEditor.SuperData.FinalBlowKO;
                         int duration = moveInEditor.SuperData.Duration;
                         float increaseAttackBy = moveInEditor.SuperData.IncreaseAttackBy;
@@ -1080,6 +1081,7 @@ namespace CharacterDataEditor.Screens
                         type = (SuperType)Enum.Parse(typeof(SuperType), selectedType.ToCamelCase());
 
                         ImguiDrawingHelper.DrawIntInput("screenFreezeTime", ref screenFreezeTime, 30, null, "The duration and the window data must accomodate the screen freeze time so attacks don't happen during the screen freeze.");
+                        ImguiDrawingHelper.DrawIntInput("invincibilityFrames", ref invincibilityFrames, 0);
 
                         if (type == SuperType.Attack)
                         {
@@ -1111,6 +1113,7 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SuperData.Type = type;
                         moveInEditor.SuperData.ScreenFreezeTime = screenFreezeTime;
+                        moveInEditor.SuperData.InvincibilityFrames = invincibilityFrames;
                         moveInEditor.SuperData.FinalBlowKO = finalBlowKO;
                         moveInEditor.SuperData.Duration = duration;
                         moveInEditor.SuperData.IncreaseAttackBy = increaseAttackBy;
@@ -1288,7 +1291,14 @@ namespace CharacterDataEditor.Screens
                                     bool activateTimeStop = attackDataItem.ActivateTimeStop;
                                     int timeStopDuration = attackDataItem.TimeStopDuration;
 
-                                    ImguiDrawingHelper.DrawBoolInput("finalBlow", ref finalBlow);
+                                    if (moveInEditor.SuperData.FinalBlowKO)
+                                    {
+                                        ImguiDrawingHelper.DrawBoolInput("finalBlow", ref finalBlow);
+                                    }
+                                    else
+                                    {
+                                        finalBlow = false;
+                                    }
                                     ImguiDrawingHelper.DrawBoolInput("activateTimeStop", ref activateTimeStop);
                                     ImguiDrawingHelper.DrawIntInput("timeStopDuration", ref timeStopDuration);
 
