@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CharacterDataEditor.Enums;
 using System;
+using CharacterDataEditor.Models.CharacterData;
 
 namespace CharacterDataEditor.Extensions
 {
@@ -15,9 +16,7 @@ namespace CharacterDataEditor.Extensions
         {
             switch (originalProjectile.Version)
             {
-                // Right now, this is the original version of the projectile data
                 case VersionConstants.CurrentVersion:
-                default:
                     return new UpgradeResults
                     {
                         IsDataLossSuspected = false,
@@ -25,7 +24,38 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedProjectileData = (originalProjectile as ProjectileDataModel)
                     };
+                case VersionConstants.Ver120:
+                    return (originalProjectile as ProjectileDataModel).Upgrade120to121();
+                case VersionConstants.Ver114:
+                default:
+                    return (originalProjectile as ProjectileDataModel).Upgrade114to120();
             }
+        }
+
+        private static UpgradeResults Upgrade114to120(this ProjectileDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            previous.Version = VersionConstants.Ver120;
+
+            return new UpgradeResults
+            {
+                UpgradedProjectileData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            };
+        }
+
+        private static UpgradeResults Upgrade120to121(this ProjectileDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            previous.Version = VersionConstants.Ver121;
+
+            return new UpgradeResults
+            {
+                UpgradedProjectileData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            };
         }
     }
 }
