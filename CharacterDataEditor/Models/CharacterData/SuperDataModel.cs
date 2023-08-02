@@ -15,16 +15,12 @@ namespace CharacterDataEditor.Models.CharacterData
         public int Duration { get; set; } = 0;
         public float IncreaseAttackBy { get; set; } = 0.0f;
         public float IncreaseSpeedBy { get; set; } = 0.0f;
-        public float IncreaseDefenseBy { get; set; } = 0.0f;
-        public bool ShortHop { get; set; } = false;
-        public bool SuperJump { get; set; } = false;
-        public bool DoubleJump { get; set; } = false;
+        public JumpType JumpType { get; set; } = JumpType.None;
         public bool SpiritInstall { get; set; } = false;
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Type, ScreenFreezeTime, FinalBlowKO, Duration, IncreaseAttackBy, IncreaseSpeedBy, IncreaseDefenseBy, ShortHop);
-            hash = HashCode.Combine(hash, SuperJump, DoubleJump, SpiritInstall);
+            var hash = HashCode.Combine(Type, ScreenFreezeTime, FinalBlowKO, Duration, IncreaseAttackBy, IncreaseSpeedBy, JumpType, SpiritInstall);
 
             return hash;
         }
@@ -50,10 +46,7 @@ namespace CharacterDataEditor.Models.CharacterData
                  objAsSuperData.Duration.Equals(Duration) &&
                  objAsSuperData.IncreaseAttackBy.Equals(IncreaseAttackBy) &&
                  objAsSuperData.IncreaseSpeedBy.Equals(IncreaseSpeedBy) &&
-                 objAsSuperData.IncreaseDefenseBy.Equals(IncreaseDefenseBy) &&
-                 objAsSuperData.ShortHop.Equals(ShortHop) &&
-                 objAsSuperData.SuperJump.Equals(SuperJump) &&
-                 objAsSuperData.DoubleJump.Equals(DoubleJump) &&
+                 objAsSuperData.JumpType.Equals(JumpType) &&
                  objAsSuperData.SpiritInstall.Equals(SpiritInstall))
             {
                 return true;

@@ -1066,6 +1066,12 @@ namespace CharacterDataEditor.Screens
                     {
                         SuperType type = moveInEditor.SuperData.Type;
                         int screenFreezeTime = moveInEditor.SuperData.ScreenFreezeTime;
+                        bool finalBlowKO = moveInEditor.SuperData.FinalBlowKO;
+                        int duration = moveInEditor.SuperData.Duration;
+                        float increaseAttackBy = moveInEditor.SuperData.IncreaseAttackBy;
+                        float increaseSpeedBy = moveInEditor.SuperData.IncreaseSpeedBy;
+                        JumpType jumpType = moveInEditor.SuperData.JumpType;
+                        bool spiritInstall = moveInEditor.SuperData.SpiritInstall;
 
                         var superTypeName = type.ToString();
                         int superTypeIndex = superTypesList.IndexOf(superTypeName.AddSpacesToCamelCase());
@@ -1075,13 +1081,42 @@ namespace CharacterDataEditor.Screens
 
                         ImguiDrawingHelper.DrawIntInput("screenFreezeTime", ref screenFreezeTime);
 
-                        moveInEditor.SuperData.Type = type;
-                        moveInEditor.SuperData.ScreenFreezeTime = screenFreezeTime;
-
                         if (type == SuperType.Attack)
                         {
+                            ImguiDrawingHelper.DrawBoolInput("finalBlowKill", ref finalBlowKO, "If true, you can set which hitbox is the final blow. Rehit hitboxes cannot be set as the final blow.");
 
+                            duration = 0;
+                            increaseAttackBy = 0;
+                            increaseSpeedBy = 0;
+                            jumpType = JumpType.None;
+                            spiritInstall = false;
                         }
+                        else
+                        {
+                            ImguiDrawingHelper.DrawIntInput("duration", ref duration);
+                            ImguiDrawingHelper.DrawDecimalInput("increaseAttackBy(%)", ref increaseAttackBy);
+                            ImguiDrawingHelper.DrawDecimalInput("increaseSpeedBy(%)", ref increaseSpeedBy);
+                            ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
+                            if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                            {
+                                ImguiDrawingHelper.DrawBoolInput("spiritInstall", ref spiritInstall, "Summons the spirit without switching to the Spirit ON moveset, allowing the host and spirit to attack together.");
+                            }
+                            else
+                            {
+                                spiritInstall = false;
+                            }
+
+                            finalBlowKO = false;
+                        }
+
+                        moveInEditor.SuperData.Type = type;
+                        moveInEditor.SuperData.ScreenFreezeTime = screenFreezeTime;
+                        moveInEditor.SuperData.FinalBlowKO = finalBlowKO;
+                        moveInEditor.SuperData.Duration = duration;
+                        moveInEditor.SuperData.IncreaseAttackBy = increaseAttackBy;
+                        moveInEditor.SuperData.IncreaseSpeedBy = increaseSpeedBy;
+                        moveInEditor.SuperData.JumpType = jumpType;
+                        moveInEditor.SuperData.SpiritInstall = spiritInstall;
                     }
                 }
 
@@ -1148,7 +1183,7 @@ namespace CharacterDataEditor.Screens
                                 int attackHitstop = attackDataItem.AttackHitStop;
                                 int attackHitstun = attackDataItem.AttackHitStun;
                                 AttackType attackType = attackDataItem.AttackType;
-                                int blockStun = attackDataItem.BlockStun;
+                                float blockStun = attackDataItem.BlockStun;
                                 float knockBack = attackDataItem.KnockBack;
                                 float airKnockbackH = attackDataItem.AirKnockbackHorizontal;
                                 float airKnockbackV = attackDataItem.AirKnockbackVertical;
@@ -1182,7 +1217,8 @@ namespace CharacterDataEditor.Screens
                                 int selectedAttackType = (int)attackType;
                                 ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
 
-                                ImguiDrawingHelper.DrawIntInput("blockStun", ref blockStun);
+                                ImguiDrawingHelper.DrawDecimalInput("blockStun", ref blockStun);
+                                Math.Round(blockStun);
                                 ImguiDrawingHelper.DrawDecimalInput("knockback", ref knockBack);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
@@ -2028,7 +2064,6 @@ namespace CharacterDataEditor.Screens
                     {
                         bool toggleState = moveInEditor.SpiritData.ToggleState;
                         bool performAttack = moveInEditor.SpiritData.PerformAttack;
-                        bool performInSpiritOff = moveInEditor.SpiritData.PerformInSpiritOff;
                         bool returnToPlayer = moveInEditor.SpiritData.ReturnToPlayer;
 
                         ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState, "Activate Spirit ON/OFF.");
@@ -2036,29 +2071,24 @@ namespace CharacterDataEditor.Screens
 
                         if (performAttack)
                         {
-                            ImguiDrawingHelper.DrawBoolInput("performInSpiritOff", ref performInSpiritOff, "If set to true, the spirit will temporarily be summoned in Spirit OFF to perform this move. The spirit will then immediately disappear when the move ends.");
-                        }
-                        else
-                        {
-                            performInSpiritOff = false;
-                        }
-
-                        if (performAttack)
-                        {
+                            bool performInSpiritOff = moveInEditor.SpiritData.PerformInSpiritOff;
                             int startXOffset = moveInEditor.SpiritData.StartXOffset;
                             int startYOffset = moveInEditor.SpiritData.StartYOffset;
                             bool summonSpirit = moveInEditor.SpiritData.SummonSpirit;
 
+                            ImguiDrawingHelper.DrawBoolInput("performInSpiritOff", ref performInSpiritOff, "If set to true, the spirit will temporarily be summoned in Spirit OFF to perform this move. The spirit will then immediately disappear when the move ends.");
                             ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
                             ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
                             ImguiDrawingHelper.DrawBoolInput("summonSpirit", ref summonSpirit, "Enters Spirit ON and keeps the spirit out after the move ends.");
 
+                            moveInEditor.SpiritData.PerformInSpiritOff = performInSpiritOff;
                             moveInEditor.SpiritData.StartXOffset = startXOffset;
                             moveInEditor.SpiritData.StartYOffset = startYOffset;
                             moveInEditor.SpiritData.SummonSpirit = summonSpirit;
                         }
                         else
                         {
+                            moveInEditor.SpiritData.PerformInSpiritOff = false;
                             moveInEditor.SpiritData.StartXOffset = 0;
                             moveInEditor.SpiritData.StartYOffset = 0;
                             moveInEditor.SpiritData.SummonSpirit = false;
@@ -2069,7 +2099,6 @@ namespace CharacterDataEditor.Screens
 
                         moveInEditor.SpiritData.ToggleState = toggleState;
                         moveInEditor.SpiritData.PerformAttack = performAttack;
-                        moveInEditor.SpiritData.PerformInSpiritOff = performInSpiritOff;
                         moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
 
                         moveInEditor.SpiritData.MaintainPosition = false;

@@ -18,7 +18,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public int AttackHitStop { get; set; } = 0;
         public int AttackHitStun { get; set; } = 0;
         public AttackType AttackType { get; set; } = AttackType.Low;
-        public int BlockStun { get; set; } = 0;
+        public float BlockStun { get; set; } = 0;
         public float KnockBack { get; set; } = 0;
         public float AirKnockbackVertical { get; set; } = 0.0f;
         public float AirKnockbackHorizontal { get; set; } = 0.0f;
