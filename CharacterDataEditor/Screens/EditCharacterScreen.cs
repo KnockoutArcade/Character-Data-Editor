@@ -59,6 +59,7 @@ namespace CharacterDataEditor.Screens
         private List<string> spriteTypesList = new List<string>();
         private List<string> directionsList = new List<string>();
         private List<string> commandButtonsList = new List<string>();
+        private List<string> superTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<SoundDataModel> allSounds;
@@ -280,6 +281,16 @@ namespace CharacterDataEditor.Screens
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
                 commandButtonsList.Add(itemAsString);
+            }
+
+            var superTypes = Enum.GetValues(typeof(SuperType));
+            superTypesList = new List<string>();
+
+            foreach (SuperType item in superTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                superTypesList.Add(itemAsString);
             }
 
             //init spritedrawposition
@@ -1049,6 +1060,31 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                if (moveInEditor.MoveType == MoveType.Super)
+                {
+                    if (ImGui.CollapsingHeader("Super Properties"))
+                    {
+                        SuperType type = moveInEditor.SuperData.Type;
+                        int screenFreezeTime = moveInEditor.SuperData.ScreenFreezeTime;
+
+                        var superTypeName = type.ToString();
+                        int superTypeIndex = superTypesList.IndexOf(superTypeName.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("type", superTypesList.ToArray(), ref superTypeIndex);
+                        var selectedType = superTypesList[superTypeIndex];
+                        type = (SuperType)Enum.Parse(typeof(SuperType), selectedType.ToCamelCase());
+
+                        ImguiDrawingHelper.DrawIntInput("screenFreezeTime", ref screenFreezeTime);
+
+                        moveInEditor.SuperData.Type = type;
+                        moveInEditor.SuperData.ScreenFreezeTime = screenFreezeTime;
+
+                        if (type == SuperType.Attack)
+                        {
+
+                        }
+                    }
+                }
+
                 // Attack Properties dropdown
                 if (ImGui.CollapsingHeader("Attack Properties"))
                 {
@@ -1112,7 +1148,7 @@ namespace CharacterDataEditor.Screens
                                 int attackHitstop = attackDataItem.AttackHitStop;
                                 int attackHitstun = attackDataItem.AttackHitStun;
                                 AttackType attackType = attackDataItem.AttackType;
-                                float blockStun = attackDataItem.BlockStun;
+                                int blockStun = attackDataItem.BlockStun;
                                 float knockBack = attackDataItem.KnockBack;
                                 float airKnockbackH = attackDataItem.AirKnockbackHorizontal;
                                 float airKnockbackV = attackDataItem.AirKnockbackVertical;
@@ -1146,7 +1182,7 @@ namespace CharacterDataEditor.Screens
                                 int selectedAttackType = (int)attackType;
                                 ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
 
-                                ImguiDrawingHelper.DrawDecimalInput("blockStun", ref blockStun);
+                                ImguiDrawingHelper.DrawIntInput("blockStun", ref blockStun);
                                 ImguiDrawingHelper.DrawDecimalInput("knockback", ref knockBack);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
                                 ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
@@ -1209,6 +1245,27 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.HoldYOffset = holdOffsetY;
                                 attackDataItem.CausesWallbounce = causesWallbounce;
                                 attackDataItem.HitSound = hitSound;
+
+                                if (moveInEditor.MoveType == MoveType.Super)
+                                {
+                                    bool finalBlow = attackDataItem.FinalBlow;
+                                    bool activateTimeStop = attackDataItem.ActivateTimeStop;
+                                    int timeStopDuration = attackDataItem.TimeStopDuration;
+
+                                    ImguiDrawingHelper.DrawBoolInput("finalBlow", ref finalBlow);
+                                    ImguiDrawingHelper.DrawBoolInput("activateTimeStop", ref activateTimeStop);
+                                    ImguiDrawingHelper.DrawIntInput("timeStopDuration", ref timeStopDuration);
+
+                                    attackDataItem.FinalBlow = finalBlow;
+                                    attackDataItem.ActivateTimeStop = activateTimeStop;
+                                    attackDataItem.TimeStopDuration = timeStopDuration;
+                                }
+                                else
+                                {
+                                    attackDataItem.FinalBlow = false;
+                                    attackDataItem.ActivateTimeStop = false;
+                                    attackDataItem.TimeStopDuration = 0;
+                                }
 
                                 ImGui.TreePop();
                             }

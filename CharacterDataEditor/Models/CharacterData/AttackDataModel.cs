@@ -18,7 +18,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public int AttackHitStop { get; set; } = 0;
         public int AttackHitStun { get; set; } = 0;
         public AttackType AttackType { get; set; } = AttackType.Low;
-        public float BlockStun { get; set; } = 0;
+        public int BlockStun { get; set; } = 0;
         public float KnockBack { get; set; } = 0;
         public float AirKnockbackVertical { get; set; } = 0.0f;
         public float AirKnockbackHorizontal { get; set; } = 0.0f;
@@ -35,6 +35,9 @@ namespace CharacterDataEditor.Models.CharacterData
         public int HoldYOffset { get; set; } = 0;
         public bool CausesWallbounce { get; set; } = false;
         public string HitSound { get; set; } = "";
+        public bool FinalBlow { get; set; } = false;
+        public bool ActivateTimeStop { get; set; } = false;
+        public int TimeStopDuration { get; set; } = 0;
 
         public override int GetHashCode()
         {
@@ -42,7 +45,7 @@ namespace CharacterDataEditor.Models.CharacterData
             hash = HashCode.Combine(hash, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack);
             hash = HashCode.Combine(hash, AirKnockbackHorizontal, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback);
             hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset,  CausesWallbounce);
-            hash = HashCode.Combine(hash, HitSound);
+            hash = HashCode.Combine(hash, HitSound, FinalBlow, ActivateTimeStop, TimeStopDuration);
 
             return hash;
         }
@@ -119,7 +122,16 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                                         {
                                                                                                                             if (objAsAttackData.GravityScaling == GravityScaling)
                                                                                                                             {
-                                                                                                                                return true;
+                                                                                                                                if (objAsAttackData.FinalBlow == FinalBlow)
+                                                                                                                                {
+                                                                                                                                    if (objAsAttackData.ActivateTimeStop == ActivateTimeStop)
+                                                                                                                                    {
+                                                                                                                                        if (objAsAttackData.TimeStopDuration == TimeStopDuration)
+                                                                                                                                        {
+                                                                                                                                            return true;
+                                                                                                                                        }
+                                                                                                                                    }
+                                                                                                                                }
                                                                                                                             }
                                                                                                                         }
                                                                                                                     }
