@@ -123,6 +123,7 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver113:
                         case VersionConstants.Ver114:
                         case VersionConstants.Ver120:
+                        case VersionConstants.Ver121:
                         default:
                             {
                                 results = characterNeedingUpgrade.Upgrade();
@@ -206,7 +207,9 @@ namespace CharacterDataEditor.Screens
 
                     switch (projectileNeedingUpgrade.Version)
                     {
-                        // Right now, this is the original version of the projectile data
+                        case VersionConstants.Ver114:
+                        case VersionConstants.Ver120:
+                        case VersionConstants.Ver121:
                         default:
                             {
                                 results = projectileNeedingUpgrade.Upgrade();

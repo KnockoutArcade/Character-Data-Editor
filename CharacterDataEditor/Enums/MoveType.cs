@@ -27,6 +27,7 @@ namespace CharacterDataEditor.Enums
         CommandGrab = 0x040000,
         CommandNormal1 = 0x080000,
         CommandNormal2 = 0x100000,
-        CommandNormal3 = 0x200000
+        CommandNormal3 = 0x200000,
+        Super = 0x400000
     }
 }
