@@ -895,22 +895,8 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawDecimalInput("airTraction", ref airTraction);
                     ImguiDrawingHelper.DrawBoolInput("destroyOnFloor", ref destroyOnFloor);
                     ImguiDrawingHelper.DrawBoolInput("destroyOnWall", ref destroyOnWall);
-                    if (!destroyOnFloor)
-                    {
-                        ImguiDrawingHelper.DrawBoolInput("bounceOnFloor", ref bounceOnFloor);
-                    }
-                    else
-                    {
-                        bounceOnFloor = false;
-                    }
-                    if (!destroyOnWall)
-                    {
-                        ImguiDrawingHelper.DrawBoolInput("bounceOnWall", ref bounceOnWall);
-                    }
-                    else
-                    {
-                        bounceOnWall = false;
-                    }
+                    ImguiDrawingHelper.DrawBoolInput("bounceOnFloor", ref bounceOnFloor);
+                    ImguiDrawingHelper.DrawBoolInput("bounceOnWall", ref bounceOnWall);
                     if (bounceOnFloor || bounceOnWall)
                     {
                         ImguiDrawingHelper.DrawIntInput("numberOfBounces", ref numberOfBounces);

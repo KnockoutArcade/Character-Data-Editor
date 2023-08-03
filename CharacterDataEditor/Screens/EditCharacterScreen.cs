@@ -59,6 +59,7 @@ namespace CharacterDataEditor.Screens
         private List<string> spriteTypesList = new List<string>();
         private List<string> directionsList = new List<string>();
         private List<string> commandButtonsList = new List<string>();
+        private List<string> superTypesList = new List<string>();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<SoundDataModel> allSounds;
@@ -280,6 +281,16 @@ namespace CharacterDataEditor.Screens
                 var itemAsString = item.ToString().AddSpacesToCamelCase();
 
                 commandButtonsList.Add(itemAsString);
+            }
+
+            var superTypes = Enum.GetValues(typeof(SuperType));
+            superTypesList = new List<string>();
+
+            foreach (SuperType item in superTypes)
+            {
+                var itemAsString = item.ToString().AddSpacesToCamelCase();
+
+                superTypesList.Add(itemAsString);
             }
 
             //init spritedrawposition
@@ -1049,199 +1060,300 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
+                if (moveInEditor.MoveType == MoveType.Super)
+                {
+                    if (ImGui.CollapsingHeader("Super Properties"))
+                    {
+                        SuperType type = moveInEditor.SuperData.Type;
+                        int screenFreezeTime = moveInEditor.SuperData.ScreenFreezeTime;
+                        int invincibilityFrames = moveInEditor.SuperData.InvincibilityFrames;
+                        bool finalBlowKO = moveInEditor.SuperData.FinalBlowKO;
+                        int duration = moveInEditor.SuperData.Duration;
+                        float increaseAttackBy = moveInEditor.SuperData.IncreaseAttackBy;
+                        float increaseSpeedBy = moveInEditor.SuperData.IncreaseSpeedBy;
+                        JumpType jumpType = moveInEditor.SuperData.JumpType;
+                        bool spiritInstall = moveInEditor.SuperData.SpiritInstall;
+
+                        var superTypeName = type.ToString();
+                        int superTypeIndex = superTypesList.IndexOf(superTypeName.AddSpacesToCamelCase());
+                        ImguiDrawingHelper.DrawComboInput("type", superTypesList.ToArray(), ref superTypeIndex);
+                        var selectedType = superTypesList[superTypeIndex];
+                        type = (SuperType)Enum.Parse(typeof(SuperType), selectedType.ToCamelCase());
+
+                        ImguiDrawingHelper.DrawIntInput("screenFreezeTime", ref screenFreezeTime, 30, null, "The duration and the window data must accomodate the screen freeze time so attacks don't happen during the screen freeze.");
+                        ImguiDrawingHelper.DrawIntInput("invincibilityFrames", ref invincibilityFrames, 0);
+
+                        if (type == SuperType.Attack)
+                        {
+                            ImguiDrawingHelper.DrawBoolInput("finalBlowKill", ref finalBlowKO, "If true, only the final blow will finish the opponent. You can set which hitbox is the final blow, but rehit hitboxes cannot be set as the final blow.");
+
+                            duration = 0;
+                            increaseAttackBy = 0;
+                            increaseSpeedBy = 0;
+                            jumpType = JumpType.None;
+                            spiritInstall = false;
+                        }
+                        else
+                        {
+                            ImguiDrawingHelper.DrawIntInput("duration", ref duration);
+                            ImguiDrawingHelper.DrawDecimalInput("increaseAttackBy (%%)", ref increaseAttackBy);
+                            ImguiDrawingHelper.DrawDecimalInput("increaseSpeedBy (%%)", ref increaseSpeedBy);
+                            ImguiDrawingHelper.DrawFlagsInput("jumpType", ref jumpType);
+                            if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                            {
+                                ImguiDrawingHelper.DrawBoolInput("spiritInstall", ref spiritInstall, "Summons the spirit without switching to the Spirit ON moveset, allowing the host and spirit to attack together.");
+                            }
+                            else
+                            {
+                                spiritInstall = false;
+                            }
+
+                            finalBlowKO = false;
+                        }
+
+                        moveInEditor.SuperData.Type = type;
+                        moveInEditor.SuperData.ScreenFreezeTime = screenFreezeTime;
+                        moveInEditor.SuperData.InvincibilityFrames = invincibilityFrames;
+                        moveInEditor.SuperData.FinalBlowKO = finalBlowKO;
+                        moveInEditor.SuperData.Duration = duration;
+                        moveInEditor.SuperData.IncreaseAttackBy = increaseAttackBy;
+                        moveInEditor.SuperData.IncreaseSpeedBy = increaseSpeedBy;
+                        moveInEditor.SuperData.JumpType = jumpType;
+                        moveInEditor.SuperData.SpiritInstall = spiritInstall;
+                    }
+                }
+
                 // Attack Properties dropdown
                 if (ImGui.CollapsingHeader("Attack Properties"))
                 {
-                    int hitboxCount = moveInEditor.NumberOfHitboxes;
-
-                    ImguiDrawingHelper.DrawIntInput("numberOfHitboxes", ref hitboxCount);
-                    hitboxRects.Clear();
-                    for (int i = 0; i < hitboxCount; i++)
+                    if (moveInEditor.SuperData.Type != SuperType.Install)
                     {
-                        hitboxRects.Add(new List<Rectangle>());
-                    }
+                        int hitboxCount = moveInEditor.NumberOfHitboxes;
 
-                    if (hitboxCount < 0)
-                    {
-                        hitboxCount = 0;
-                    }
-
-                    if (hitboxCount < moveInEditor.NumberOfHitboxes)
-                    {
-                        while (hitboxCount < moveInEditor.NumberOfHitboxes)
+                        ImguiDrawingHelper.DrawIntInput("numberOfHitboxes", ref hitboxCount);
+                        hitboxRects.Clear();
+                        for (int i = 0; i < hitboxCount; i++)
                         {
-                            moveInEditor.CounterData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
-                            if (hitSoundPlayers.Count > 0)
-                            {
-                                hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
-                            }
-                            moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                            hitboxRects.Add(new List<Rectangle>());
                         }
-                    }
-                    else
-                    {
-                        while (hitboxCount > moveInEditor.NumberOfHitboxes)
+
+                        if (hitboxCount < 0)
                         {
-                            moveInEditor.AttackData.Add(new AttackDataModel());
-                            moveInEditor.CounterData.Add(new CounterHitDataModel());
+                            hitboxCount = 0;
                         }
-                    }
 
-                    if (hitboxCount == 0)
-                    {
-                        ImGui.Text("No properties");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
+                        if (hitboxCount < moveInEditor.NumberOfHitboxes)
                         {
-                            var attackDataItem = moveInEditor.AttackData[i];
-
-                            if (ImGui.TreeNode($"Hitbox [{i}]"))
+                            while (hitboxCount < moveInEditor.NumberOfHitboxes)
                             {
-                                int start = attackDataItem.Start;
-                                int lifetime = attackDataItem.Lifetime;
-                                int attackWidth = attackDataItem.AttackWidth;
-                                int attackHeight = attackDataItem.AttackHeight;
-                                int widthOffset = attackDataItem.WidthOffset;
-                                int heightOffset = attackDataItem.HeightOffset;
-                                int group = attackDataItem.Group;
-                                int damage = attackDataItem.Damage;
-                                float meterGain = attackDataItem.MeterGain;
-                                float comboScaling = attackDataItem.ComboScaling;
-                                int attackHitstop = attackDataItem.AttackHitStop;
-                                int attackHitstun = attackDataItem.AttackHitStun;
-                                AttackType attackType = attackDataItem.AttackType;
-                                float blockStun = attackDataItem.BlockStun;
-                                float knockBack = attackDataItem.KnockBack;
-                                float airKnockbackH = attackDataItem.AirKnockbackHorizontal;
-                                float airKnockbackV = attackDataItem.AirKnockbackVertical;
-                                bool launches = attackDataItem.Launches;
-                                float launchKnockbackV = attackDataItem.LaunchKnockbackVertical;
-                                float launchKnockbackH = attackDataItem.LaunchKnockbackHorizontal;
-                                float gravityScaling = attackDataItem.GravityScaling;
-                                float pushback = attackDataItem.Pushback;
-                                int particleOffsetX = attackDataItem.ParticleXOffset;
-                                int particleOffsetY = attackDataItem.ParticleYOffset;
-                                string particleEffect = attackDataItem.ParticleEffect;
-                                int particleDuration = attackDataItem.ParticleDuration;
-                                int holdOffsetX = attackDataItem.HoldXOffset;
-                                int holdOffsetY = attackDataItem.HoldYOffset;
-                                bool causesWallbounce = attackDataItem.CausesWallbounce;
-                                string hitSound = attackDataItem.HitSound;
-
-                                ImguiDrawingHelper.DrawIntInput("start", ref start);
-                                ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
-                                ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
-                                ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
-                                ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
-                                ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
-                                ImguiDrawingHelper.DrawIntInput("group", ref group);
-                                ImguiDrawingHelper.DrawIntInput("damage", ref damage);
-                                ImguiDrawingHelper.DrawDecimalInput("meterGain", ref meterGain);
-                                ImguiDrawingHelper.DrawDecimalInput("comboScaling", ref comboScaling);
-                                ImguiDrawingHelper.DrawIntInput("attackHitStop", ref attackHitstop);
-                                ImguiDrawingHelper.DrawIntInput("attackHitStun", ref attackHitstun);
-
-                                int selectedAttackType = (int)attackType;
-                                ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
-
-                                ImguiDrawingHelper.DrawDecimalInput("blockStun", ref blockStun);
-                                ImguiDrawingHelper.DrawDecimalInput("knockback", ref knockBack);
-                                ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
-                                ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
-                                ImguiDrawingHelper.DrawBoolInput("launches", ref launches);
-                                if (launches)
+                                moveInEditor.CounterData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
+                                if (hitSoundPlayers.Count > 0)
                                 {
-                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref launchKnockbackV);
-                                    ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref launchKnockbackH);
+                                    hitSoundPlayers.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                                 }
-                                else
-                                {
-                                    launchKnockbackV = 0;
-                                    launchKnockbackH = 0;
-                                }
-                                ImguiDrawingHelper.DrawDecimalInput("gravityScaling", ref gravityScaling);
-                                ImguiDrawingHelper.DrawDecimalInput("pushback", ref pushback);
-                                ImguiDrawingHelper.DrawIntInput("particleOffsetX", ref particleOffsetX);
-                                ImguiDrawingHelper.DrawIntInput("particleOffsetY", ref particleOffsetY);
-
-                                int selectedParticleEffect = string.IsNullOrWhiteSpace(particleEffect) ? 0 : allSprites.IndexOf(allSprites.Where(x => x.Name == particleEffect).First());
-                                ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
-                                
-                                ImguiDrawingHelper.DrawIntInput("particleDuration", ref particleDuration);
-                                ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
-                                ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
-                                ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
-
-                                var hitSoundId = attackDataItem.HitSound ?? string.Empty;
-                                var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
-                                ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
-                                hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
-
-                                attackDataItem.Start = start;
-                                attackDataItem.Lifetime = lifetime;
-                                attackDataItem.AttackWidth = attackWidth;
-                                attackDataItem.AttackHeight = attackHeight;
-                                attackDataItem.WidthOffset = widthOffset;
-                                attackDataItem.HeightOffset = heightOffset;
-                                attackDataItem.Group = group;
-                                attackDataItem.Damage = damage;
-                                attackDataItem.MeterGain = meterGain;
-                                attackDataItem.ComboScaling = comboScaling;
-                                attackDataItem.AttackHitStop = attackHitstop;
-                                attackDataItem.AttackHitStun = attackHitstun;
-                                attackDataItem.AttackType = (AttackType)selectedAttackType;
-                                attackDataItem.BlockStun = blockStun;
-                                attackDataItem.KnockBack = knockBack;
-                                attackDataItem.AirKnockbackHorizontal = airKnockbackH;
-                                attackDataItem.AirKnockbackVertical = airKnockbackV;
-                                attackDataItem.Launches = launches;
-                                attackDataItem.LaunchKnockbackHorizontal = launchKnockbackH;
-                                attackDataItem.LaunchKnockbackVertical = launchKnockbackV;
-                                attackDataItem.GravityScaling = gravityScaling;
-                                attackDataItem.Pushback = pushback;
-                                attackDataItem.ParticleXOffset = particleOffsetX;
-                                attackDataItem.ParticleYOffset = particleOffsetY;
-                                attackDataItem.ParticleEffect = allSprites[selectedParticleEffect].Name;
-                                attackDataItem.ParticleDuration = particleDuration;
-                                attackDataItem.HoldXOffset = holdOffsetX;
-                                attackDataItem.HoldYOffset = holdOffsetY;
-                                attackDataItem.CausesWallbounce = causesWallbounce;
-                                attackDataItem.HitSound = hitSound;
-
-                                ImGui.TreePop();
+                                moveInEditor.AttackData.RemoveAt(moveInEditor.NumberOfHitboxes - 1);
                             }
-
-                            if (attackDataItem.HitSound != string.Empty &&
-                                    spriteData != walkForwardSprite &&
-                                    spriteData != walkBackwardSprite &&
-                                    spriteData != runForwardSprite &&
-                                    spriteData != runBackwardSprite)
+                        }
+                        else
+                        {
+                            while (hitboxCount > moveInEditor.NumberOfHitboxes)
                             {
-                                string filePath = projectData.ProjectPathOnly + @"sounds\" + attackDataItem.HitSound + @"\" + attackDataItem.HitSound + ".wav";
-                                if (!File.Exists(filePath))
+                                moveInEditor.AttackData.Add(new AttackDataModel());
+                                moveInEditor.CounterData.Add(new CounterHitDataModel());
+                            }
+                        }
+
+                        if (hitboxCount == 0)
+                        {
+                            ImGui.Text("No properties");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < moveInEditor.NumberOfHitboxes; i++)
+                            {
+                                var attackDataItem = moveInEditor.AttackData[i];
+
+                                if (ImGui.TreeNode($"Hitbox [{i}]"))
                                 {
-                                    _logger.LogError($"File path {filePath} does not exist or is not accessable.");
-                                    attackDataItem.HitSound = "";
-                                }
-                                else
-                                {
-                                    if (hitSoundPlayers.Count > i)
+                                    int start = attackDataItem.Start;
+                                    int lifetime = attackDataItem.Lifetime;
+                                    int attackWidth = attackDataItem.AttackWidth;
+                                    int attackHeight = attackDataItem.AttackHeight;
+                                    int widthOffset = attackDataItem.WidthOffset;
+                                    int heightOffset = attackDataItem.HeightOffset;
+                                    int group = attackDataItem.Group;
+                                    int damage = attackDataItem.Damage;
+                                    float meterGain = attackDataItem.MeterGain;
+                                    float comboScaling = attackDataItem.ComboScaling;
+                                    int attackHitstop = attackDataItem.AttackHitStop;
+                                    int attackHitstun = attackDataItem.AttackHitStun;
+                                    AttackType attackType = attackDataItem.AttackType;
+                                    float blockStun = attackDataItem.BlockStun;
+                                    float knockBack = attackDataItem.KnockBack;
+                                    float airKnockbackH = attackDataItem.AirKnockbackHorizontal;
+                                    float airKnockbackV = attackDataItem.AirKnockbackVertical;
+                                    bool launches = attackDataItem.Launches;
+                                    float launchKnockbackV = attackDataItem.LaunchKnockbackVertical;
+                                    float launchKnockbackH = attackDataItem.LaunchKnockbackHorizontal;
+                                    float gravityScaling = attackDataItem.GravityScaling;
+                                    float pushback = attackDataItem.Pushback;
+                                    int particleOffsetX = attackDataItem.ParticleXOffset;
+                                    int particleOffsetY = attackDataItem.ParticleYOffset;
+                                    string particleEffect = attackDataItem.ParticleEffect;
+                                    int particleDuration = attackDataItem.ParticleDuration;
+                                    int holdOffsetX = attackDataItem.HoldXOffset;
+                                    int holdOffsetY = attackDataItem.HoldYOffset;
+                                    bool causesWallbounce = attackDataItem.CausesWallbounce;
+                                    string hitSound = attackDataItem.HitSound;
+
+                                    ImguiDrawingHelper.DrawIntInput("start", ref start);
+                                    ImguiDrawingHelper.DrawIntInput("lifetime", ref lifetime);
+                                    ImguiDrawingHelper.DrawIntInput("attackWidth", ref attackWidth);
+                                    ImguiDrawingHelper.DrawIntInput("attackHeight", ref attackHeight);
+                                    ImguiDrawingHelper.DrawIntInput("widthOffset", ref widthOffset);
+                                    ImguiDrawingHelper.DrawIntInput("heightOffset", ref heightOffset);
+                                    ImguiDrawingHelper.DrawIntInput("group", ref group);
+                                    ImguiDrawingHelper.DrawIntInput("damage", ref damage);
+                                    ImguiDrawingHelper.DrawDecimalInput("meterGain", ref meterGain);
+                                    ImguiDrawingHelper.DrawDecimalInput("comboScaling", ref comboScaling);
+                                    ImguiDrawingHelper.DrawIntInput("attackHitStop", ref attackHitstop);
+                                    ImguiDrawingHelper.DrawIntInput("attackHitStun", ref attackHitstun);
+
+                                    int selectedAttackType = (int)attackType;
+                                    ImguiDrawingHelper.DrawComboInput("attackType", attackTypesList.ToArray(), ref selectedAttackType);
+
+                                    ImguiDrawingHelper.DrawDecimalInput("blockStun", ref blockStun);
+                                    blockStun = (float)Math.Round(blockStun);
+                                    ImguiDrawingHelper.DrawDecimalInput("knockback", ref knockBack);
+                                    ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
+                                    ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
+                                    ImguiDrawingHelper.DrawBoolInput("launches", ref launches);
+                                    if (launches)
                                     {
-                                        string currentPath = hitSoundPlayers[i].filePath;
-                                        if (currentPath != filePath)
-                                        {
-                                            hitSoundPlayers[i] = new CachedSound(filePath);
-                                        }
+                                        ImguiDrawingHelper.DrawDecimalInput("launchKnockbackVertical", ref launchKnockbackV);
+                                        ImguiDrawingHelper.DrawDecimalInput("launchKnockbackHorizontal", ref launchKnockbackH);
                                     }
                                     else
                                     {
-                                        hitSoundPlayers.Add(new CachedSound(filePath));
+                                        launchKnockbackV = 0;
+                                        launchKnockbackH = 0;
+                                    }
+                                    ImguiDrawingHelper.DrawDecimalInput("gravityScaling", ref gravityScaling);
+                                    ImguiDrawingHelper.DrawDecimalInput("pushback", ref pushback);
+                                    ImguiDrawingHelper.DrawIntInput("particleOffsetX", ref particleOffsetX);
+                                    ImguiDrawingHelper.DrawIntInput("particleOffsetY", ref particleOffsetY);
+
+                                    int selectedParticleEffect = string.IsNullOrWhiteSpace(particleEffect) ? 0 : allSprites.IndexOf(allSprites.Where(x => x.Name == particleEffect).First());
+                                    ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
+
+                                    ImguiDrawingHelper.DrawIntInput("particleDuration", ref particleDuration);
+                                    ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
+                                    ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
+                                    ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
+
+                                    var hitSoundId = attackDataItem.HitSound ?? string.Empty;
+                                    var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == attackDataItem.HitSound)) : -1;
+                                    ImguiDrawingHelper.DrawComboInput("hitSoundEffect", allSounds.Select(x => x.Name).ToArray(), ref selectedHitSoundIndex);
+                                    hitSound = selectedHitSoundIndex != -1 ? allSounds[selectedHitSoundIndex].Name : string.Empty;
+
+                                    attackDataItem.Start = start;
+                                    attackDataItem.Lifetime = lifetime;
+                                    attackDataItem.AttackWidth = attackWidth;
+                                    attackDataItem.AttackHeight = attackHeight;
+                                    attackDataItem.WidthOffset = widthOffset;
+                                    attackDataItem.HeightOffset = heightOffset;
+                                    attackDataItem.Group = group;
+                                    attackDataItem.Damage = damage;
+                                    attackDataItem.MeterGain = meterGain;
+                                    attackDataItem.ComboScaling = comboScaling;
+                                    attackDataItem.AttackHitStop = attackHitstop;
+                                    attackDataItem.AttackHitStun = attackHitstun;
+                                    attackDataItem.AttackType = (AttackType)selectedAttackType;
+                                    attackDataItem.BlockStun = blockStun;
+                                    attackDataItem.KnockBack = knockBack;
+                                    attackDataItem.AirKnockbackHorizontal = airKnockbackH;
+                                    attackDataItem.AirKnockbackVertical = airKnockbackV;
+                                    attackDataItem.Launches = launches;
+                                    attackDataItem.LaunchKnockbackHorizontal = launchKnockbackH;
+                                    attackDataItem.LaunchKnockbackVertical = launchKnockbackV;
+                                    attackDataItem.GravityScaling = gravityScaling;
+                                    attackDataItem.Pushback = pushback;
+                                    attackDataItem.ParticleXOffset = particleOffsetX;
+                                    attackDataItem.ParticleYOffset = particleOffsetY;
+                                    attackDataItem.ParticleEffect = allSprites[selectedParticleEffect].Name;
+                                    attackDataItem.ParticleDuration = particleDuration;
+                                    attackDataItem.HoldXOffset = holdOffsetX;
+                                    attackDataItem.HoldYOffset = holdOffsetY;
+                                    attackDataItem.CausesWallbounce = causesWallbounce;
+                                    attackDataItem.HitSound = hitSound;
+
+                                    if (moveInEditor.MoveType == MoveType.Super)
+                                    {
+                                        bool finalBlow = attackDataItem.FinalBlow;
+                                        bool activateTimeStop = attackDataItem.ActivateTimeStop;
+                                        int timeStopDuration = attackDataItem.TimeStopDuration;
+
+                                        if (moveInEditor.SuperData.FinalBlowKO)
+                                        {
+                                            ImguiDrawingHelper.DrawBoolInput("finalBlow", ref finalBlow);
+                                        }
+                                        else
+                                        {
+                                            finalBlow = false;
+                                        }
+                                        ImguiDrawingHelper.DrawBoolInput("activateTimeStop", ref activateTimeStop);
+                                        ImguiDrawingHelper.DrawIntInput("timeStopDuration", ref timeStopDuration);
+
+                                        attackDataItem.FinalBlow = finalBlow;
+                                        attackDataItem.ActivateTimeStop = activateTimeStop;
+                                        attackDataItem.TimeStopDuration = timeStopDuration;
+                                    }
+                                    else
+                                    {
+                                        attackDataItem.FinalBlow = false;
+                                        attackDataItem.ActivateTimeStop = false;
+                                        attackDataItem.TimeStopDuration = 0;
+                                    }
+
+                                    ImGui.TreePop();
+                                }
+
+                                if (attackDataItem.HitSound != string.Empty &&
+                                        spriteData != walkForwardSprite &&
+                                        spriteData != walkBackwardSprite &&
+                                        spriteData != runForwardSprite &&
+                                        spriteData != runBackwardSprite)
+                                {
+                                    string filePath = projectData.ProjectPathOnly + @"sounds\" + attackDataItem.HitSound + @"\" + attackDataItem.HitSound + ".wav";
+                                    if (!File.Exists(filePath))
+                                    {
+                                        _logger.LogError($"File path {filePath} does not exist or is not accessable.");
+                                        attackDataItem.HitSound = "";
+                                    }
+                                    else
+                                    {
+                                        if (hitSoundPlayers.Count > i)
+                                        {
+                                            string currentPath = hitSoundPlayers[i].filePath;
+                                            if (currentPath != filePath)
+                                            {
+                                                hitSoundPlayers[i] = new CachedSound(filePath);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            hitSoundPlayers.Add(new CachedSound(filePath));
+                                        }
                                     }
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        hitSoundPlayers.Clear();
+                        moveInEditor.AttackData.Clear();
+                        ImGui.Text("Install supers cannot have Attack Data.");
                     }
                 }
 
@@ -1351,53 +1463,64 @@ namespace CharacterDataEditor.Screens
                 // Command Normal dropdown
                 if (ImGui.CollapsingHeader("Command Normal Data"))
                 {
-                    if ((moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3) && 
-                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
+                    if (moveInEditor.SuperData.Type != SuperType.Install)
                     {
-                        DirectionType numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
-                        CommandButton button = moveInEditor.CommandNormalData.Button;
-                        bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
-                        bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
-
-                        var directionName = numpadDirection.ToString();
-                        int directionIndex = directionsList.IndexOf(directionName.AddSpacesToCamelCase());
-                        ImguiDrawingHelper.DrawComboInput("direction", directionsList.ToArray(), ref directionIndex);
-                        var selectedDirection = directionsList[directionIndex];
-                        numpadDirection = (DirectionType)Enum.Parse(typeof(DirectionType), selectedDirection.ToCamelCase());
-
-                        var buttonName = button.ToString();
-                        int buttonIndex = commandButtonsList.IndexOf(buttonName.AddSpacesToCamelCase());
-                        ImguiDrawingHelper.DrawComboInput("button", commandButtonsList.ToArray(), ref buttonIndex);
-                        var selectedButton = commandButtonsList[buttonIndex];
-                        button = (CommandButton)Enum.Parse(typeof(CommandButton), selectedButton.ToCamelCase());
-
-                        ImguiDrawingHelper.DrawBoolInput("groundOrAir", ref groundOrAir, "Unchecked for ground, checked for air");
-
-                        if (groundOrAir)
+                        if ((moveInEditor.MoveType == MoveType.CommandNormal1 || moveInEditor.MoveType == MoveType.CommandNormal2 || moveInEditor.MoveType == MoveType.CommandNormal3) &&
+                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                         {
-                            ImguiDrawingHelper.DrawBoolInput("cancelWhenLanding", ref cancelWhenLanding);
+                            DirectionType numpadDirection = moveInEditor.CommandNormalData.NumpadDirection;
+                            CommandButton button = moveInEditor.CommandNormalData.Button;
+                            bool groundOrAir = moveInEditor.CommandNormalData.GroundOrAir;
+                            bool cancelWhenLanding = moveInEditor.CommandNormalData.CancelWhenLanding;
+
+                            var directionName = numpadDirection.ToString();
+                            int directionIndex = directionsList.IndexOf(directionName.AddSpacesToCamelCase());
+                            ImguiDrawingHelper.DrawComboInput("direction", directionsList.ToArray(), ref directionIndex);
+                            var selectedDirection = directionsList[directionIndex];
+                            numpadDirection = (DirectionType)Enum.Parse(typeof(DirectionType), selectedDirection.ToCamelCase());
+
+                            var buttonName = button.ToString();
+                            int buttonIndex = commandButtonsList.IndexOf(buttonName.AddSpacesToCamelCase());
+                            ImguiDrawingHelper.DrawComboInput("button", commandButtonsList.ToArray(), ref buttonIndex);
+                            var selectedButton = commandButtonsList[buttonIndex];
+                            button = (CommandButton)Enum.Parse(typeof(CommandButton), selectedButton.ToCamelCase());
+
+                            ImguiDrawingHelper.DrawBoolInput("groundOrAir", ref groundOrAir, "Unchecked for ground, checked for air");
+
+                            if (groundOrAir)
+                            {
+                                ImguiDrawingHelper.DrawBoolInput("cancelWhenLanding", ref cancelWhenLanding);
+                            }
+                            else
+                            {
+                                cancelWhenLanding = false;
+                            }
+
+                            moveInEditor.CommandNormalData.NumpadDirection = numpadDirection;
+                            moveInEditor.CommandNormalData.Button = button;
+                            moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
+                            moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
+                        }
+                        else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                        {
+                            ImGui.Text("Character is a spirit!");
+                            moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
+                            moveInEditor.CommandNormalData.Button = CommandButton.Light;
+                            moveInEditor.CommandNormalData.GroundOrAir = false;
+                            moveInEditor.CommandNormalData.CancelWhenLanding = false;
                         }
                         else
                         {
-                            cancelWhenLanding = false;
+                            ImGui.Text("Not a command normal!");
+                            moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
+                            moveInEditor.CommandNormalData.Button = CommandButton.Light;
+                            moveInEditor.CommandNormalData.GroundOrAir = false;
+                            moveInEditor.CommandNormalData.CancelWhenLanding = false;
                         }
-
-                        moveInEditor.CommandNormalData.NumpadDirection = numpadDirection;
-                        moveInEditor.CommandNormalData.Button = button;
-                        moveInEditor.CommandNormalData.GroundOrAir = groundOrAir;
-                        moveInEditor.CommandNormalData.CancelWhenLanding = cancelWhenLanding;
-                    }
-                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
-                    {
-                        ImGui.Text("Character is a spirit!");
-                        moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
-                        moveInEditor.CommandNormalData.Button = CommandButton.Light;
-                        moveInEditor.CommandNormalData.GroundOrAir = false;
-                        moveInEditor.CommandNormalData.CancelWhenLanding = false;
                     }
                     else
                     {
-                        ImGui.Text("Not a command normal!");
+                        ImGui.Text("Install supers cannot have Command Normal Data.");
                         moveInEditor.CommandNormalData.NumpadDirection = DirectionType.None;
                         moveInEditor.CommandNormalData.Button = CommandButton.Light;
                         moveInEditor.CommandNormalData.GroundOrAir = false;
@@ -1408,66 +1531,94 @@ namespace CharacterDataEditor.Screens
                 // Special Data dropdown
                 if (ImGui.CollapsingHeader("Special Data"))
                 {
-                    if ((moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
-                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None) && 
-                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
+                    if (moveInEditor.SuperData.Type != SuperType.Install)
                     {
-                        int enhancementCount = moveInEditor.NumberOfEnhancements;
-                        ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
-                        if (enhancementCount < 0)
+                        if ((moveInEditor.MoveType == MoveType.NeutralSpecial || moveInEditor.MoveType == MoveType.SideSpecial ||
+                        moveInEditor.MoveType == MoveType.UpSpecial || moveInEditor.MoveType == MoveType.DownSpecial || moveInEditor.EnhanceMoveType != EnhanceMoveType.None) &&
+                        character.UniqueData.SpiritData != SpiritDataType.IsSpirit)
                         {
-                            enhancementCount = 0;
-                        }
-
-                        if (enhancementCount < moveInEditor.NumberOfEnhancements)
-                        {
-                            while (enhancementCount < moveInEditor.NumberOfEnhancements)
+                            int enhancementCount = moveInEditor.NumberOfEnhancements;
+                            ImguiDrawingHelper.DrawIntInput("numberOfEnhancements", ref enhancementCount, int.MinValue, null, "This can also be used for rekka follow-ups.");
+                            if (enhancementCount < 0)
                             {
-                                moveInEditor.SpecialData.RemoveAt(moveInEditor.NumberOfEnhancements - 1);
+                                enhancementCount = 0;
                             }
-                        }
-                        else
-                        {
-                            while (enhancementCount > moveInEditor.NumberOfEnhancements)
-                            {
-                                moveInEditor.SpecialData.Add(new SpecialDataModel());
-                            }
-                        }
 
-                        if (enhancementCount == 0)
-                        {
-                            ImGui.Text("No enhancements");
-                        }
-                        else
-                        {
-                            for (int i = 0; i < moveInEditor.NumberOfEnhancements; i++)
+                            if (enhancementCount < moveInEditor.NumberOfEnhancements)
                             {
-                                var specialDataItem = moveInEditor.SpecialData[i];
-
-                                if (ImGui.TreeNode($"Enhancement [{i}]"))
+                                while (enhancementCount < moveInEditor.NumberOfEnhancements)
                                 {
-                                    string numpadInput = specialDataItem.NumpadInput;
-                                    bool buttonPressRequired = specialDataItem.ButtonPressRequired;
-                                    int startingFrame = specialDataItem.StartingFrame;
-                                    int endingFrame = specialDataItem.EndingFrame;
-                                    EnhanceMoveType enhancementMove = specialDataItem.EnhancementMove;
-                                    bool transitionImmediately = specialDataItem.TransitionImmediately;
-                                    int transitionFrame = specialDataItem.TransitionFrame;
-                                    PositionType requiredPosition = specialDataItem.RequiredPosition;
-                                    bool deactivateSpirit = specialDataItem.DeactivateSpirit;
+                                    moveInEditor.SpecialData.RemoveAt(moveInEditor.NumberOfEnhancements - 1);
+                                }
+                            }
+                            else
+                            {
+                                while (enhancementCount > moveInEditor.NumberOfEnhancements)
+                                {
+                                    moveInEditor.SpecialData.Add(new SpecialDataModel());
+                                }
+                            }
 
-                                    ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
-                                    Regex regex = new Regex(@"[^\d]");
-                                    numpadInput = regex.Replace(numpadInput, "");
+                            if (enhancementCount == 0)
+                            {
+                                ImGui.Text("No enhancements");
+                            }
+                            else
+                            {
+                                for (int i = 0; i < moveInEditor.NumberOfEnhancements; i++)
+                                {
+                                    var specialDataItem = moveInEditor.SpecialData[i];
 
-                                    ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
-                                    ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
-                                    ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
-
-                                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                                    if (ImGui.TreeNode($"Enhancement [{i}]"))
                                     {
-                                        ImguiDrawingHelper.DrawBoolInput("deactivateSpirit", ref deactivateSpirit);
-                                        if (!deactivateSpirit)
+                                        string numpadInput = specialDataItem.NumpadInput;
+                                        bool buttonPressRequired = specialDataItem.ButtonPressRequired;
+                                        int startingFrame = specialDataItem.StartingFrame;
+                                        int endingFrame = specialDataItem.EndingFrame;
+                                        EnhanceMoveType enhancementMove = specialDataItem.EnhancementMove;
+                                        bool transitionImmediately = specialDataItem.TransitionImmediately;
+                                        int transitionFrame = specialDataItem.TransitionFrame;
+                                        PositionType requiredPosition = specialDataItem.RequiredPosition;
+                                        bool deactivateSpirit = specialDataItem.DeactivateSpirit;
+
+                                        ImguiDrawingHelper.DrawStringInput("numpadInput", ref numpadInput, 255, "For rekka follow-ups, you can also use single directions (like 8 or 2). Keep this value at 0 if no direction is required.");
+                                        Regex regex = new Regex(@"[^\d]");
+                                        numpadInput = regex.Replace(numpadInput, "");
+
+                                        ImguiDrawingHelper.DrawBoolInput("buttonPressRequired", ref buttonPressRequired);
+                                        ImguiDrawingHelper.DrawIntInput("startingFrame", ref startingFrame);
+                                        ImguiDrawingHelper.DrawIntInput("endingFrame", ref endingFrame);
+
+                                        if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                                        {
+                                            ImguiDrawingHelper.DrawBoolInput("deactivateSpirit", ref deactivateSpirit);
+                                            if (!deactivateSpirit)
+                                            {
+                                                var enhancementName = enhancementMove.ToString();
+                                                int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
+                                                ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
+                                                var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
+                                                enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
+
+                                                ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
+
+                                                if (!transitionImmediately)
+                                                {
+                                                    ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
+                                                }
+                                                else
+                                                {
+                                                    transitionFrame = 0;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                enhancementMove = EnhanceMoveType.None;
+                                                transitionImmediately = false;
+                                                transitionFrame = 0;
+                                            }
+                                        }
+                                        else
                                         {
                                             var enhancementName = enhancementMove.ToString();
                                             int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
@@ -1485,65 +1636,45 @@ namespace CharacterDataEditor.Screens
                                             {
                                                 transitionFrame = 0;
                                             }
+
+                                            deactivateSpirit = false;
                                         }
-                                        else
-                                        {
-                                            enhancementMove = EnhanceMoveType.None;
-                                            transitionImmediately = false;
-                                            transitionFrame = 0;
-                                        }
+
+                                        var positionName = requiredPosition.ToString();
+                                        int selectedPositionIndex = positionTypesList.IndexOf(positionName.AddSpacesToCamelCase());
+                                        ImguiDrawingHelper.DrawComboInput("requiredPosition", positionTypesList.ToArray(), ref selectedPositionIndex);
+                                        var selectedPositionName = positionTypesList[selectedPositionIndex];
+                                        requiredPosition = (PositionType)Enum.Parse(typeof(PositionType), selectedPositionName.ToCamelCase());
+
+                                        specialDataItem.NumpadInput = numpadInput;
+                                        specialDataItem.ButtonPressRequired = buttonPressRequired;
+                                        specialDataItem.StartingFrame = startingFrame;
+                                        specialDataItem.EndingFrame = endingFrame;
+                                        specialDataItem.EnhancementMove = enhancementMove;
+                                        specialDataItem.TransitionImmediately = transitionImmediately;
+                                        specialDataItem.TransitionFrame = transitionFrame;
+                                        specialDataItem.RequiredPosition = requiredPosition;
+                                        specialDataItem.DeactivateSpirit = deactivateSpirit;
+
+                                        ImGui.TreePop();
                                     }
-                                    else
-                                    {
-                                        var enhancementName = enhancementMove.ToString();
-                                        int selectedEnhancementIndex = specialMoveTypesList.IndexOf(enhancementName.AddSpacesToCamelCase());
-                                        ImguiDrawingHelper.DrawComboInput("enhancementMove", specialMoveTypesList.ToArray(), ref selectedEnhancementIndex);
-                                        var selectedEnhancementName = specialMoveTypesList[selectedEnhancementIndex];
-                                        enhancementMove = (EnhanceMoveType)Enum.Parse(typeof(EnhanceMoveType), selectedEnhancementName.ToCamelCase());
-
-                                        ImguiDrawingHelper.DrawBoolInput("transitionImmediately", ref transitionImmediately);
-
-                                        if (!transitionImmediately)
-                                        {
-                                            ImguiDrawingHelper.DrawIntInput("transitionFrame", ref transitionFrame);
-                                        }
-                                        else
-                                        {
-                                            transitionFrame = 0;
-                                        }
-
-                                        deactivateSpirit = false;
-                                    }
-
-                                    var positionName = requiredPosition.ToString();
-                                    int selectedPositionIndex = positionTypesList.IndexOf(positionName.AddSpacesToCamelCase());
-                                    ImguiDrawingHelper.DrawComboInput("requiredPosition", positionTypesList.ToArray(), ref selectedPositionIndex);
-                                    var selectedPositionName = positionTypesList[selectedPositionIndex];
-                                    requiredPosition = (PositionType)Enum.Parse(typeof(PositionType), selectedPositionName.ToCamelCase());
-
-                                    specialDataItem.NumpadInput = numpadInput;
-                                    specialDataItem.ButtonPressRequired = buttonPressRequired;
-                                    specialDataItem.StartingFrame = startingFrame;
-                                    specialDataItem.EndingFrame = endingFrame;
-                                    specialDataItem.EnhancementMove = enhancementMove;
-                                    specialDataItem.TransitionImmediately = transitionImmediately;
-                                    specialDataItem.TransitionFrame = transitionFrame;
-                                    specialDataItem.RequiredPosition = requiredPosition;
-                                    specialDataItem.DeactivateSpirit = deactivateSpirit;
-
-                                    ImGui.TreePop();
                                 }
                             }
                         }
-                    }
-                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
-                    {
-                        ImGui.Text("Character is a spirit! Handle this data in host character.");
-                        moveInEditor.SpecialData.Clear();
+                        else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
+                        {
+                            ImGui.Text("Character is a spirit! Handle this data in host character.");
+                            moveInEditor.SpecialData.Clear();
+                        }
+                        else
+                        {
+                            ImGui.Text("Not a special move!");
+                            moveInEditor.SpecialData.Clear();
+                        }
                     }
                     else
                     {
-                        ImGui.Text("Not a special move!");
+                        ImGui.Text("Install supers cannot have Special Data.");
                         moveInEditor.SpecialData.Clear();
                     }
                 }
@@ -1551,201 +1682,204 @@ namespace CharacterDataEditor.Screens
                 // Rehit Data dropdown
                 if (ImGui.CollapsingHeader("Rehit Data"))
                 {
-                    int rehitHitbox = moveInEditor.RehitData.HitBox;
-                    int numberOfRepeats = moveInEditor.RehitData.NumberOfHits;
+                    if (moveInEditor.SuperData.Type != SuperType.Install)
+                    {
+                        int rehitHitbox = moveInEditor.RehitData.HitBox;
+                        int numberOfRepeats = moveInEditor.RehitData.NumberOfHits;
 
-                    ImguiDrawingHelper.DrawIntInput("hitboxToRepeat", ref rehitHitbox, 0);
-                    ImguiDrawingHelper.DrawIntInput("numberOfRepeats", ref numberOfRepeats, 0);
+                        ImguiDrawingHelper.DrawIntInput("hitboxToRepeat", ref rehitHitbox, 1, moveInEditor.NumberOfHitboxes);
+                        ImguiDrawingHelper.DrawIntInput("numberOfRepeats", ref numberOfRepeats, 0);
 
-                    if (rehitHitbox < 1)
-                    {
-                        rehitHitbox = 1;
-                    }
-                    if (rehitHitbox > moveInEditor.NumberOfHitboxes)
-                    {
-                        rehitHitbox = moveInEditor.NumberOfHitboxes;
-                    }
-                    if (numberOfRepeats < 0)
-                    {
-                        numberOfRepeats = 0;
-                    }
-
-                    if (numberOfRepeats < moveInEditor.RehitData.NumberOfHits)
-                    {
-                        while (numberOfRepeats < moveInEditor.RehitData.NumberOfHits)
+                        if (numberOfRepeats < moveInEditor.RehitData.NumberOfHits)
                         {
-                            moveInEditor.RehitData.HitOnFrames.RemoveAt(moveInEditor.RehitData.NumberOfHits - 1);
-                        }
-                    }
-                    else
-                    {
-                        while (numberOfRepeats > moveInEditor.RehitData.NumberOfHits)
-                        {
-                            moveInEditor.RehitData.HitOnFrames.Add(0);
-                        }
-                    }
-
-                    if (numberOfRepeats == 0)
-                    {
-                        ImGui.Text("No Repeat Frame Information");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < numberOfRepeats; i++)
-                        {
-                            var currentFrame = moveInEditor.RehitData.HitOnFrames[i];
-
-                            if (ImGui.TreeNode($"Hit On Frame [{i}]"))
+                            while (numberOfRepeats < moveInEditor.RehitData.NumberOfHits)
                             {
-                                ImguiDrawingHelper.DrawIntInput("repeatFrameIndex", ref currentFrame);
-
-                                ImGui.TreePop();
+                                moveInEditor.RehitData.HitOnFrames.RemoveAt(moveInEditor.RehitData.NumberOfHits - 1);
                             }
-
-                            moveInEditor.RehitData.HitOnFrames[i] = currentFrame;
                         }
-                    }
+                        else
+                        {
+                            while (numberOfRepeats > moveInEditor.RehitData.NumberOfHits)
+                            {
+                                moveInEditor.RehitData.HitOnFrames.Add(0);
+                            }
+                        }
 
-                    moveInEditor.RehitData.HitBox = rehitHitbox;
+                        if (numberOfRepeats == 0)
+                        {
+                            ImGui.Text("No Repeat Frame Information");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < numberOfRepeats; i++)
+                            {
+                                var currentFrame = moveInEditor.RehitData.HitOnFrames[i];
+
+                                if (ImGui.TreeNode($"Hit On Frame [{i}]"))
+                                {
+                                    ImguiDrawingHelper.DrawIntInput("repeatFrameIndex", ref currentFrame);
+
+                                    ImGui.TreePop();
+                                }
+
+                                moveInEditor.RehitData.HitOnFrames[i] = currentFrame;
+                            }
+                        }
+
+                        moveInEditor.RehitData.HitBox = rehitHitbox;
+                    }
+                    else
+                    {
+                        ImGui.Text("Install supers cannot have Rehit Data.");
+                        moveInEditor.RehitData.HitOnFrames.Clear();
+                    }
                 }
 
                 // Opponent Position Data dropdown
                 if (isThrow && ImGui.CollapsingHeader("Opponent Position Data"))
                 {
-                    float distanceFromWall = moveInEditor.OpponentPositionData.DistanceFromWall;
-                    int numberOfFrames = moveInEditor.OpponentPositionData.NumberOfFrames;
-                    int throwOffset = moveInEditor.OpponentPositionData.ThrowOffset;
-
-                    ImguiDrawingHelper.DrawDecimalInput("distanceFromWall", ref distanceFromWall);
-                    ImguiDrawingHelper.DrawIntInput("throwOffset", ref throwOffset);
-                    ImguiDrawingHelper.DrawIntInput("numberOfFrames", ref numberOfFrames);
-
-                    moveInEditor.OpponentPositionData.DistanceFromWall = distanceFromWall;
-                    moveInEditor.OpponentPositionData.ThrowOffset = throwOffset;
-
-                    if (numberOfFrames < 0)
+                    if (moveInEditor.SuperData.Type != SuperType.Install)
                     {
-                        numberOfFrames = 0;
-                    }
+                        float distanceFromWall = moveInEditor.OpponentPositionData.DistanceFromWall;
+                        int numberOfFrames = moveInEditor.OpponentPositionData.NumberOfFrames;
+                        int throwOffset = moveInEditor.OpponentPositionData.ThrowOffset;
 
-                    if (numberOfFrames < moveInEditor.OpponentPositionData.NumberOfFrames)
-                    {
-                        while (numberOfFrames < moveInEditor.OpponentPositionData.NumberOfFrames)
+                        ImguiDrawingHelper.DrawDecimalInput("distanceFromWall", ref distanceFromWall);
+                        ImguiDrawingHelper.DrawIntInput("throwOffset", ref throwOffset);
+                        ImguiDrawingHelper.DrawIntInput("numberOfFrames", ref numberOfFrames, 0);
+
+                        moveInEditor.OpponentPositionData.DistanceFromWall = distanceFromWall;
+                        moveInEditor.OpponentPositionData.ThrowOffset = throwOffset;
+
+                        if (numberOfFrames < moveInEditor.OpponentPositionData.NumberOfFrames)
                         {
-                            moveInEditor.OpponentPositionData.Frames.RemoveAt(moveInEditor.OpponentPositionData.NumberOfFrames - 1);
-                        }
-                    }
-                    else
-                    {
-                        while (numberOfFrames > moveInEditor.OpponentPositionData.NumberOfFrames)
-                        {
-                            moveInEditor.OpponentPositionData.Frames.Add(new OpponentPositionFrameModel());
-                        }
-                    }
-
-                    if (numberOfFrames == 0)
-                    {
-                        ImGui.Text("No Frame Data");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < numberOfFrames; i++)
-                        {
-                            var currentFrame = moveInEditor.OpponentPositionData.Frames[i];
-
-                            if (ImGui.TreeNode($"Frame [{i}]"))
+                            while (numberOfFrames < moveInEditor.OpponentPositionData.NumberOfFrames)
                             {
-                                int frameNumber = currentFrame.Frame;
-                                int relativeXPos = currentFrame.RelativeX;
-                                int relativeYPos = currentFrame.RelativeY;
-                                int frameIndex = currentFrame.Index;
-                                int rotation = currentFrame.Rotation;
-                                int xScale = currentFrame.XScale;
-                                int spriteToUse = (int)currentFrame.Sprite;
-
-                                ImguiDrawingHelper.DrawIntInput("frame", ref frameNumber);
-                                ImguiDrawingHelper.DrawIntInput("relativeXPosition", ref relativeXPos);
-                                ImguiDrawingHelper.DrawIntInput("relativeYPosition", ref relativeYPos);
-                                ImguiDrawingHelper.DrawComboInput("spriteToUse", spriteTypesList.ToArray(), ref spriteToUse);
-                                ImguiDrawingHelper.DrawIntInput("index", ref frameIndex);
-                                ImguiDrawingHelper.DrawIntInput("rotation", ref rotation);
-                                ImguiDrawingHelper.DrawIntInput("xScale", ref xScale);
-
-                                currentFrame.Frame = frameNumber;
-                                currentFrame.RelativeY = relativeYPos;
-                                currentFrame.RelativeX = relativeXPos;
-                                currentFrame.Index = frameIndex;
-                                currentFrame.Rotation = rotation;
-                                currentFrame.XScale = xScale;
-                                currentFrame.Sprite = (SpriteType)spriteToUse;
-
-                                ImGui.TreePop();
+                                moveInEditor.OpponentPositionData.Frames.RemoveAt(moveInEditor.OpponentPositionData.NumberOfFrames - 1);
                             }
-
-                            moveInEditor.OpponentPositionData.Frames[i] = currentFrame;
                         }
+                        else
+                        {
+                            while (numberOfFrames > moveInEditor.OpponentPositionData.NumberOfFrames)
+                            {
+                                moveInEditor.OpponentPositionData.Frames.Add(new OpponentPositionFrameModel());
+                            }
+                        }
+
+                        if (numberOfFrames == 0)
+                        {
+                            ImGui.Text("No Frame Data");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < numberOfFrames; i++)
+                            {
+                                var currentFrame = moveInEditor.OpponentPositionData.Frames[i];
+
+                                if (ImGui.TreeNode($"Frame [{i}]"))
+                                {
+                                    int frameNumber = currentFrame.Frame;
+                                    int relativeXPos = currentFrame.RelativeX;
+                                    int relativeYPos = currentFrame.RelativeY;
+                                    int frameIndex = currentFrame.Index;
+                                    int rotation = currentFrame.Rotation;
+                                    int xScale = currentFrame.XScale;
+                                    int spriteToUse = (int)currentFrame.Sprite;
+
+                                    ImguiDrawingHelper.DrawIntInput("frame", ref frameNumber);
+                                    ImguiDrawingHelper.DrawIntInput("relativeXPosition", ref relativeXPos);
+                                    ImguiDrawingHelper.DrawIntInput("relativeYPosition", ref relativeYPos);
+                                    ImguiDrawingHelper.DrawComboInput("spriteToUse", spriteTypesList.ToArray(), ref spriteToUse);
+                                    ImguiDrawingHelper.DrawIntInput("index", ref frameIndex);
+                                    ImguiDrawingHelper.DrawIntInput("rotation", ref rotation);
+                                    ImguiDrawingHelper.DrawIntInput("xScale", ref xScale);
+
+                                    currentFrame.Frame = frameNumber;
+                                    currentFrame.RelativeY = relativeYPos;
+                                    currentFrame.RelativeX = relativeXPos;
+                                    currentFrame.Index = frameIndex;
+                                    currentFrame.Rotation = rotation;
+                                    currentFrame.XScale = xScale;
+                                    currentFrame.Sprite = (SpriteType)spriteToUse;
+
+                                    ImGui.TreePop();
+                                }
+
+                                moveInEditor.OpponentPositionData.Frames[i] = currentFrame;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text("Install supers cannot have Opponent Position Data.");
+                        moveInEditor.OpponentPositionData.DistanceFromWall = 0;
+                        moveInEditor.OpponentPositionData.ThrowOffset = 0;
+                        moveInEditor.OpponentPositionData.Frames.Clear();
                     }
                 }
 
                 // Projectile Data dropdown
                 if (!isThrow && ImGui.CollapsingHeader("Projectile Data"))
                 {
-                    int projectileCount = moveInEditor.NumberOfProjectiles;
-
-                    ImguiDrawingHelper.DrawIntInput("numberOfProjectiles", ref projectileCount);
-
-                    if (projectileCount < 0)
+                    if (moveInEditor.SuperData.Type != SuperType.Install)
                     {
-                        projectileCount = 0;
-                    }
+                        int projectileCount = moveInEditor.NumberOfProjectiles;
 
-                    if (projectileCount < moveInEditor.NumberOfProjectiles)
-                    {
-                        while (projectileCount < moveInEditor.NumberOfProjectiles)
+                        ImguiDrawingHelper.DrawIntInput("numberOfProjectiles", ref projectileCount, 0);
+
+                        if (projectileCount < moveInEditor.NumberOfProjectiles)
                         {
-                            moveInEditor.ProjectileData.RemoveAt(moveInEditor.NumberOfProjectiles - 1);
-                        }
-                    }
-                    else
-                    {
-                        while (projectileCount > moveInEditor.NumberOfProjectiles)
-                        {
-                            moveInEditor.ProjectileData.Add(new CharacterProjectileDataModel());
-                        }
-                    }
-
-                    if (projectileCount == 0)
-                    {
-                        ImGui.Text("No projectiles");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < moveInEditor.NumberOfProjectiles; i++)
-                        {
-                            var currentProjectile = moveInEditor.ProjectileData[i];
-
-                            if (ImGui.TreeNode($"Projectile [{i}]"))
+                            while (projectileCount < moveInEditor.NumberOfProjectiles)
                             {
-                                int spawnX = currentProjectile.SpawnXOffset;
-                                int spawnY = currentProjectile.SpawnYOffset;
-                                int spawnFrame = currentProjectile.SpawnFrame;
-
-                                var objId = currentProjectile.ProjectileObject ?? string.Empty;
-                                int selectedObjectIndex = projectileNames.IndexOf(objId);
-                                ImguiDrawingHelper.DrawComboInput("projectile", projectileNames.ToArray(), ref selectedObjectIndex);
-                                currentProjectile.ProjectileObject = selectedObjectIndex != -1 ? projectileNames[selectedObjectIndex] : string.Empty;
-
-                                ImguiDrawingHelper.DrawIntInput("spawnFrame", ref spawnFrame, 0);
-                                ImguiDrawingHelper.DrawIntInput("spawnOffsetX", ref spawnX);
-                                ImguiDrawingHelper.DrawIntInput("spawnOffsetY", ref spawnY);
-
-                                currentProjectile.SpawnXOffset = spawnX;
-                                currentProjectile.SpawnYOffset = spawnY;
-                                currentProjectile.SpawnFrame = spawnFrame;
-
-                                ImGui.TreePop();
+                                moveInEditor.ProjectileData.RemoveAt(moveInEditor.NumberOfProjectiles - 1);
                             }
                         }
+                        else
+                        {
+                            while (projectileCount > moveInEditor.NumberOfProjectiles)
+                            {
+                                moveInEditor.ProjectileData.Add(new CharacterProjectileDataModel());
+                            }
+                        }
+
+                        if (projectileCount == 0)
+                        {
+                            ImGui.Text("No projectiles");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < moveInEditor.NumberOfProjectiles; i++)
+                            {
+                                var currentProjectile = moveInEditor.ProjectileData[i];
+
+                                if (ImGui.TreeNode($"Projectile [{i}]"))
+                                {
+                                    int spawnX = currentProjectile.SpawnXOffset;
+                                    int spawnY = currentProjectile.SpawnYOffset;
+                                    int spawnFrame = currentProjectile.SpawnFrame;
+
+                                    var objId = currentProjectile.ProjectileObject ?? string.Empty;
+                                    int selectedObjectIndex = projectileNames.IndexOf(objId);
+                                    ImguiDrawingHelper.DrawComboInput("projectile", projectileNames.ToArray(), ref selectedObjectIndex);
+                                    currentProjectile.ProjectileObject = selectedObjectIndex != -1 ? projectileNames[selectedObjectIndex] : string.Empty;
+
+                                    ImguiDrawingHelper.DrawIntInput("spawnFrame", ref spawnFrame, 0);
+                                    ImguiDrawingHelper.DrawIntInput("spawnOffsetX", ref spawnX);
+                                    ImguiDrawingHelper.DrawIntInput("spawnOffsetY", ref spawnY);
+
+                                    currentProjectile.SpawnXOffset = spawnX;
+                                    currentProjectile.SpawnYOffset = spawnY;
+                                    currentProjectile.SpawnFrame = spawnFrame;
+
+                                    ImGui.TreePop();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text("Install supers cannot have Projectile Data.");
+                        moveInEditor.ProjectileData.Clear();
                     }
                 }
 
@@ -1967,83 +2101,95 @@ namespace CharacterDataEditor.Screens
                 // Spirit Data dropdown
                 if (ImGui.CollapsingHeader("Spirit Data"))
                 {
-                    if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
+                    if (moveInEditor.SuperData.Type != SuperType.Install)
                     {
-                        bool toggleState = moveInEditor.SpiritData.ToggleState;
-                        bool performAttack = moveInEditor.SpiritData.PerformAttack;
-                        bool performInSpiritOff = moveInEditor.SpiritData.PerformInSpiritOff;
-                        bool returnToPlayer = moveInEditor.SpiritData.ReturnToPlayer;
-
-                        ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState, "Activate Spirit ON/OFF.");
-                        ImguiDrawingHelper.DrawBoolInput("performCorrespondingAttack", ref performAttack);
-
-                        if (performAttack)
+                        if (character.UniqueData.SpiritData == SpiritDataType.HasSpirit)
                         {
-                            ImguiDrawingHelper.DrawBoolInput("performInSpiritOff", ref performInSpiritOff, "If set to true, the spirit will temporarily be summoned in Spirit OFF to perform this move. The spirit will then immediately disappear when the move ends.");
+                            bool toggleState = moveInEditor.SpiritData.ToggleState;
+                            bool performAttack = moveInEditor.SpiritData.PerformAttack;
+                            bool returnToPlayer = moveInEditor.SpiritData.ReturnToPlayer;
+
+                            ImguiDrawingHelper.DrawBoolInput("toggleState", ref toggleState, "Activate Spirit ON/OFF.");
+                            ImguiDrawingHelper.DrawBoolInput("performCorrespondingAttack", ref performAttack);
+
+                            if (performAttack)
+                            {
+                                bool performInSpiritOff = moveInEditor.SpiritData.PerformInSpiritOff;
+                                int startXOffset = moveInEditor.SpiritData.StartXOffset;
+                                int startYOffset = moveInEditor.SpiritData.StartYOffset;
+                                bool summonSpirit = moveInEditor.SpiritData.SummonSpirit;
+
+                                ImguiDrawingHelper.DrawBoolInput("performInSpiritOff", ref performInSpiritOff, "If set to true, the spirit will temporarily be summoned in Spirit OFF to perform this move. The spirit will then immediately disappear when the move ends.");
+                                ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
+                                ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
+                                ImguiDrawingHelper.DrawBoolInput("summonSpirit", ref summonSpirit, "Enters Spirit ON and keeps the spirit out after the move ends.");
+
+                                moveInEditor.SpiritData.PerformInSpiritOff = performInSpiritOff;
+                                moveInEditor.SpiritData.StartXOffset = startXOffset;
+                                moveInEditor.SpiritData.StartYOffset = startYOffset;
+                                moveInEditor.SpiritData.SummonSpirit = summonSpirit;
+                            }
+                            else
+                            {
+                                moveInEditor.SpiritData.PerformInSpiritOff = false;
+                                moveInEditor.SpiritData.StartXOffset = 0;
+                                moveInEditor.SpiritData.StartYOffset = 0;
+                                moveInEditor.SpiritData.SummonSpirit = false;
+                                moveInEditor.SpiritData.MaintainPosition = false;
+                            }
+
+                            ImguiDrawingHelper.DrawBoolInput("returnToHost", ref returnToPlayer);
+
+                            moveInEditor.SpiritData.ToggleState = toggleState;
+                            moveInEditor.SpiritData.PerformAttack = performAttack;
+                            moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
+
+                            moveInEditor.SpiritData.MaintainPosition = false;
+                            moveInEditor.SpiritData.Vulnerable = false;
+                            moveInEditor.SpiritData.OnlyInSpiritOff = false;
                         }
-                        else
+                        else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
                         {
-                            performInSpiritOff = false;
-                        }
+                            bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
+                            bool vulnerable = moveInEditor.SpiritData.Vulnerable;
+                            bool onlyInSpiritOff = moveInEditor.SpiritData.OnlyInSpiritOff;
 
-                        if (performAttack)
-                        {
-                            int startXOffset = moveInEditor.SpiritData.StartXOffset;
-                            int startYOffset = moveInEditor.SpiritData.StartYOffset;
-                            bool summonSpirit = moveInEditor.SpiritData.SummonSpirit;
+                            ImguiDrawingHelper.DrawBoolInput("maintainPosition", ref maintainPosition, "If true, then after the spirit finishes the attack, it stays at its current location and will follow the host's movements.");
+                            ImguiDrawingHelper.DrawBoolInput("vulnerableAfterAttack", ref vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
+                            ImguiDrawingHelper.DrawBoolInput("onlyInSpiritOff", ref onlyInSpiritOff, "This move will be performed when summoned with the corresponding move in Spirit OFF.");
 
-                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetX", ref startXOffset, int.MinValue, null, "Sets the X Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
-                            ImguiDrawingHelper.DrawIntInput("startPositionOffsetY", ref startYOffset, int.MinValue, null, "Sets the Y Offset from the host if the spirit is currently standing by the host's side or when temporarily summoned in Spirit OFF.");
-                            ImguiDrawingHelper.DrawBoolInput("summonSpirit", ref summonSpirit, "Enters Spirit ON and keeps the spirit out after the move ends.");
+                            moveInEditor.SpiritData.MaintainPosition = maintainPosition;
+                            moveInEditor.SpiritData.Vulnerable = vulnerable;
+                            moveInEditor.SpiritData.OnlyInSpiritOff = onlyInSpiritOff;
 
-                            moveInEditor.SpiritData.StartXOffset = startXOffset;
-                            moveInEditor.SpiritData.StartYOffset = startYOffset;
-                            moveInEditor.SpiritData.SummonSpirit = summonSpirit;
-                        }
-                        else
-                        {
+                            moveInEditor.SpiritData.ToggleState = false;
+                            moveInEditor.SpiritData.PerformAttack = false;
+                            moveInEditor.SpiritData.PerformInSpiritOff = false;
                             moveInEditor.SpiritData.StartXOffset = 0;
                             moveInEditor.SpiritData.StartYOffset = 0;
                             moveInEditor.SpiritData.SummonSpirit = false;
+                            moveInEditor.SpiritData.ReturnToPlayer = false;
+                        }
+                        else
+                        {
+                            ImGui.Text("Character doesn't have a spirit and isn't a spirit!");
+                            moveInEditor.SpiritData.ToggleState = false;
+                            moveInEditor.SpiritData.PerformAttack = false;
+                            moveInEditor.SpiritData.PerformInSpiritOff = false;
+                            moveInEditor.SpiritData.StartXOffset = 0;
+                            moveInEditor.SpiritData.StartYOffset = 0;
+                            moveInEditor.SpiritData.SummonSpirit = false;
+                            moveInEditor.SpiritData.ReturnToPlayer = false;
                             moveInEditor.SpiritData.MaintainPosition = false;
+                            moveInEditor.SpiritData.Vulnerable = false;
+                            moveInEditor.SpiritData.OnlyInSpiritOff = false;
                         }
 
-                        ImguiDrawingHelper.DrawBoolInput("returnToHost", ref returnToPlayer);
-
-                        moveInEditor.SpiritData.ToggleState = toggleState;
-                        moveInEditor.SpiritData.PerformAttack = performAttack;
-                        moveInEditor.SpiritData.PerformInSpiritOff = performInSpiritOff;
-                        moveInEditor.SpiritData.ReturnToPlayer = returnToPlayer;
-
-                        moveInEditor.SpiritData.MaintainPosition = false;
-                        moveInEditor.SpiritData.Vulnerable = false;
-                        moveInEditor.SpiritData.OnlyInSpiritOff = false;
-                    }
-                    else if (character.UniqueData.SpiritData == SpiritDataType.IsSpirit)
-                    {
-                        bool maintainPosition = moveInEditor.SpiritData.MaintainPosition;
-                        bool vulnerable = moveInEditor.SpiritData.Vulnerable;
-                        bool onlyInSpiritOff = moveInEditor.SpiritData.OnlyInSpiritOff;
-
-                        ImguiDrawingHelper.DrawBoolInput("maintainPosition", ref maintainPosition, "If true, then after the spirit finishes the attack, it stays at its current location and will follow the host's movements.");
-                        ImguiDrawingHelper.DrawBoolInput("vulnerableAfterAttack", ref vulnerable, "If the spirit gets hit while performing this move, it instantly gets KO'd.");
-                        ImguiDrawingHelper.DrawBoolInput("onlyInSpiritOff", ref onlyInSpiritOff, "This move will be performed when summoned with the corresponding move in Spirit OFF.");
-
-                        moveInEditor.SpiritData.MaintainPosition = maintainPosition;
-                        moveInEditor.SpiritData.Vulnerable = vulnerable;
-                        moveInEditor.SpiritData.OnlyInSpiritOff = onlyInSpiritOff;
-
-                        moveInEditor.SpiritData.ToggleState = false;
-                        moveInEditor.SpiritData.PerformAttack = false;
-                        moveInEditor.SpiritData.PerformInSpiritOff = false;
-                        moveInEditor.SpiritData.StartXOffset = 0;
-                        moveInEditor.SpiritData.StartYOffset = 0;
-                        moveInEditor.SpiritData.SummonSpirit = false;
-                        moveInEditor.SpiritData.ReturnToPlayer = false;
+                        ImGui.TreePop();
                     }
                     else
                     {
-                        ImGui.Text("Character doesn't have a spirit and isn't a spirit!");
+                        ImGui.Text("Install supers cannot have Spirit Data.");
                         moveInEditor.SpiritData.ToggleState = false;
                         moveInEditor.SpiritData.PerformAttack = false;
                         moveInEditor.SpiritData.PerformInSpiritOff = false;
@@ -2055,8 +2201,6 @@ namespace CharacterDataEditor.Screens
                         moveInEditor.SpiritData.Vulnerable = false;
                         moveInEditor.SpiritData.OnlyInSpiritOff = false;
                     }
-
-                    ImGui.TreePop();
                 }
             }
         }

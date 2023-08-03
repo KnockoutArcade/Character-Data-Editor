@@ -1,6 +1,5 @@
 ﻿using CharacterDataEditor.Enums;
 using CharacterDataEditor.Models.CharacterData;
-using CharacterDataEditor.Models.ProjectileData;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

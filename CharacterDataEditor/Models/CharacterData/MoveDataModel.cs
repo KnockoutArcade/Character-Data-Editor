@@ -40,6 +40,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public int NumberOfSounds { get { return MoveSoundData?.Count ?? 0; } }
         public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
         public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
+        public SuperDataModel SuperData { get; set; } = new SuperDataModel();
 
         public MoveDataModel GetDuplicate()
         {
@@ -55,7 +56,7 @@ namespace CharacterDataEditor.Models.CharacterData
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
             hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto);
-            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData);
+            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
 
             return hash;
         }
@@ -126,7 +127,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                             {
                                                                                                                 if (objAsMoveData.SpiritData.Equals(SpiritData))
                                                                                                                 {
-                                                                                                                    return true;
+                                                                                                                    if (objAsMoveData.SuperData.Equals(SuperData))
+                                                                                                                    {
+                                                                                                                        return true;
+                                                                                                                    }
                                                                                                                 }
                                                                                                             }
                                                                                                         }
