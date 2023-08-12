@@ -868,10 +868,15 @@ namespace CharacterDataEditor.Screens
                 var selectedSpriteIndex = spriteId != string.Empty ? allSprites.IndexOf(allSprites.First(x => x.Name == moveInEditor.SpriteName)) : -1;
                 ImguiDrawingHelper.DrawComboInput("sprite", allSprites.Select(x => x.Name).ToArray(), ref selectedSpriteIndex);
 
-                var scriptId = moveInEditor.SupplimentaryScript ?? string.Empty;
-                var selectedScriptIndex = scriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplimentaryScript)) : -1;
-                ImguiDrawingHelper.DrawComboInput("supplementaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedScriptIndex);
-                moveInEditor.SupplimentaryScript = selectedScriptIndex != -1 ? allScripts[selectedScriptIndex].Name : string.Empty;
+                var moveScriptId = moveInEditor.SupplementaryMoveScript ?? string.Empty;
+                var selectedMoveScriptIndex = moveScriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplementaryMoveScript)) : -1;
+                ImguiDrawingHelper.DrawComboInput("supplementaryMoveScript", allScripts.Select(x => x.Name).ToArray(), ref selectedMoveScriptIndex);
+                moveInEditor.SupplementaryMoveScript = selectedMoveScriptIndex != -1 ? allScripts[selectedMoveScriptIndex].Name : string.Empty;
+
+                var hitScriptId = moveInEditor.SupplementaryHitScript ?? string.Empty;
+                var selectedHitScriptIndex = hitScriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == moveInEditor.SupplementaryHitScript)) : -1;
+                ImguiDrawingHelper.DrawComboInput("supplementaryHitScript", allScripts.Select(x => x.Name).ToArray(), ref selectedHitScriptIndex);
+                moveInEditor.SupplementaryHitScript = selectedHitScriptIndex != -1 ? allScripts[selectedHitScriptIndex].Name : string.Empty;
 
                 if (selectedSpriteIndex > -1)
                 {

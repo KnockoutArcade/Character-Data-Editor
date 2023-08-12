@@ -36,7 +36,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
         public SupplementaryMovementDataModel GroundMovementData { get; set; } = new SupplementaryMovementDataModel();
         public SupplementaryMovementDataModel AirMovementData { get; set; } = new SupplementaryMovementDataModel();
-        public string SupplementaryScript { get; set; } = string.Empty;
+        public string SupplementaryMoveScript { get; set; } = string.Empty;
+        public string SupplementaryHitScript { get; set; } = string.Empty;
         public int NumberOfSounds { get { return MoveSoundData?.Count ?? 0; } }
         public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
         public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
@@ -55,8 +56,8 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
-            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplementaryScript, Duration, ProjectileData, MoveCanCancelInto);
-            hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
+            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplementaryMoveScript, SupplementaryHitScript, Duration, ProjectileData);
+            hash = HashCode.Combine(hash, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
 
             return hash;
         }
@@ -109,27 +110,30 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                         {
                                                                             if (objAsMoveData.Duration.Equals(Duration))
                                                                             {
-                                                                                if (objAsMoveData.SupplementaryScript.Equals(SupplementaryScript))
+                                                                                if (objAsMoveData.SupplementaryMoveScript.Equals(SupplementaryMoveScript))
                                                                                 {
-                                                                                    if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
+                                                                                    if (objAsMoveData.SupplementaryHitScript.Equals(SupplementaryHitScript))
                                                                                     {
-                                                                                        if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
+                                                                                        if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
                                                                                         {
-                                                                                            if (objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto))
+                                                                                            if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
                                                                                             {
-                                                                                                if (objAsMoveData.SpecialData.SequenceEqual(SpecialData))
+                                                                                                if (objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto))
                                                                                                 {
-                                                                                                    if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
+                                                                                                    if (objAsMoveData.SpecialData.SequenceEqual(SpecialData))
                                                                                                     {
-                                                                                                        if (objAsMoveData.NumberOfSounds.Equals(NumberOfSounds))
+                                                                                                        if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
                                                                                                         {
-                                                                                                            if (objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData))
+                                                                                                            if (objAsMoveData.NumberOfSounds.Equals(NumberOfSounds))
                                                                                                             {
-                                                                                                                if (objAsMoveData.SpiritData.Equals(SpiritData))
+                                                                                                                if (objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData))
                                                                                                                 {
-                                                                                                                    if (objAsMoveData.SuperData.Equals(SuperData))
+                                                                                                                    if (objAsMoveData.SpiritData.Equals(SpiritData))
                                                                                                                     {
-                                                                                                                        return true;
+                                                                                                                        if (objAsMoveData.SuperData.Equals(SuperData))
+                                                                                                                        {
+                                                                                                                            return true;
+                                                                                                                        }
                                                                                                                     }
                                                                                                                 }
                                                                                                             }
