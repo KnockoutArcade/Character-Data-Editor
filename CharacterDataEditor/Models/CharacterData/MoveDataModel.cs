@@ -36,7 +36,9 @@ namespace CharacterDataEditor.Models.CharacterData
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
         public SupplementaryMovementDataModel GroundMovementData { get; set; } = new SupplementaryMovementDataModel();
         public SupplementaryMovementDataModel AirMovementData { get; set; } = new SupplementaryMovementDataModel();
+        public bool UseMoveScript { get; set; } = false;
         public string SupplementaryMoveScript { get; set; } = string.Empty;
+        public bool UseHitScript { get; set; } = false;
         public string SupplementaryHitScript { get; set; } = string.Empty;
         public int NumberOfSounds { get { return MoveSoundData?.Count ?? 0; } }
         public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
@@ -56,8 +58,9 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
-            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplementaryMoveScript, SupplementaryHitScript, Duration, ProjectileData);
-            hash = HashCode.Combine(hash, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
+            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, UseMoveScript, SupplementaryMoveScript, UseHitScript, SupplementaryHitScript);
+            hash = HashCode.Combine(hash, Duration, ProjectileData, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData);
+            hash = HashCode.Combine(hash, SuperData);
 
             return hash;
         }
@@ -76,90 +79,38 @@ namespace CharacterDataEditor.Models.CharacterData
 
             var objAsMoveData = obj as MoveDataModel;
 
-            if (objAsMoveData.UID == UID)
+            if (objAsMoveData.UID == UID &&
+                 objAsMoveData.MoveType == MoveType &&
+                 objAsMoveData.EnhanceMoveType == EnhanceMoveType &&
+                 objAsMoveData.InMovesets.SequenceEqual(InMovesets) &&
+                 objAsMoveData.SwitchMoveset.Equals(SwitchMoveset) &&
+                 objAsMoveData.SwitchToMoveset.Equals(SwitchToMoveset) &&
+                 objAsMoveData.SpriteName == SpriteName &&
+                 objAsMoveData.FrameData.SequenceEqual(FrameData) &&
+                 objAsMoveData.AttackData.SequenceEqual(AttackData) &&
+                 objAsMoveData.IsThrow == IsThrow &&
+                 objAsMoveData.HurtboxData.SequenceEqual(HurtboxData) &&
+                 objAsMoveData.OpponentPositionData.Equals(OpponentPositionData) &&
+                 objAsMoveData.RehitData.Equals(RehitData) &&
+                 objAsMoveData.GroundMovementData.Equals(GroundMovementData) &&
+                 objAsMoveData.AirMovementData.Equals(AirMovementData) &&
+                 objAsMoveData.CounterData.SequenceEqual(CounterData) &&
+                 objAsMoveData.Duration.Equals(Duration) &&
+                 objAsMoveData.UseMoveScript.Equals(UseMoveScript) &&
+                 objAsMoveData.SupplementaryMoveScript.Equals(SupplementaryMoveScript) &&
+                 objAsMoveData.UseHitScript.Equals(UseHitScript) &&
+                 objAsMoveData.SupplementaryHitScript.Equals(SupplementaryHitScript) &&
+                 objAsMoveData.ProjectileData.SequenceEqual(ProjectileData) &&
+                 objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto) &&
+                 objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto) &&
+                 objAsMoveData.SpecialData.SequenceEqual(SpecialData) &&
+                 objAsMoveData.CommandNormalData.Equals(CommandNormalData) &&
+                 objAsMoveData.NumberOfSounds.Equals(NumberOfSounds) &&
+                 objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData) &&
+                 objAsMoveData.SpiritData.Equals(SpiritData) &&
+                 objAsMoveData.SuperData.Equals(SuperData))
             {
-                if (objAsMoveData.MoveType == MoveType)
-                {
-                    if (objAsMoveData.EnhanceMoveType == EnhanceMoveType)
-                    {
-                        if (objAsMoveData.InMovesets.SequenceEqual(InMovesets))
-                        {
-                            if (objAsMoveData.SwitchMoveset.Equals(SwitchMoveset))
-                            {
-                                if (objAsMoveData.SwitchToMoveset.Equals(SwitchToMoveset))
-                                {
-                                    if (objAsMoveData.SpriteName == SpriteName)
-                                    {
-                                        if (objAsMoveData.FrameData.SequenceEqual(FrameData))
-                                        {
-                                            if (objAsMoveData.AttackData.SequenceEqual(AttackData))
-                                            {
-                                                if (objAsMoveData.IsThrow == IsThrow)
-                                                {
-                                                    if (objAsMoveData.HurtboxData.SequenceEqual(HurtboxData))
-                                                    {
-                                                        if (objAsMoveData.OpponentPositionData.Equals(OpponentPositionData))
-                                                        {
-                                                            if (objAsMoveData.RehitData.Equals(RehitData))
-                                                            {
-                                                                if (objAsMoveData.GroundMovementData.Equals(GroundMovementData))
-                                                                {
-                                                                    if (objAsMoveData.AirMovementData.Equals(AirMovementData))
-                                                                    {
-                                                                        if (objAsMoveData.CounterData.SequenceEqual(CounterData))
-                                                                        {
-                                                                            if (objAsMoveData.Duration.Equals(Duration))
-                                                                            {
-                                                                                if (objAsMoveData.SupplementaryMoveScript.Equals(SupplementaryMoveScript))
-                                                                                {
-                                                                                    if (objAsMoveData.SupplementaryHitScript.Equals(SupplementaryHitScript))
-                                                                                    {
-                                                                                        if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
-                                                                                        {
-                                                                                            if (objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto))
-                                                                                            {
-                                                                                                if (objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto))
-                                                                                                {
-                                                                                                    if (objAsMoveData.SpecialData.SequenceEqual(SpecialData))
-                                                                                                    {
-                                                                                                        if (objAsMoveData.CommandNormalData.Equals(CommandNormalData))
-                                                                                                        {
-                                                                                                            if (objAsMoveData.NumberOfSounds.Equals(NumberOfSounds))
-                                                                                                            {
-                                                                                                                if (objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData))
-                                                                                                                {
-                                                                                                                    if (objAsMoveData.SpiritData.Equals(SpiritData))
-                                                                                                                    {
-                                                                                                                        if (objAsMoveData.SuperData.Equals(SuperData))
-                                                                                                                        {
-                                                                                                                            return true;
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                return true;
             }
 
             return false;
