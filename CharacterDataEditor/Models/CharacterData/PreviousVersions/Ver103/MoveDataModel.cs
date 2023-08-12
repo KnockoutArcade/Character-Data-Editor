@@ -24,8 +24,8 @@ namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver103
         public int NumberOfProjectiles { get { return ProjectileData?.Count ?? 0; } }
         public List<CharacterProjectileDataModel> ProjectileData { get; set; } = new List<CharacterProjectileDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
-        public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
-        public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
+        public SupplementaryMovementDataModel GroundMovementData { get; set; } = new SupplementaryMovementDataModel();
+        public SupplementaryMovementDataModel AirMovementData { get; set; } = new SupplementaryMovementDataModel();
         public string SupplimentaryScript { get; set; } = string.Empty;
 
         public MoveDataModel GetDuplicate()

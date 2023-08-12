@@ -34,9 +34,9 @@ namespace CharacterDataEditor.Models.CharacterData
         public int NumberOfProjectiles { get { return ProjectileData?.Count ?? 0; } }
         public List<CharacterProjectileDataModel> ProjectileData { get; set; } = new List<CharacterProjectileDataModel>();
         public RehitDataModel RehitData { get; set; } = new RehitDataModel();
-        public SupplimentaryMovementDataModel GroundMovementData { get; set; } = new SupplimentaryMovementDataModel();
-        public SupplimentaryMovementDataModel AirMovementData { get; set; } = new SupplimentaryMovementDataModel();
-        public string SupplimentaryScript { get; set; } = string.Empty;
+        public SupplementaryMovementDataModel GroundMovementData { get; set; } = new SupplementaryMovementDataModel();
+        public SupplementaryMovementDataModel AirMovementData { get; set; } = new SupplementaryMovementDataModel();
+        public string SupplementaryScript { get; set; } = string.Empty;
         public int NumberOfSounds { get { return MoveSoundData?.Count ?? 0; } }
         public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
         public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
@@ -55,7 +55,7 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
-            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplimentaryScript, Duration, ProjectileData, MoveCanCancelInto);
+            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, SupplementaryScript, Duration, ProjectileData, MoveCanCancelInto);
             hash = HashCode.Combine(hash, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
 
             return hash;
@@ -109,7 +109,7 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                         {
                                                                             if (objAsMoveData.Duration.Equals(Duration))
                                                                             {
-                                                                                if (objAsMoveData.SupplimentaryScript.Equals(SupplimentaryScript))
+                                                                                if (objAsMoveData.SupplementaryScript.Equals(SupplementaryScript))
                                                                                 {
                                                                                     if (objAsMoveData.ProjectileData.SequenceEqual(ProjectileData))
                                                                                     {
