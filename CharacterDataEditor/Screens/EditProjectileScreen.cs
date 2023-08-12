@@ -1125,6 +1125,8 @@ namespace CharacterDataEditor.Screens
                                 int particleDuration = attackDataItem.ParticleDuration;
                                 int holdOffsetX = attackDataItem.HoldXOffset;
                                 int holdOffsetY = attackDataItem.HoldYOffset;
+                                bool useHitScript = attackDataItem.UseHitScript;
+                                var supplementaryHitScript = attackDataItem.SupplementaryHitScript;
                                 bool causesWallbounce = attackDataItem.CausesWallbounce;
                                 string hitSound = attackDataItem.HitSound;
 
@@ -1176,6 +1178,18 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref particleDuration);
+                                ImguiDrawingHelper.DrawBoolInput("useHitScript", ref useHitScript, "Runs when the projectile hits the opponent.");
+                                if (useHitScript)
+                                {
+                                    var hitScriptId = supplementaryHitScript ?? string.Empty;
+                                    var selectedHitScriptIndex = hitScriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == supplementaryHitScript)) : -1;
+                                    ImguiDrawingHelper.DrawComboInput("supplementaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedHitScriptIndex);
+                                    supplementaryHitScript = selectedHitScriptIndex != -1 ? allScripts[selectedHitScriptIndex].Name : string.Empty;
+                                }
+                                else
+                                {
+                                    supplementaryHitScript = string.Empty;
+                                }
                                 ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
                                 ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
@@ -1213,6 +1227,8 @@ namespace CharacterDataEditor.Screens
                                 attackDataItem.ParticleDuration = particleDuration;
                                 attackDataItem.HoldXOffset = holdOffsetX;
                                 attackDataItem.HoldYOffset = holdOffsetY;
+                                attackDataItem.UseHitScript = useHitScript;
+                                attackDataItem.SupplementaryHitScript = supplementaryHitScript;
                                 attackDataItem.CausesWallbounce = causesWallbounce;
                                 attackDataItem.HitSound = hitSound;
 
@@ -1258,6 +1274,8 @@ namespace CharacterDataEditor.Screens
                                 int ParticleYOffset = currentCounterData.ParticleYOffset;
                                 string ParticleEffect = currentCounterData.ParticleEffect;
                                 int ParticleDuration = currentCounterData.ParticleDuration;
+                                bool UseHitScript = currentCounterData.UseHitScript;
+                                var SupplementaryHitScript = currentCounterData.SupplementaryHitScript;
                                 bool CausesWallbounce = currentCounterData.CausesWallbounce;
                                 string HitSound = currentCounterData.HitSound;
 
@@ -1291,6 +1309,18 @@ namespace CharacterDataEditor.Screens
                                 ImguiDrawingHelper.DrawComboInput("particleEffect", allSprites.Select(x => x.Name).ToArray(), ref selectedParticleEffect);
 
                                 ImguiDrawingHelper.DrawIntInput("particleDuration", ref ParticleDuration);
+                                ImguiDrawingHelper.DrawBoolInput("useHitScript", ref UseHitScript, "Runs when the projectile hits the opponent.");
+                                if (UseHitScript)
+                                {
+                                    var hitScriptId = SupplementaryHitScript ?? string.Empty;
+                                    var selectedHitScriptIndex = hitScriptId != string.Empty ? allScripts.IndexOf(allScripts.First(x => x.Name == SupplementaryHitScript)) : -1;
+                                    ImguiDrawingHelper.DrawComboInput("supplementaryScript", allScripts.Select(x => x.Name).ToArray(), ref selectedHitScriptIndex);
+                                    SupplementaryHitScript = selectedHitScriptIndex != -1 ? allScripts[selectedHitScriptIndex].Name : string.Empty;
+                                }
+                                else
+                                {
+                                    SupplementaryHitScript = string.Empty;
+                                }
                                 ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
 
                                 var hitSoundId = currentCounterData.HitSound ?? string.Empty;
@@ -1317,6 +1347,8 @@ namespace CharacterDataEditor.Screens
                                 currentCounterData.ParticleYOffset = ParticleYOffset;
                                 currentCounterData.ParticleEffect = allSprites[selectedParticleEffect].Name;
                                 currentCounterData.ParticleDuration = ParticleDuration;
+                                currentCounterData.UseHitScript = UseHitScript;
+                                currentCounterData.SupplementaryHitScript = SupplementaryHitScript;
                                 currentCounterData.CausesWallbounce = CausesWallbounce;
                                 currentCounterData.HitSound = HitSound;
 
