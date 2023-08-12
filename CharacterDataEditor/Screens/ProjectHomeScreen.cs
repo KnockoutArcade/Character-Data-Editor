@@ -124,6 +124,7 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver114:
                         case VersionConstants.Ver120:
                         case VersionConstants.Ver121:
+                        case VersionConstants.Ver122:
                         default:
                             {
                                 results = characterNeedingUpgrade.Upgrade();
@@ -210,6 +211,7 @@ namespace CharacterDataEditor.Screens
                         case VersionConstants.Ver114:
                         case VersionConstants.Ver120:
                         case VersionConstants.Ver121:
+                        case VersionConstants.Ver122:
                         default:
                             {
                                 results = projectileNeedingUpgrade.Upgrade();

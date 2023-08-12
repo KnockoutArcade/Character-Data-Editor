@@ -2,7 +2,7 @@ namespace CharacterDataEditor.Constants
 {
     public class VersionConstants
     {
-        public const string CurrentVersion = Ver121;
+        public const string CurrentVersion = Ver122;
 
         public const string Original = "";
         public const string Ver094 = "Ver0.9.4";
@@ -19,5 +19,6 @@ namespace CharacterDataEditor.Constants
         public const string Ver114 = "Ver1.1.4";
         public const string Ver120 = "Ver1.2.0";
         public const string Ver121 = "Ver1.2.1";
+        public const string Ver122 = "Ver1.2.2";
     }
 }
