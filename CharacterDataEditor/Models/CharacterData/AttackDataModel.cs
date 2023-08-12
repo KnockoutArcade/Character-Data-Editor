@@ -33,19 +33,20 @@ namespace CharacterDataEditor.Models.CharacterData
         public int ParticleDuration { get; set; } = 0;
         public int HoldXOffset { get; set; } = 0;
         public int HoldYOffset { get; set; } = 0;
+        public bool UseHitScript { get; set; } = false;
+        public string SupplementaryHitScript { get; set; } = string.Empty;
         public bool CausesWallbounce { get; set; } = false;
         public string HitSound { get; set; } = "";
         public bool FinalBlow { get; set; } = false;
         public bool ActivateTimeStop { get; set; } = false;
-        public int TimeStopDuration { get; set; } = 0;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Start, Lifetime, AttackWidth, AttackHeight, WidthOffset, HeightOffset, Group, Damage);
             hash = HashCode.Combine(hash, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack);
             hash = HashCode.Combine(hash, AirKnockbackHorizontal, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback);
-            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset,  CausesWallbounce);
-            hash = HashCode.Combine(hash, HitSound, FinalBlow, ActivateTimeStop, TimeStopDuration);
+            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset, UseHitScript);
+            hash = HashCode.Combine(hash, SupplementaryHitScript, CausesWallbounce, HitSound, FinalBlow, ActivateTimeStop);
 
             return hash;
         }
@@ -118,17 +119,20 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                                 {
                                                                                                                     if (objAsAttackData.CausesWallbounce == CausesWallbounce)
                                                                                                                     {
-                                                                                                                        if (objAsAttackData.HitSound == HitSound)
+                                                                                                                        if (objAsAttackData.UseHitScript == UseHitScript)
                                                                                                                         {
-                                                                                                                            if (objAsAttackData.GravityScaling == GravityScaling)
+                                                                                                                            if (objAsAttackData.SupplementaryHitScript == SupplementaryHitScript)
                                                                                                                             {
-                                                                                                                                if (objAsAttackData.FinalBlow == FinalBlow)
+                                                                                                                                if (objAsAttackData.HitSound == HitSound)
                                                                                                                                 {
-                                                                                                                                    if (objAsAttackData.ActivateTimeStop == ActivateTimeStop)
+                                                                                                                                    if (objAsAttackData.GravityScaling == GravityScaling)
                                                                                                                                     {
-                                                                                                                                        if (objAsAttackData.TimeStopDuration == TimeStopDuration)
+                                                                                                                                        if (objAsAttackData.FinalBlow == FinalBlow)
                                                                                                                                         {
-                                                                                                                                            return true;
+                                                                                                                                            if (objAsAttackData.ActivateTimeStop == ActivateTimeStop)
+                                                                                                                                            {
+                                                                                                                                                return true;
+                                                                                                                                            }
                                                                                                                                         }
                                                                                                                                     }
                                                                                                                                 }

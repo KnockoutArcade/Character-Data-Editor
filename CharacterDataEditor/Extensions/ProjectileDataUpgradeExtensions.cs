@@ -24,6 +24,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedProjectileData = (originalProjectile as ProjectileDataModel)
                     };
+                case VersionConstants.Ver121:
+                    return (originalProjectile as ProjectileDataModel).Upgrade121to122();
                 case VersionConstants.Ver120:
                     return (originalProjectile as ProjectileDataModel).Upgrade120to121();
                 case VersionConstants.Ver114:
@@ -48,6 +50,18 @@ namespace CharacterDataEditor.Extensions
         private static UpgradeResults Upgrade120to121(this ProjectileDataModel previous, UpgradeResults previousOperationResults = null)
         {
             previous.Version = VersionConstants.Ver121;
+
+            return new UpgradeResults
+            {
+                UpgradedProjectileData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            };
+        }
+        private static UpgradeResults Upgrade121to122(this ProjectileDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            previous.Version = VersionConstants.Ver122;
 
             return new UpgradeResults
             {
