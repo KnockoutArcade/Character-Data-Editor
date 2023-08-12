@@ -366,6 +366,12 @@ namespace CharacterDataEditor.Extensions
 
         private static UpgradeResults Upgrade121to122(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
         {
+            foreach (var move in previous.MoveData)
+            {
+                move.UseMoveScript = false;
+                move.SupplementaryMoveScript = string.Empty;
+            }
+
             previous.Version = VersionConstants.Ver122;
 
             return new UpgradeResults
