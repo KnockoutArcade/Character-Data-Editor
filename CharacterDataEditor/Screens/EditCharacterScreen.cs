@@ -2571,7 +2571,7 @@ namespace CharacterDataEditor.Screens
                     var Knockdown = character.CharacterSprites.Knockdown;
                     var GetUp = character.CharacterSprites.GetUp;
                     var RushCancel = character.CharacterSprites.RushCancel;
-                    var WallBounce = character.CharacterSprites.WallBounce;
+                    var WallSplat = character.CharacterSprites.WallSplat;
 
                     int idleSelected = string.IsNullOrWhiteSpace(Idle) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Idle));
                     int crouchSelected = string.IsNullOrWhiteSpace(Crouch) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Crouch));
@@ -2590,7 +2590,7 @@ namespace CharacterDataEditor.Screens
                     int knockdownSelected = string.IsNullOrWhiteSpace(Knockdown) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Knockdown));
                     int getUpSelected = string.IsNullOrWhiteSpace(GetUp) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == GetUp));
                     int rushCancelSelected = string.IsNullOrWhiteSpace(RushCancel) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == RushCancel));
-                    int wallBounceSelected = string.IsNullOrWhiteSpace(WallBounce) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == WallBounce));
+                    int wallSplatSelected = string.IsNullOrWhiteSpace(WallSplat) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == WallSplat));
 
                     var selectionAction = (int selectedIndex) =>
                     {
@@ -2634,7 +2634,7 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawSelectableComboInput($"knockDown{isPlaying(knockdownSelected)}", allSprites.Select(x => x.Name).ToArray(), ref knockdownSelected, selectionAction, changeAction);
                     ImguiDrawingHelper.DrawSelectableComboInput($"getUp{isPlaying(getUpSelected)}", allSprites.Select(x => x.Name).ToArray(), ref getUpSelected, selectionAction, changeAction);
                     ImguiDrawingHelper.DrawSelectableComboInput($"rushCancel{isPlaying(rushCancelSelected)}", allSprites.Select(x => x.Name).ToArray(), ref rushCancelSelected, selectionAction, changeAction);
-                    ImguiDrawingHelper.DrawSelectableComboInput($"wallBounce{isPlaying(wallBounceSelected)}", allSprites.Select(x => x.Name).ToArray(), ref wallBounceSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"wallSplat{isPlaying(wallSplatSelected)}", allSprites.Select(x => x.Name).ToArray(), ref wallSplatSelected, selectionAction, changeAction);
 
                     character.CharacterSprites.Idle = idleSelected != -1 ? allSprites[idleSelected].Name : string.Empty;
                     character.CharacterSprites.Crouch = crouchSelected != -1 ? allSprites[crouchSelected].Name : string.Empty;
@@ -2653,7 +2653,7 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.Knockdown = knockdownSelected != -1 ? allSprites[knockdownSelected].Name : string.Empty;
                     character.CharacterSprites.GetUp = getUpSelected != -1 ? allSprites[getUpSelected].Name : string.Empty;
                     character.CharacterSprites.RushCancel = rushCancelSelected != -1 ? allSprites[rushCancelSelected].Name : string.Empty;
-                    character.CharacterSprites.WallBounce = wallBounceSelected != -1 ? allSprites[wallBounceSelected].Name : string.Empty;
+                    character.CharacterSprites.WallSplat = wallSplatSelected != -1 ? allSprites[wallSplatSelected].Name : string.Empty;
 
                     idleIndex = idleSelected;
 
