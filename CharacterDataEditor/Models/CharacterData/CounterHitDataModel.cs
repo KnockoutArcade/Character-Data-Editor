@@ -23,6 +23,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public int ParticleYOffset { get; set; } = 0;
         public string ParticleEffect { get; set; } = string.Empty;
         public int ParticleDuration { get; set; } = 0;
+        public bool UseHitScript { get; set; } = false;
+        public string SupplementaryHitScript { get; set; } = string.Empty;
         public bool CausesWallbounce { get; set; } = false;
         public string HitSound { get; set; } = "";
 
@@ -30,7 +32,8 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(CounterHitLevel, Group, Damage, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, KnockBack);
             hash = HashCode.Combine(hash, AirKnockbackVertical, AirKnockbackHorizontal, Launches, LaunchKnockbackVertical, LaunchKnockbackHorizontal, GravityScaling, Pushback);
-            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, CausesWallbounce, HitSound);
+            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, UseHitScript, SupplementaryHitScript, CausesWallbounce);
+            hash = HashCode.Combine(hash, HitSound);
 
             return hash;
         }
@@ -85,13 +88,19 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                             {
                                                                                 if (ComboScaling == objAsCounterHitData.ComboScaling)
                                                                                 {
-                                                                                    if (CausesWallbounce == objAsCounterHitData.CausesWallbounce)
+                                                                                    if (UseHitScript == objAsCounterHitData.UseHitScript)
                                                                                     {
-                                                                                        if (HitSound == objAsCounterHitData.HitSound)
+                                                                                        if (SupplementaryHitScript == objAsCounterHitData.SupplementaryHitScript)
                                                                                         {
-                                                                                            if (GravityScaling == objAsCounterHitData.GravityScaling)
+                                                                                            if (CausesWallbounce == objAsCounterHitData.CausesWallbounce)
                                                                                             {
-                                                                                                return true;
+                                                                                                if (HitSound == objAsCounterHitData.HitSound)
+                                                                                                {
+                                                                                                    if (GravityScaling == objAsCounterHitData.GravityScaling)
+                                                                                                    {
+                                                                                                        return true;
+                                                                                                    }
+                                                                                                }
                                                                                             }
                                                                                         }
                                                                                     }

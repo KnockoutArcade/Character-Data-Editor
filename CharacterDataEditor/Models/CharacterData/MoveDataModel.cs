@@ -38,8 +38,6 @@ namespace CharacterDataEditor.Models.CharacterData
         public SupplementaryMovementDataModel AirMovementData { get; set; } = new SupplementaryMovementDataModel();
         public bool UseMoveScript { get; set; } = false;
         public string SupplementaryMoveScript { get; set; } = string.Empty;
-        public bool UseHitScript { get; set; } = false;
-        public string SupplementaryHitScript { get; set; } = string.Empty;
         public int NumberOfSounds { get { return MoveSoundData?.Count ?? 0; } }
         public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
         public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
@@ -58,9 +56,8 @@ namespace CharacterDataEditor.Models.CharacterData
         {
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
-            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, UseMoveScript, SupplementaryMoveScript, UseHitScript, SupplementaryHitScript);
-            hash = HashCode.Combine(hash, Duration, ProjectileData, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData);
-            hash = HashCode.Combine(hash, SuperData);
+            hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, UseMoveScript, SupplementaryMoveScript, Duration, ProjectileData);
+            hash = HashCode.Combine(hash, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
 
             return hash;
         }
@@ -98,8 +95,6 @@ namespace CharacterDataEditor.Models.CharacterData
                  objAsMoveData.Duration.Equals(Duration) &&
                  objAsMoveData.UseMoveScript.Equals(UseMoveScript) &&
                  objAsMoveData.SupplementaryMoveScript.Equals(SupplementaryMoveScript) &&
-                 objAsMoveData.UseHitScript.Equals(UseHitScript) &&
-                 objAsMoveData.SupplementaryHitScript.Equals(SupplementaryHitScript) &&
                  objAsMoveData.ProjectileData.SequenceEqual(ProjectileData) &&
                  objAsMoveData.MoveCanCancelInto.Equals(MoveCanCancelInto) &&
                  objAsMoveData.EnhanceMoveCanCancelInto.Equals(EnhanceMoveCanCancelInto) &&
