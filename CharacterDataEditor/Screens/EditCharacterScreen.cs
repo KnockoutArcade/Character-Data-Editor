@@ -1291,7 +1291,6 @@ namespace CharacterDataEditor.Screens
                                     {
                                         bool finalBlow = attackDataItem.FinalBlow;
                                         bool activateTimeStop = attackDataItem.ActivateTimeStop;
-                                        int timeStopDuration = attackDataItem.TimeStopDuration;
 
                                         if (moveInEditor.SuperData.FinalBlowKO)
                                         {
@@ -1302,17 +1301,14 @@ namespace CharacterDataEditor.Screens
                                             finalBlow = false;
                                         }
                                         ImguiDrawingHelper.DrawBoolInput("activateTimeStop", ref activateTimeStop);
-                                        ImguiDrawingHelper.DrawIntInput("timeStopDuration", ref timeStopDuration);
 
                                         attackDataItem.FinalBlow = finalBlow;
                                         attackDataItem.ActivateTimeStop = activateTimeStop;
-                                        attackDataItem.TimeStopDuration = timeStopDuration;
                                     }
                                     else
                                     {
                                         attackDataItem.FinalBlow = false;
                                         attackDataItem.ActivateTimeStop = false;
-                                        attackDataItem.TimeStopDuration = 0;
                                     }
 
                                     ImGui.TreePop();
