@@ -1,11 +1,9 @@
 ## What's Changed?
 
-* Added super data.
-  * There are two types of supers: attack supers and install supers.
-    * Attack supers can have a final hit setting where only the final hit will KO the opponent.
-    * Install supers can alter different stats for a set amount of time.
-* Block stun now has to be whole numbers.
-* Fixed a bug with projectiles always saving even if you don't edit them.
+* Added new sprite data for Rush Cancels and Wall Splats.
+* Added more data for supplementary move scripts. Now you can toggle whether you want to use them or not.
+* Added supplementary scripts for hits and projectiles.
+* Removed time stop duration for hits.
 
 ## Known Bugs
 

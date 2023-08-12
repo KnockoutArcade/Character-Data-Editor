@@ -33,6 +33,8 @@ namespace CharacterDataEditor.Models.ProjectileData
         public int ParticleDuration { get; set; } = 0;
         public int HoldXOffset { get; set; } = 0;
         public int HoldYOffset { get; set; } = 0;
+        public bool UseHitScript { get; set; } = false;
+        public string SupplementaryHitScript { get; set; } = string.Empty;
         public bool CausesWallbounce { get; set; } = false;
         public string HitSound { get; set; } = "";
 
@@ -41,8 +43,8 @@ namespace CharacterDataEditor.Models.ProjectileData
             var hash = HashCode.Combine(Start, Lifetime, AttackWidth, AttackHeight, WidthOffset, HeightOffset, Group, Damage);
             hash = HashCode.Combine(hash, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack);
             hash = HashCode.Combine(hash, AirKnockbackHorizontal, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback);
-            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset, CausesWallbounce);
-            hash = HashCode.Combine(hash, HitSound);
+            hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset, UseHitScript);
+            hash = HashCode.Combine(hash, SupplementaryHitScript, CausesWallbounce, HitSound);
 
             return hash;
         }
@@ -113,13 +115,19 @@ namespace CharacterDataEditor.Models.ProjectileData
                                                                                                             {
                                                                                                                 if (objAsAttackData.ComboScaling == ComboScaling)
                                                                                                                 {
-                                                                                                                    if (objAsAttackData.CausesWallbounce == CausesWallbounce)
+                                                                                                                    if (objAsAttackData.UseHitScript == UseHitScript)
                                                                                                                     {
-                                                                                                                        if (objAsAttackData.HitSound == HitSound)
+                                                                                                                        if (objAsAttackData.SupplementaryHitScript == SupplementaryHitScript)
                                                                                                                         {
-                                                                                                                            if (objAsAttackData.GravityScaling == GravityScaling)
+                                                                                                                            if (objAsAttackData.CausesWallbounce == CausesWallbounce)
                                                                                                                             {
-                                                                                                                                return true;
+                                                                                                                                if (objAsAttackData.HitSound == HitSound)
+                                                                                                                                {
+                                                                                                                                    if (objAsAttackData.GravityScaling == GravityScaling)
+                                                                                                                                    {
+                                                                                                                                        return true;
+                                                                                                                                    }
+                                                                                                                                }
                                                                                                                             }
                                                                                                                         }
                                                                                                                     }

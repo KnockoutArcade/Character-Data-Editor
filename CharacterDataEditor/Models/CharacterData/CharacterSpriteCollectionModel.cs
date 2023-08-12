@@ -20,12 +20,14 @@ namespace CharacterDataEditor.Models.CharacterData
         public string Launched { get; set; } = string.Empty;
         public string Knockdown { get; set; } = string.Empty;
         public string GetUp { get; set; } = string.Empty;
+        public string RushCancel { get; set; } = string.Empty;
+        public string WallSplat { get; set; } = string.Empty;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Idle, Crouch, StandBlock, CrouchBlock, WalkForward, WalkBackward, RunForward, RunBackward);
             hash = HashCode.Combine(hash, JumpSquat, Jump, Hurt, Grab, Hold, Launched, Knockdown);
-            hash = HashCode.Combine(hash, GetUp);
+            hash = HashCode.Combine(hash, GetUp, RushCancel, WallSplat);
 
             return hash;
         }
@@ -59,7 +61,9 @@ namespace CharacterDataEditor.Models.CharacterData
                 objAsCharacterSpriteCollection.Hold.Equals(Hold) &&
                 objAsCharacterSpriteCollection.Launched.Equals(Launched) &&
                 objAsCharacterSpriteCollection.Knockdown.Equals(Knockdown) &&
-                objAsCharacterSpriteCollection.GetUp.Equals(GetUp))
+                objAsCharacterSpriteCollection.GetUp.Equals(GetUp) &&
+                objAsCharacterSpriteCollection.RushCancel.Equals(RushCancel) &&
+                objAsCharacterSpriteCollection.WallSplat.Equals(WallSplat))
             {
                 return true;
             }

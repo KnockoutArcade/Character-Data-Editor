@@ -6,6 +6,7 @@
         Mid = 1,
         Low = 2,
         Grab = 3,
-        CommandGrab = 4
+        CommandGrab = 4,
+        HitGrab = 5
     }
 }
