@@ -283,13 +283,13 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver112;
 
-            return new UpgradeResults
+            return Upgrade112to113(previous, new UpgradeResults
             {
                 UpgradedCharacterData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
 
         private static UpgradeResults Upgrade112to113(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
@@ -303,13 +303,13 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver113;
 
-            return new UpgradeResults
+            return Upgrade113to114(previous, new UpgradeResults
             {
                 UpgradedCharacterData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
 
         private static UpgradeResults Upgrade113to114(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
@@ -324,26 +324,26 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver114;
 
-            return new UpgradeResults
+            return Upgrade114to120(previous, new UpgradeResults
             {
                 UpgradedCharacterData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
 
         private static UpgradeResults Upgrade114to120(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
         {
             previous.Version = VersionConstants.Ver120;
 
-            return new UpgradeResults
+            return Upgrade120to121(previous, new UpgradeResults
             {
                 UpgradedCharacterData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
 
         private static UpgradeResults Upgrade120to121(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
@@ -355,13 +355,13 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver121;
 
-            return new UpgradeResults
+            return Upgrade121to122(previous, new UpgradeResults
             {
                 UpgradedCharacterData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
 
         private static UpgradeResults Upgrade121to122(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
