@@ -2,7 +2,7 @@ namespace CharacterDataEditor.Constants
 {
     public class VersionConstants
     {
-        public const string CurrentVersion = Ver122; // Change to Ver123 when done adding Chip Damage
+        public const string CurrentVersion = Ver123; // Change to Ver123 when done adding Chip Damage
 
         public const string Original = "";
         public const string Ver094 = "Ver0.9.4";
