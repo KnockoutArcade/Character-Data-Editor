@@ -39,6 +39,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public string HitSound { get; set; } = "";
         public bool FinalBlow { get; set; } = false;
         public bool ActivateTimeStop { get; set; } = false;
+        public int ChipDamage { get; set; } = 0;
 
         public override int GetHashCode()
         {
@@ -46,7 +47,7 @@ namespace CharacterDataEditor.Models.CharacterData
             hash = HashCode.Combine(hash, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, AttackType, BlockStun, KnockBack);
             hash = HashCode.Combine(hash, AirKnockbackHorizontal, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback);
             hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset, UseHitScript);
-            hash = HashCode.Combine(hash, SupplementaryHitScript, CausesWallbounce, HitSound, FinalBlow, ActivateTimeStop);
+            hash = HashCode.Combine(hash, SupplementaryHitScript, CausesWallbounce, HitSound, FinalBlow, ActivateTimeStop, ChipDamage);
 
             return hash;
         }
@@ -131,7 +132,10 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                                                         {
                                                                                                                                             if (objAsAttackData.ActivateTimeStop == ActivateTimeStop)
                                                                                                                                             {
-                                                                                                                                                return true;
+                                                                                                                                                if (objAsAttackData.ChipDamage == ChipDamage)
+                                                                                                                                                {
+                                                                                                                                                    return true;
+                                                                                                                                                }
                                                                                                                                             }
                                                                                                                                         }
                                                                                                                                     }
