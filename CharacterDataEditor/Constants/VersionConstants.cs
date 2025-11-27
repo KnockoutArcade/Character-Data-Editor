@@ -20,5 +20,6 @@ namespace CharacterDataEditor.Constants
         public const string Ver120 = "Ver1.2.0";
         public const string Ver121 = "Ver1.2.1";
         public const string Ver122 = "Ver1.2.2";
+        public const string Ver123 = "Ver1.2.3";
     }
 }
