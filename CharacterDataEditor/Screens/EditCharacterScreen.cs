@@ -1199,6 +1199,7 @@ namespace CharacterDataEditor.Screens
                                     int attackHitstun = attackDataItem.AttackHitStun;
                                     AttackType attackType = attackDataItem.AttackType;
                                     float blockStun = attackDataItem.BlockStun;
+                                    int chipDamage = attackDataItem.ChipDamage;
                                     float knockBack = attackDataItem.KnockBack;
                                     float airKnockbackH = attackDataItem.AirKnockbackHorizontal;
                                     float airKnockbackV = attackDataItem.AirKnockbackVertical;
@@ -1236,6 +1237,7 @@ namespace CharacterDataEditor.Screens
 
                                     ImguiDrawingHelper.DrawDecimalInput("blockStun", ref blockStun);
                                     blockStun = (float)Math.Round(blockStun);
+                                    ImguiDrawingHelper.DrawIntInput("chipDamage", ref chipDamage);
                                     ImguiDrawingHelper.DrawDecimalInput("knockback", ref knockBack);
                                     ImguiDrawingHelper.DrawDecimalInput("airKnockbackVertical", ref airKnockbackV);
                                     ImguiDrawingHelper.DrawDecimalInput("airKnockbackHorizontal", ref airKnockbackH);
@@ -1294,6 +1296,7 @@ namespace CharacterDataEditor.Screens
                                     attackDataItem.AttackHitStun = attackHitstun;
                                     attackDataItem.AttackType = (AttackType)selectedAttackType;
                                     attackDataItem.BlockStun = blockStun;
+                                    attackDataItem.ChipDamage = chipDamage;
                                     attackDataItem.KnockBack = knockBack;
                                     attackDataItem.AirKnockbackHorizontal = airKnockbackH;
                                     attackDataItem.AirKnockbackVertical = airKnockbackV;
