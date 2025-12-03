@@ -24,6 +24,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedProjectileData = (originalProjectile as ProjectileDataModel)
                     };
+                case VersionConstants.Ver122:
+                    return (originalProjectile as ProjectileDataModel).Upgrade122to123();
                 case VersionConstants.Ver121:
                     return (originalProjectile as ProjectileDataModel).Upgrade121to122();
                 case VersionConstants.Ver120:
@@ -38,30 +40,43 @@ namespace CharacterDataEditor.Extensions
         {
             previous.Version = VersionConstants.Ver120;
 
-            return new UpgradeResults
+            return previous.Upgrade120to121(new UpgradeResults
             {
                 UpgradedProjectileData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
 
         private static UpgradeResults Upgrade120to121(this ProjectileDataModel previous, UpgradeResults previousOperationResults = null)
         {
             previous.Version = VersionConstants.Ver121;
 
-            return new UpgradeResults
+            return previous.Upgrade121to122(new UpgradeResults
             {
                 UpgradedProjectileData = previous,
                 IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
                 Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
                 Success = true
-            };
+            });
         }
         private static UpgradeResults Upgrade121to122(this ProjectileDataModel previous, UpgradeResults previousOperationResults = null)
         {
             previous.Version = VersionConstants.Ver122;
+
+            return previous.Upgrade122to123(new UpgradeResults
+            {
+                UpgradedProjectileData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade122to123(this ProjectileDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            previous.Version = VersionConstants.Ver123;
 
             return new UpgradeResults
             {
