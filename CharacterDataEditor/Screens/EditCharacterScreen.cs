@@ -1217,6 +1217,8 @@ namespace CharacterDataEditor.Screens
                                     bool useHitScript = attackDataItem.UseHitScript;
                                     var supplementaryHitScript = attackDataItem.SupplementaryHitScript;
                                     bool causesWallbounce = attackDataItem.CausesWallbounce;
+                                    bool causeHardKnockdown = attackDataItem.CauseHardKnockdown;
+                                    bool causeFloorBounce = attackDataItem.CauseFloorBounce;
                                     string hitSound = attackDataItem.HitSound;
 
                                     ImguiDrawingHelper.DrawIntInput("start", ref start);
@@ -1274,6 +1276,8 @@ namespace CharacterDataEditor.Screens
                                         supplementaryHitScript = string.Empty;
                                     }
                                     ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref causesWallbounce);
+                                    ImguiDrawingHelper.DrawBoolInput("causeHardKnockdown", ref causeHardKnockdown);
+                                    ImguiDrawingHelper.DrawBoolInput("causeFloorBounce", ref causeFloorBounce);
                                     ImguiDrawingHelper.DrawIntInput("holdOffsetX", ref holdOffsetX);
                                     ImguiDrawingHelper.DrawIntInput("holdOffsetY", ref holdOffsetY);
 
@@ -1314,6 +1318,8 @@ namespace CharacterDataEditor.Screens
                                     attackDataItem.UseHitScript = useHitScript;
                                     attackDataItem.SupplementaryHitScript = supplementaryHitScript;
                                     attackDataItem.CausesWallbounce = causesWallbounce;
+                                    attackDataItem.CauseHardKnockdown = causeHardKnockdown;
+                                    attackDataItem.CauseFloorBounce = causeFloorBounce;
                                     attackDataItem.HitSound = hitSound;
 
                                     if (moveInEditor.MoveType == MoveType.Super)
@@ -1419,6 +1425,8 @@ namespace CharacterDataEditor.Screens
                                 bool UseHitScript = currentCounterData.UseHitScript;
                                 var SupplementaryHitScript = currentCounterData.SupplementaryHitScript;
                                 bool CausesWallbounce = currentCounterData.CausesWallbounce;
+                                bool CauseHardKnockdown = currentCounterData.CauseHardKnockdown;
+                                bool CauseFloorBounce = currentCounterData.CauseFloorBounce;
                                 string HitSound = currentCounterData.HitSound;
 
                                 ImguiDrawingHelper.DrawIntInput("counterHitLevel", ref CounterHitLevel);
@@ -1464,6 +1472,8 @@ namespace CharacterDataEditor.Screens
                                     SupplementaryHitScript = string.Empty;
                                 }
                                 ImguiDrawingHelper.DrawBoolInput("causesWallbounce", ref CausesWallbounce);
+                                ImguiDrawingHelper.DrawBoolInput("causeHardKnockdown", ref CauseHardKnockdown);
+                                ImguiDrawingHelper.DrawBoolInput("causeFloorBounce", ref CauseFloorBounce);
 
                                 var hitSoundId = currentCounterData.HitSound ?? string.Empty;
                                 var selectedHitSoundIndex = hitSoundId != string.Empty ? allSounds.IndexOf(allSounds.First(x => x.Name == currentCounterData.HitSound)) : -1;
@@ -1492,6 +1502,8 @@ namespace CharacterDataEditor.Screens
                                 currentCounterData.UseHitScript = UseHitScript;
                                 currentCounterData.SupplementaryHitScript = SupplementaryHitScript;
                                 currentCounterData.CausesWallbounce = CausesWallbounce;
+                                currentCounterData.CauseHardKnockdown = CauseHardKnockdown;
+                                currentCounterData.CauseFloorBounce = CauseFloorBounce;
                                 currentCounterData.HitSound = HitSound;
 
                                 ImGui.TreePop();
