@@ -26,6 +26,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver123:
+                    return (originalCharacter as CharacterDataModel).Upgrade123to124();
                 case VersionConstants.Ver122:
                     return (originalCharacter as CharacterDataModel).Upgrade122to123();
                 case VersionConstants.Ver121:
@@ -390,6 +392,21 @@ namespace CharacterDataEditor.Extensions
             // Added Chip Damage to Attack Data
             
             previous.Version = VersionConstants.Ver123;
+
+            return Upgrade123to124(previous, new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade123to124(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            // Added Hard Knockdowns and Floor Bounces
+
+            previous.Version = VersionConstants.Ver124;
 
             return new UpgradeResults
             {
