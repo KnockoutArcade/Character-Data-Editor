@@ -27,13 +27,15 @@ namespace CharacterDataEditor.Models.CharacterData
         public string SupplementaryHitScript { get; set; } = string.Empty;
         public bool CausesWallbounce { get; set; } = false;
         public string HitSound { get; set; } = "";
+        public bool CauseHardKnockdown { get; set; } = false;
+        public bool CauseFloorBounce { get; set; } = false;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(CounterHitLevel, Group, Damage, MeterGain, ComboScaling, AttackHitStop, AttackHitStun, KnockBack);
             hash = HashCode.Combine(hash, AirKnockbackVertical, AirKnockbackHorizontal, Launches, LaunchKnockbackVertical, LaunchKnockbackHorizontal, GravityScaling, Pushback);
             hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, UseHitScript, SupplementaryHitScript, CausesWallbounce);
-            hash = HashCode.Combine(hash, HitSound);
+            hash = HashCode.Combine(hash, HitSound, CauseHardKnockdown, CauseFloorBounce);
 
             return hash;
         }
@@ -98,7 +100,13 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                 {
                                                                                                     if (GravityScaling == objAsCounterHitData.GravityScaling)
                                                                                                     {
-                                                                                                        return true;
+                                                                                                        if (CauseHardKnockdown == objAsCounterHitData.CauseHardKnockdown)
+                                                                                                        {
+                                                                                                            if (CauseFloorBounce == objAsCounterHitData.CauseFloorBounce)
+                                                                                                            {
+                                                                                                                return true;
+                                                                                                            }
+                                                                                                        }
                                                                                                     }
                                                                                                 }
                                                                                             }

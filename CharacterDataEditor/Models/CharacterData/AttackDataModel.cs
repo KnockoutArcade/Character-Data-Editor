@@ -40,6 +40,8 @@ namespace CharacterDataEditor.Models.CharacterData
         public bool FinalBlow { get; set; } = false;
         public bool ActivateTimeStop { get; set; } = false;
         public int ChipDamage { get; set; } = 0;
+        public bool CauseHardKnockdown { get; set; } = false;
+        public bool CauseFloorBounce { get; set; } = false;
 
         public override int GetHashCode()
         {
@@ -48,6 +50,7 @@ namespace CharacterDataEditor.Models.CharacterData
             hash = HashCode.Combine(hash, AirKnockbackHorizontal, AirKnockbackVertical, Launches, LaunchKnockbackHorizontal, LaunchKnockbackVertical, GravityScaling, Pushback);
             hash = HashCode.Combine(hash, ParticleXOffset, ParticleYOffset, ParticleEffect, ParticleDuration, HoldXOffset, HoldYOffset, UseHitScript);
             hash = HashCode.Combine(hash, SupplementaryHitScript, CausesWallbounce, HitSound, FinalBlow, ActivateTimeStop, ChipDamage);
+            hash = HashCode.Combine(hash, CauseHardKnockdown, CauseFloorBounce);
 
             return hash;
         }
@@ -134,7 +137,13 @@ namespace CharacterDataEditor.Models.CharacterData
                                                                                                                                             {
                                                                                                                                                 if (objAsAttackData.ChipDamage == ChipDamage)
                                                                                                                                                 {
-                                                                                                                                                    return true;
+                                                                                                                                                    if (objAsAttackData.CauseHardKnockdown == CauseHardKnockdown)
+                                                                                                                                                    {
+                                                                                                                                                        if (objAsAttackData.CauseFloorBounce == CauseFloorBounce)
+                                                                                                                                                        {
+                                                                                                                                                            return true;
+                                                                                                                                                        }
+                                                                                                                                                    }
                                                                                                                                                 }
                                                                                                                                             }
                                                                                                                                         }
