@@ -42,6 +42,7 @@ namespace CharacterDataEditor.Models.CharacterData
         public List<MoveSoundDataModel> MoveSoundData { get; set; } = new List<MoveSoundDataModel>();
         public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
         public SuperDataModel SuperData { get; set; } = new SuperDataModel();
+        public int LandingLag { get; set; } = 0;
 
         public MoveDataModel GetDuplicate()
         {
@@ -57,7 +58,7 @@ namespace CharacterDataEditor.Models.CharacterData
             var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
             hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
             hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, UseMoveScript, SupplementaryMoveScript, Duration, ProjectileData);
-            hash = HashCode.Combine(hash, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
+            hash = HashCode.Combine(hash, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData, LandingLag);
 
             return hash;
         }
@@ -103,7 +104,8 @@ namespace CharacterDataEditor.Models.CharacterData
                  objAsMoveData.NumberOfSounds.Equals(NumberOfSounds) &&
                  objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData) &&
                  objAsMoveData.SpiritData.Equals(SpiritData) &&
-                 objAsMoveData.SuperData.Equals(SuperData))
+                 objAsMoveData.SuperData.Equals(SuperData) &&
+                 objAsMoveData.LandingLag.Equals(LandingLag))
             {
                 return true;
             }

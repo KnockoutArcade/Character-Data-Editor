@@ -909,6 +909,10 @@ namespace CharacterDataEditor.Screens
                 ImguiDrawingHelper.DrawBoolInput("isMoveAThrow?", ref isThrow);
                 moveInEditor.IsThrow = isThrow;
 
+                int landingLag = moveInEditor.LandingLag;
+                ImguiDrawingHelper.DrawIntInput("landingLag", ref landingLag, 0);
+                moveInEditor.LandingLag = landingLag;
+
                 // Windows dropdown
                 if (ImGui.CollapsingHeader("Windows"))
                 {

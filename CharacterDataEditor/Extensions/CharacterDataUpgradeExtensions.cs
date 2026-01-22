@@ -408,6 +408,21 @@ namespace CharacterDataEditor.Extensions
 
             previous.Version = VersionConstants.Ver124;
 
+            return Upgrade124to125(previous, new UpgradeResults
+            {
+                UpgradedCharacterData = previous,
+                IsDataLossSuspected = (previousOperationResults != null) ? previousOperationResults.IsDataLossSuspected : false,
+                Message = (previousOperationResults != null) ? previousOperationResults.Message : string.Empty,
+                Success = true
+            });
+        }
+
+        private static UpgradeResults Upgrade124to125(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
+        {
+            // Added Landing Lag
+
+            previous.Version = VersionConstants.Ver125;
+
             return new UpgradeResults
             {
                 UpgradedCharacterData = previous,
