@@ -26,6 +26,8 @@ namespace CharacterDataEditor.Extensions
                         Success = false,
                         UpgradedCharacterData = (originalCharacter as CharacterDataModel)
                     };
+                case VersionConstants.Ver124:
+                    return (originalCharacter as CharacterDataModel).Upgrade124to125();
                 case VersionConstants.Ver123:
                     return (originalCharacter as CharacterDataModel).Upgrade123to124();
                 case VersionConstants.Ver122:
