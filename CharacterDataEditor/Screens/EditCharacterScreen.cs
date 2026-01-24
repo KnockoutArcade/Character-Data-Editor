@@ -2634,6 +2634,11 @@ namespace CharacterDataEditor.Screens
                     var RushCancel = character.CharacterSprites.RushCancel;
                     var WallSplat = character.CharacterSprites.WallSplat;
                     var QuickGetup = character.CharacterSprites.QuickGetup;
+                    var TechRoll = character.CharacterSprites.TechRoll;
+                    var Victory = character.CharacterSprites.Victory;
+                    var TimeOut = character.CharacterSprites.TimeOut;
+                    var Taunt = character.CharacterSprites.Taunt;
+                    var LandingLag = character.CharacterSprites.LandingLag;
 
                     int idleSelected = string.IsNullOrWhiteSpace(Idle) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Idle));
                     int crouchSelected = string.IsNullOrWhiteSpace(Crouch) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Crouch));
@@ -2654,6 +2659,11 @@ namespace CharacterDataEditor.Screens
                     int rushCancelSelected = string.IsNullOrWhiteSpace(RushCancel) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == RushCancel));
                     int wallSplatSelected = string.IsNullOrWhiteSpace(WallSplat) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == WallSplat));
                     int quickGetupSelected = string.IsNullOrWhiteSpace(QuickGetup) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == QuickGetup));
+                    int techRollSelected = string.IsNullOrWhiteSpace(TechRoll) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == TechRoll));
+                    int victorySelected = string.IsNullOrWhiteSpace(Victory) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Victory));
+                    int timeOutSelected = string.IsNullOrWhiteSpace(TimeOut) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == TimeOut));
+                    int tauntSelected = string.IsNullOrWhiteSpace(Taunt) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == Taunt));
+                    int landingLagSelected = string.IsNullOrWhiteSpace(LandingLag) ? -1 : allSprites.IndexOf(allSprites.First(x => x.Name == LandingLag));
 
                     var selectionAction = (int selectedIndex) =>
                     {
@@ -2699,6 +2709,11 @@ namespace CharacterDataEditor.Screens
                     ImguiDrawingHelper.DrawSelectableComboInput($"rushCancel{isPlaying(rushCancelSelected)}", allSprites.Select(x => x.Name).ToArray(), ref rushCancelSelected, selectionAction, changeAction);
                     ImguiDrawingHelper.DrawSelectableComboInput($"wallSplat{isPlaying(wallSplatSelected)}", allSprites.Select(x => x.Name).ToArray(), ref wallSplatSelected, selectionAction, changeAction);
                     ImguiDrawingHelper.DrawSelectableComboInput($"quickGetup{isPlaying(quickGetupSelected)}", allSprites.Select(x => x.Name).ToArray(), ref quickGetupSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"techRoll{isPlaying(techRollSelected)}", allSprites.Select(x => x.Name).ToArray(), ref techRollSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"victory{isPlaying(victorySelected)}", allSprites.Select(x => x.Name).ToArray(), ref victorySelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"timeOut{isPlaying(timeOutSelected)}", allSprites.Select(x => x.Name).ToArray(), ref timeOutSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"taunt{isPlaying(tauntSelected)}", allSprites.Select(x => x.Name).ToArray(), ref tauntSelected, selectionAction, changeAction);
+                    ImguiDrawingHelper.DrawSelectableComboInput($"landingLag{isPlaying(landingLagSelected)}", allSprites.Select(x => x.Name).ToArray(), ref landingLagSelected, selectionAction, changeAction);
 
                     character.CharacterSprites.Idle = idleSelected != -1 ? allSprites[idleSelected].Name : string.Empty;
                     character.CharacterSprites.Crouch = crouchSelected != -1 ? allSprites[crouchSelected].Name : string.Empty;
@@ -2719,6 +2734,11 @@ namespace CharacterDataEditor.Screens
                     character.CharacterSprites.RushCancel = rushCancelSelected != -1 ? allSprites[rushCancelSelected].Name : string.Empty;
                     character.CharacterSprites.WallSplat = wallSplatSelected != -1 ? allSprites[wallSplatSelected].Name : string.Empty;
                     character.CharacterSprites.QuickGetup = quickGetupSelected != -1 ? allSprites[quickGetupSelected].Name : string.Empty;
+                    character.CharacterSprites.TechRoll = techRollSelected != -1 ? allSprites[techRollSelected].Name : string.Empty;
+                    character.CharacterSprites.Victory = victorySelected != -1 ? allSprites[victorySelected].Name : string.Empty;
+                    character.CharacterSprites.TimeOut = timeOutSelected != -1 ? allSprites[timeOutSelected].Name : string.Empty;
+                    character.CharacterSprites.Taunt = tauntSelected != -1 ? allSprites[tauntSelected].Name : string.Empty;
+                    character.CharacterSprites.LandingLag = landingLagSelected != -1 ? allSprites[landingLagSelected].Name : string.Empty;
 
                     idleIndex = idleSelected;
 

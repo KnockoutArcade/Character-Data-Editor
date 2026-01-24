@@ -23,12 +23,18 @@ namespace CharacterDataEditor.Models.CharacterData
         public string RushCancel { get; set; } = string.Empty;
         public string WallSplat { get; set; } = string.Empty;
         public string QuickGetup { get; set; } = string.Empty;
+        public string TechRoll { get; set; } = string.Empty;
+        public string LandingLag { get; set; } = string.Empty;
+        public string Victory { get; set; } = string.Empty;
+        public string TimeOut { get; set; } = string.Empty;
+        public string Taunt { get; set; } = string.Empty;
 
         public override int GetHashCode()
         {
             var hash = HashCode.Combine(Idle, Crouch, StandBlock, CrouchBlock, WalkForward, WalkBackward, RunForward, RunBackward);
             hash = HashCode.Combine(hash, JumpSquat, Jump, Hurt, Grab, Hold, Launched, Knockdown);
-            hash = HashCode.Combine(hash, GetUp, RushCancel, WallSplat, QuickGetup);
+            hash = HashCode.Combine(hash, GetUp, RushCancel, WallSplat, QuickGetup, TechRoll, LandingLag, Victory);
+            hash = HashCode.Combine(hash, TimeOut, Taunt);
 
             return hash;
         }
@@ -65,7 +71,12 @@ namespace CharacterDataEditor.Models.CharacterData
                 objAsCharacterSpriteCollection.GetUp.Equals(GetUp) &&
                 objAsCharacterSpriteCollection.RushCancel.Equals(RushCancel) &&
                 objAsCharacterSpriteCollection.WallSplat.Equals(WallSplat) &&
-                objAsCharacterSpriteCollection.QuickGetup.Equals(QuickGetup))
+                objAsCharacterSpriteCollection.QuickGetup.Equals(QuickGetup) &&
+                objAsCharacterSpriteCollection.TechRoll.Equals(TechRoll) &&
+                objAsCharacterSpriteCollection.LandingLag.Equals(LandingLag) &&
+                objAsCharacterSpriteCollection.Victory.Equals(Victory) &&
+                objAsCharacterSpriteCollection.TimeOut.Equals(TimeOut) &&
+                objAsCharacterSpriteCollection.Taunt.Equals(Taunt))
             {
                 return true;
             }
