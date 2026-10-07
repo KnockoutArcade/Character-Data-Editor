@@ -17,6 +17,7 @@ public class Startup
         services.AddSingleton<IEditorOptions, EditorOptions>();
         services.AddSingleton<ICharacterOperations, CharacterOperations>();
         services.AddSingleton<IProjectileOperations, ProjectileOperations>();
+        services.AddSingleton<IDisplayInfo, DisplayInfo>();
 
         //register screens
         services.RegisterScreens();

@@ -22,9 +22,10 @@ public class EditProjectileScreen : IScreen
     private readonly ILogger<IScreen> _logger;
     private readonly ICharacterOperations _characterOperations;
     private readonly IProjectileOperations _projectileOperations;
+    private readonly IDisplayInfo _displayInfo;
 
-    private float width;
-    private float height;
+    private float ScreenWidth => _displayInfo.ClientSize.X;
+    private float ScreenHeight => _displayInfo.ClientSize.Y;
     private ProjectileDataModel projectile;
     private ProjectileDataModel originalProjectile;
     private RecentProjectModel projectData;
@@ -86,9 +87,14 @@ public class EditProjectileScreen : IScreen
     private delegate void AfterConfirmAction(int keyCode);
     private AfterConfirmAction exitConfirmAction;
 
-    public EditProjectileScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations, IProjectileOperations projectileOperations)
+    public EditProjectileScreen(
+        ILogger<IScreen> logger,
+        ICharacterOperations characterOperations,
+        IDisplayInfo displayInfo,
+        IProjectileOperations projectileOperations)
     {
         _logger = logger;
+        _displayInfo = displayInfo;
         _characterOperations = characterOperations;
         _projectileOperations = projectileOperations;
     }
@@ -105,8 +111,6 @@ public class EditProjectileScreen : IScreen
         paletteInEditor = null;
         unsaved = false;
 
-        width = screenData?.width ?? 1280;
-        height = screenData?.height ?? 720;
         projectData = screenData?.projectData ?? new RecentProjectModel();
         action = screenData?.action ?? "new";
         projectile = action == "edit" ? screenData.projectile : new ProjectileDataModel();
@@ -137,7 +141,7 @@ public class EditProjectileScreen : IScreen
         soundPlayTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundPlay));
         soundMuteTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.SoundMute));
 
-        spriteDrawer = new SpriteDrawingHelper();
+        spriteDrawer = new SpriteDrawingHelper(_displayInfo);
         frameCounter = 0;
 
         var positionTypes = Enum.GetValues(typeof(PositionType));
@@ -207,9 +211,9 @@ public class EditProjectileScreen : IScreen
             {
                 X = 0.0f,
                 Height = (200.0f * screenManager.ScreenScale),
-                Width = width
+                Width = ScreenWidth
             };
-            messageRect.Y = (height / 2.0f) - messageRect.Height / 2.0f;
+            messageRect.Y = (ScreenHeight / 2.0f) - messageRect.Height / 2.0f;
 
             Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.Black);
 
@@ -217,8 +221,8 @@ public class EditProjectileScreen : IScreen
 
             var messageWidth = Raylib.MeasureText(MessageConstants.UnsavedMessage, fontSize);
 
-            var messageXCoord = (int)((width / 2.0f) - (messageWidth / 2.0f));
-            var messageYCoord = (int)((height / 2.0f) - (fontSize / 2.0f));
+            var messageXCoord = (int)((ScreenWidth / 2.0f) - (messageWidth / 2.0f));
+            var messageYCoord = (int)((ScreenHeight / 2.0f) - (fontSize / 2.0f));
 
             Raylib.DrawText(MessageConstants.UnsavedMessage,
                 messageXCoord, messageYCoord, fontSize, Color.White);
@@ -636,9 +640,9 @@ public class EditProjectileScreen : IScreen
         windowSize.X = 350 * scale;
         windowSize.Y = 220 * scale;
 
-        var windowYPos = height - 8 - windowSize.Y;
+        var windowYPos = ScreenHeight - 8 - windowSize.Y;
 
-        var windowPos = new Vector2(width / 2 - windowSize.X / 2, windowYPos);
+        var windowPos = new Vector2(ScreenWidth / 2 - windowSize.X / 2, windowYPos);
 
         ImGui.SetNextWindowPos(windowPos);
         ImGui.SetNextWindowSize(windowSize);
@@ -669,7 +673,7 @@ public class EditProjectileScreen : IScreen
         windowSize.X = 350 * scale;
         windowSize.Y = 333 * scale;
 
-        ImGui.SetNextWindowPos(new Vector2(width / 2 - windowSize.X / 2, 20 * scale));
+        ImGui.SetNextWindowPos(new Vector2(ScreenWidth / 2 - windowSize.X / 2, 20 * scale));
         ImGui.SetNextWindowSize(windowSize);
 
         if (ImGui.Begin("Sprite Animation Viewer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -800,7 +804,7 @@ public class EditProjectileScreen : IScreen
         windowSize.X = 320 * scale;
         windowSize.Y = 560 * scale;
 
-        ImGui.SetNextWindowPos(new Vector2(width - windowSize.X - 10 * scale, 20 * scale));
+        ImGui.SetNextWindowPos(new Vector2(ScreenWidth - windowSize.X - 10 * scale, 20 * scale));
         ImGui.SetNextWindowSize(windowSize);
 
         if (ImGui.Begin("Projectile Properties", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -1482,7 +1486,7 @@ public class EditProjectileScreen : IScreen
 
             if (ImGui.MenuItem("Clear all data (reset)"))
             {
-                Init(new { width, height, projectData, action, projectile = new ProjectileDataModel() });
+                Init(new { projectData, action, projectile = new ProjectileDataModel() });
             }
 
             ImGui.Separator();
@@ -1497,11 +1501,11 @@ public class EditProjectileScreen : IScreen
                         if (keycode == (int)KeyboardKey.S)
                         {
                             SaveProjectile();
-                            screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
+                            screenManager.NavigateTo(typeof(ProjectHomeScreen), new { projectData });
                         }
                         else if (keycode == (int)KeyboardKey.X)
                         {
-                            screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
+                            screenManager.NavigateTo(typeof(ProjectHomeScreen), new { projectData });
                         }
                         else if (keycode == (int)KeyboardKey.C)
                         {
@@ -1513,7 +1517,7 @@ public class EditProjectileScreen : IScreen
                 }
                 else
                 {
-                    screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
+                    screenManager.NavigateTo(typeof(ProjectHomeScreen), new { projectData });
                 }
             }
 
@@ -1529,11 +1533,11 @@ public class EditProjectileScreen : IScreen
                         if (keycode == (int)KeyboardKey.S)
                         {
                             SaveProjectile();
-                            screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                            screenManager.NavigateTo(typeof(MainScreen));
                         }
                         else if (keycode == (int)KeyboardKey.X)
                         {
-                            screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                            screenManager.NavigateTo(typeof(MainScreen));
                         }
                         else if (keycode == (int)KeyboardKey.C)
                         {
@@ -1545,7 +1549,7 @@ public class EditProjectileScreen : IScreen
                 }
                 else
                 {
-                    screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                    screenManager.NavigateTo(typeof(MainScreen));
                 }
             }
 

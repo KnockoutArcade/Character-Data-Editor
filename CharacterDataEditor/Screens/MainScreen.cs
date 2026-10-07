@@ -16,8 +16,12 @@ public class MainScreen : IScreen
 {
     private readonly IRecentFiles _recentFiles;
     private readonly IEditorOptions _editorOptionsService;
+    private readonly IDisplayInfo _displayInfo;
     private readonly ILogger<MainScreen> _logger;
-    private float screenWidth, screenHeight;
+
+    private float ScreenWidth => _displayInfo.ClientSize.X;
+    private float ScreenHeight => _displayInfo.ClientSize.Y;
+
     private List<RecentProjectModel> _recentProjects;
     private SpriteDrawingHelper _spriteDrawer;
     private EditorOptionsModel _editorOptions;
@@ -26,9 +30,10 @@ public class MainScreen : IScreen
 
     private bool _themeSelectorOpen;
 
-    public MainScreen(ILogger<MainScreen> logger, IRecentFiles recentFiles, IEditorOptions editorOptionsService)
+    public MainScreen(ILogger<MainScreen> logger, IRecentFiles recentFiles, IDisplayInfo displayInfo, IEditorOptions editorOptionsService)
     {
         _logger = logger;
+        _displayInfo = displayInfo;
         _recentFiles = recentFiles;
         _editorOptionsService = editorOptionsService;
     }
@@ -43,11 +48,9 @@ public class MainScreen : IScreen
 
     public void Init(dynamic screenData)
     {
-        screenWidth = screenData?.width ?? 1280.0f;
-        screenHeight = screenData?.height ?? 720.0f;
         _recentProjects = _recentFiles.GetRecentProjectFiles();
         _editorOptions = _editorOptionsService.GetEditorOptions();
-        _spriteDrawer = new SpriteDrawingHelper();
+        _spriteDrawer = new SpriteDrawingHelper(_displayInfo);
         _currentTheme = "None";
 
         _themeSelectorOpen = false;
@@ -72,7 +75,7 @@ public class MainScreen : IScreen
 
     private void DrawOpenProjectWindow(float scale, IScreenManager screenManager)
     {
-        ImGui.SetNextWindowPos(new Vector2(screenWidth / 2 - (300 * scale), 300 * scale));
+        ImGui.SetNextWindowPos(new Vector2(ScreenWidth / 2 - (300 * scale), 300 * scale));
         ImGui.SetNextWindowSize(new Vector2(600 * scale, 200 * scale));
 
         if (ImGui.Begin("Open Project", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -90,7 +93,7 @@ public class MainScreen : IScreen
                 if (selectedFile != string.Empty)
                 {
                     var item = _recentFiles.AddRecentProjectFile(selectedFile);
-                    screenManager.NavigateTo("ProjectHomeScreen", new { width = screenWidth, height = screenHeight, projectData = item });
+                    screenManager.NavigateTo("ProjectHomeScreen", new { projectData = item });
                 }
             }
 
@@ -105,7 +108,7 @@ public class MainScreen : IScreen
                 {
                     //open the item here
                     _recentFiles.AddRecentProjectFile(item.FullPath);
-                    screenManager.NavigateTo("ProjectHomeScreen", new { width = screenWidth, height = screenHeight, projectData = item });
+                    screenManager.NavigateTo("ProjectHomeScreen", new { projectData = item });
                 }
             }
 

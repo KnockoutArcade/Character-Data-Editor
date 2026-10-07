@@ -10,7 +10,7 @@ namespace CharacterDataEditor.Services;
 public interface IScreenManager
 {
     public IScreen CurrentScreen { get; }
-    public float ScreenScale { get; set; }
+    public float ScreenScale { get; }
     public bool ExitWindow { get; set; }
     public Color BackgroundColor { get; set; }
     public void NavigateTo(string screenName);
@@ -22,18 +22,20 @@ public interface IScreenManager
 public class ScreenManager : IScreenManager
 {
     private readonly List<IScreen> _screens;
+    private readonly IDisplayInfo _displayInfo;
     private readonly ILogger<IScreenManager> _logger;
 
-    public ScreenManager(IEnumerable<IScreen> screens, ILogger<IScreenManager> logger)
+    public ScreenManager(IEnumerable<IScreen> screens, IDisplayInfo displayInfo, ILogger<IScreenManager> logger)
     {
         _screens = screens.ToList();
         _logger = logger;
+        _displayInfo = displayInfo;
         ExitWindow = false;
     }
 
     private IScreen _currentScreen;
     public IScreen CurrentScreen { get { return _currentScreen; } }
-    public float ScreenScale { get; set; }
+    public float ScreenScale => _displayInfo.ScreenScale;
     public bool ExitWindow { get; set; }
     public Color BackgroundColor { get; set; }
 

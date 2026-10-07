@@ -25,10 +25,12 @@ public class ProjectHomeScreen : IScreen
     private readonly ILogger<IScreen> _logger;
     private readonly ICharacterOperations _characterOperations;
     private readonly IProjectileOperations _projectileOperations;
+    private readonly IDisplayInfo _displayInfo;
+
+    private float ScreenHeight => _displayInfo.ClientSize.Y;
+    private float ScreenWidth => _displayInfo.ClientSize.X;
 
     SpriteDrawingHelper spriteDrawer;
-    private float height;
-    private float width;
     private RecentProjectModel projectData;
     private List<CharacterDataModel> characters;
     private List<ProjectileDataModel> projectiles;
@@ -44,9 +46,14 @@ public class ProjectHomeScreen : IScreen
     private delegate void AfterConfirmAction(int keyCode, IScreenManager screenManager);
     private AfterConfirmAction afterConfirmAction;
 
-    public ProjectHomeScreen(ILogger<IScreen> logger, ICharacterOperations characterOperations, IProjectileOperations projectileOperations)
+    public ProjectHomeScreen(
+        ILogger<IScreen> logger,
+        ICharacterOperations characterOperations,
+        IProjectileOperations projectileOperations,
+        IDisplayInfo displayInfo)
     {
         _logger = logger;
+        _displayInfo = displayInfo;
         _characterOperations = characterOperations;
         _projectileOperations = projectileOperations;
     }
@@ -63,10 +70,8 @@ public class ProjectHomeScreen : IScreen
     {
         Raylib.SetWindowTitle(TitleConstants.ProjectHomeTitle);
 
-        width = screenData?.width ?? 1280.0f;
-        height = screenData?.height ?? 720.0f;
         projectData = screenData.projectData;
-        spriteDrawer = new SpriteDrawingHelper();
+        spriteDrawer = new SpriteDrawingHelper(_displayInfo);
         spriteData = null;
 
         // initially attempt to get characters with the current version of the project data structure
@@ -150,7 +155,7 @@ public class ProjectHomeScreen : IScreen
                 {
                     if (keycode == (int)KeyboardKey.C)
                     {
-                        screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                        screenManager.NavigateTo(typeof(MainScreen));
                     }
                     else if (keycode == (int)KeyboardKey.U)
                     {
@@ -237,7 +242,7 @@ public class ProjectHomeScreen : IScreen
                 {
                     if (keycode == (int)KeyboardKey.C)
                     {
-                        screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                        screenManager.NavigateTo(typeof(MainScreen));
                     }
                     else if (keycode == (int)KeyboardKey.U)
                     {
@@ -303,14 +308,14 @@ public class ProjectHomeScreen : IScreen
             //var messageWidth = Raylib.MeasureText(completeMessage, fontSize);
             var messageSize = Raylib.MeasureTextEx(defaultFont, completeMessage, fontSize, fontSpacing);
 
-            var messageXCoord = (int)((width / 2.0f) - (messageSize.X / 2.0f));
-            var messageYCoord = (int)((height / 2.0f) - (messageSize.Y / 2.0f));
+            var messageXCoord = (int)((ScreenWidth / 2.0f) - (messageSize.X / 2.0f));
+            var messageYCoord = (int)((ScreenHeight / 2.0f) - (messageSize.Y / 2.0f));
 
             var messageRect = new Rectangle();
             messageRect.X = 0.0f;
             messageRect.Height = messageSize.Y + (20.0f * screenManager.ScreenScale);
-            messageRect.Width = width;
-            messageRect.Y = (height / 2.0f) - messageRect.Height / 2.0f;
+            messageRect.Width = ScreenWidth;
+            messageRect.Y = (ScreenHeight / 2.0f) - messageRect.Height / 2.0f;
 
             Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.Black);
 
@@ -321,12 +326,12 @@ public class ProjectHomeScreen : IScreen
 
     private void CreateNewCharacter(IScreenManager screenManager)
     {
-        screenManager.NavigateTo(typeof(EditCharacterScreen), new { width, height, projectData, action = "new" });
+        screenManager.NavigateTo(typeof(EditCharacterScreen), new { projectData, action = "new" });
     }
 
     private void CreateNewProjectile(IScreenManager screenManager)
     {
-        screenManager.NavigateTo(typeof(EditProjectileScreen), new { width, height, projectData, action = "new" });
+        screenManager.NavigateTo(typeof(EditProjectileScreen), new { projectData, action = "new" });
     }
 
     private void DrawExistingCharacterPanel(float scale, IScreenManager screenManager)
@@ -356,7 +361,7 @@ public class ProjectHomeScreen : IScreen
 
                         if (ImGui.IsMouseDoubleClicked(0))
                         {
-                            screenManager.NavigateTo(typeof(EditCharacterScreen), new { width, height, character, projectData, action = "edit" });
+                            screenManager.NavigateTo(typeof(EditCharacterScreen), new { character, projectData, action = "edit" });
                         }
                     }
                 }
@@ -367,7 +372,7 @@ public class ProjectHomeScreen : IScreen
         var drawPos = new Vector2
         {
             X = 650,
-            Y = (height / 2) / scale
+            Y = (ScreenHeight / 2) / scale
         };
 
         spriteDrawer.DrawSpriteToScreen(new SpriteDrawDataModel
@@ -411,7 +416,7 @@ public class ProjectHomeScreen : IScreen
 
                         if (ImGui.IsMouseDoubleClicked(0))
                         {
-                            screenManager.NavigateTo(typeof(EditProjectileScreen), new { width, height, projectile, projectData, action = "edit" });
+                            screenManager.NavigateTo(typeof(EditProjectileScreen), new { projectile, projectData, action = "edit" });
                         }
                     }
                 }
@@ -467,7 +472,7 @@ public class ProjectHomeScreen : IScreen
             if (ImGui.MenuItem("Close Project"))
             {
                 _logger.LogInformation("Project closed");
-                screenManager.NavigateTo(typeof(MainScreen), new { height, width });
+                screenManager.NavigateTo(typeof(MainScreen));
             }
 
             ImGui.Separator();

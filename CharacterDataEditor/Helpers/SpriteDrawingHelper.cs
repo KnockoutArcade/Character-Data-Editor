@@ -7,6 +7,7 @@ using CharacterDataEditor.Constants;
 using CharacterDataEditor.Enums;
 using CharacterDataEditor.Extensions;
 using CharacterDataEditor.Models;
+using CharacterDataEditor.Services;
 using Microsoft.Extensions.Logging;
 using Raylib_cs;
 
@@ -24,23 +25,13 @@ public class SpriteDrawingHelper
     private List<LoadedTextureModel> spriteTextures;
     private Texture2D bullseye;
 
-    private Vector2 ClientWindow
+    private Vector2 ClientWindow => _displayInfo.ClientSize;
+
+    private readonly IDisplayInfo _displayInfo;
+
+    public SpriteDrawingHelper(IDisplayInfo displayInfo)
     {
-        get
-        {
-            if (_client == Vector2.Zero)
-            {
-                _client = HardwareHelper.GetClientWindowSize();
-            }
-
-            return _client;
-        }
-    }
-
-    private Vector2 _client = Vector2.Zero;
-
-    public SpriteDrawingHelper()
-    {
+        _displayInfo = displayInfo;
         bullseye = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, ResourceConstants.BullseyePath));
     }
 

@@ -19,9 +19,12 @@ public class RaylibImGui : IRenderUI
 {
     private readonly IScreenManager _screenManager;
     private readonly ILogger<IRenderUI> _logger;
-    public RaylibImGui(IScreenManager screenManager, ILogger<IRenderUI> logger)
+    private readonly IDisplayInfo _displayInfo;
+
+    public RaylibImGui(IScreenManager screenManager, IDisplayInfo displayInfo, ILogger<IRenderUI> logger)
     {
         _screenManager = screenManager;
+        _displayInfo = displayInfo;
         _logger = logger;
     }
 
@@ -40,8 +43,8 @@ public class RaylibImGui : IRenderUI
         _logger.LogInformation("Icon Loaded");
 
         //get hardware info about screen resolution...
-        var clientWindow = HardwareHelper.GetClientWindowSize();
-        var monitorSize = HardwareHelper.GetMonitorResolution();
+        var monitorSize = _displayInfo.MonitorResolution;
+        var clientWindow = _displayInfo.ClientSize;
 
         _logger.LogInformation($"Default client area determined based on resolution of {monitorSize.X} by {monitorSize.Y}");
 
@@ -53,11 +56,25 @@ public class RaylibImGui : IRenderUI
 
         _logger.LogInformation("Window created with Raylib and sent to video card");
 
-        _screenManager.ScreenScale = monitorSize.Y / 650.0f;
+        //re-verify the screen resolution with RayLib...
+        var raylibMonitor = Raylib.GetCurrentMonitor();
+        var raylibWidth = Raylib.GetMonitorWidth(raylibMonitor);
+        var raylibHeight = Raylib.GetMonitorHeight(raylibMonitor);
+
+        if (_displayInfo.TryUpdateMonitorResolution(raylibWidth, raylibHeight))
+        {
+            var correctedSize = _displayInfo.ClientSize;
+
+            if (correctedSize != clientWindow)
+            {
+                _logger.LogInformation($"Monitor mis-detected, correcting window to {correctedSize.X} by {correctedSize.Y}");
+                Raylib.SetWindowSize((int)correctedSize.X, (int)correctedSize.Y);
+            }
+        }
+
         _screenManager.BackgroundColor = Color.DarkGray;
 
         _logger.LogInformation($"GUI Scaling calculated to be: {_screenManager.ScreenScale}");
-
 
         //create a context to access ImGui
         var context = ImGui.CreateContext();
@@ -68,7 +85,7 @@ public class RaylibImGui : IRenderUI
 
         _logger.LogInformation("DearIMGui context and controller created, beginning main render loop");
 
-        _screenManager.NavigateTo(typeof(MainScreen), new { height = clientWindow.Y, width = clientWindow.X });
+        _screenManager.NavigateTo(typeof(MainScreen));
         _logger.LogInformation("Setting initial screen to MainScreen");
 
         var fragShader = System.Text.Encoding.Default.GetString(Shaders.PaletteSwapFragment);
