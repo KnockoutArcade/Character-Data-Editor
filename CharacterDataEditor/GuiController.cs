@@ -329,7 +329,7 @@ internal unsafe class GuiController
         Rlgl.EnableBackfaceCulling();
     }
 
-    void DrawTriangleVertex(ImDrawVertPtr vertex)
+    private void DrawTriangleVertex(ImDrawVertPtr vertex)
     {
         var color = new Color((byte)(vertex.col >> 0), (byte)(vertex.col >> 8), (byte)(vertex.col >> 16), (byte)(vertex.col >> 24));
         Rlgl.Color4ub(color.R, color.G, color.B, color.A);

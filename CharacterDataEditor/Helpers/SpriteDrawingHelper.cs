@@ -60,9 +60,11 @@ public class SpriteDrawingHelper
         var textureSourceRectangle = new Rectangle(0.0f, 0.0f, textureToDraw.Width, textureToDraw.Height);
 
         //destination rectangle determines the size to scale it to and the position on screen
-        var destinationRectangle = new Rectangle();
-        destinationRectangle.Width = (textureToDraw.Width * 3) * data.Scale;
-        destinationRectangle.Height = (textureToDraw.Height * 3) * data.Scale;
+        var destinationRectangle = new Rectangle
+        {
+            Width = (textureToDraw.Width * 3) * data.Scale,
+            Height = (textureToDraw.Height * 3) * data.Scale
+        };
 
         //check if sprite destination is above max size, if so... determine the scale between x and y, and adjust the larger to the bounds
         // and the smaller to be scaled appropriately
