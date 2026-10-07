@@ -1,12 +1,13 @@
-﻿// This class was taken from https://markheath.net/post/fire-and-forget-audio-playback-with to use sound effects
-
-using NAudio.Wave.SampleProviders;
+﻿using NAudio.Wave.SampleProviders;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+// This class was taken from https://markheath.net/post/fire-and-forget-audio-playback-with to use sound effects
+
 
 namespace CharacterDataEditor.NAudio
 {
@@ -17,7 +18,8 @@ namespace CharacterDataEditor.NAudio
 
         public AudioPlaybackEngine(int sampleRate = 44100, int channelCount = 2)
         {
-            outputDevice = new WaveOutEvent();
+            outputDevice = new WaveOut();
+
             mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount));
             mixer.ReadFully = true;
             outputDevice.Init(mixer);

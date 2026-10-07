@@ -27,28 +27,26 @@ namespace CharacterDataEditor.Helpers
                 CommandConstants.LogPathCommandHelpName,
                 CommandConstants.LogPathCommandName);
 
-            rootCommand.AddOption(logOption);
+            rootCommand.Options.Add(logOption);
 
-            rootCommand.SetHandler(
-                (string log) =>
+            rootCommand.SetAction(
+                parseResult =>
                 {
+                    var log = parseResult.GetValue(logOption);
                     var options = ProcessCommandLineResults(log);
                     handler(options, args);
-                },
-                logOption);
+                });
 
-            return rootCommand.Invoke(args);
+            return rootCommand.Parse(args).Invoke();
         }
 
-        private static Option<T> GenerateOption<T>(string[] aliases, string description, string helpName, string name, bool required = false)
+        private static Option<T> GenerateOption<T>(string[] aliases, string description, string helpName, string name, bool required = false) =>
+            new(name, [.. aliases.Where(alias => alias != name)])
         {
-            var option = new Option<T>(aliases, description);
-            option.ArgumentHelpName = helpName;
-            option.Name = name;
-            option.IsRequired = required;
-
-            return option;
-        }
+                Description = description,
+                HelpName = helpName,
+                Required = required
+            };
 
         private static ArgValues ProcessCommandLineResults(string logPath)
         {

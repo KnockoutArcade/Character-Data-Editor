@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using CharacterDataEditor.Enums;
 
 namespace CharacterDataEditor.Screens
 {
@@ -148,11 +149,11 @@ namespace CharacterDataEditor.Screens
 
                     afterConfirmAction = (keycode, screenManager) =>
                     {
-                        if (keycode == (int)KeyboardKey.KEY_C)
+                        if (keycode == (int)KeyboardKey.C)
                         {
                             screenManager.NavigateTo(typeof(MainScreen), new { height, width });
                         }
-                        else if (keycode == (int)KeyboardKey.KEY_U)
+                        else if (keycode == (int)KeyboardKey.U)
                         {
                             // add characters to the list
                             characters.AddRange(upgradedCharacters);
@@ -235,11 +236,11 @@ namespace CharacterDataEditor.Screens
 
                     afterConfirmAction = (keycode, screenManager) =>
                     {
-                        if (keycode == (int)KeyboardKey.KEY_C)
+                        if (keycode == (int)KeyboardKey.C)
                         {
                             screenManager.NavigateTo(typeof(MainScreen), new { height, width });
                         }
-                        else if (keycode == (int)KeyboardKey.KEY_U)
+                        else if (keycode == (int)KeyboardKey.U)
                         {
                             // add projectiles to the list
                             projectiles.AddRange(upgradedProjectiles);
@@ -286,7 +287,7 @@ namespace CharacterDataEditor.Screens
             if (upgradeMessageShown)
             {
                 var pressedKey = Raylib.GetKeyPressed();
-                if(pressedKey == (int)KeyboardKey.KEY_U || pressedKey == (int)KeyboardKey.KEY_C)
+                if (pressedKey == (int)KeyboardKey.U || pressedKey == (int)KeyboardKey.C)
                 {
                     if (afterConfirmAction != null)
                     {
@@ -307,15 +308,15 @@ namespace CharacterDataEditor.Screens
                 var messageYCoord = (int)((height / 2.0f) - (messageSize.Y / 2.0f));
 
                 var messageRect = new Rectangle();
-                messageRect.x = 0.0f;
-                messageRect.height = messageSize.Y + (20.0f * screenManager.ScreenScale);
-                messageRect.width = width;
-                messageRect.y = (height / 2.0f) - messageRect.height / 2.0f;
+                messageRect.X = 0.0f;
+                messageRect.Height = messageSize.Y + (20.0f * screenManager.ScreenScale);
+                messageRect.Width = width;
+                messageRect.Y = (height / 2.0f) - messageRect.Height / 2.0f;
 
-                Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.BLACK);
+                Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.Black);
 
                 Raylib.DrawTextEx(defaultFont, completeMessage,
-                    new Vector2(messageXCoord, messageYCoord), fontSize, fontSpacing, Color.WHITE);
+                    new Vector2(messageXCoord, messageYCoord), fontSize, fontSpacing, Color.White);
             }
         }
 

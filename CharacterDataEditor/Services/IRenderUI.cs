@@ -29,7 +29,7 @@ namespace CharacterDataEditor.Services
         {
             //set logging to error only when building for release
 #if DEBUG
-            Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ALL);
+            Raylib.SetTraceLogLevel(TraceLogLevel.All);
 #else
             Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
 #endif
@@ -47,14 +47,14 @@ namespace CharacterDataEditor.Services
 
             //initialize the graphics lib
             Raylib.InitWindow((int)clientWindow.X, (int)clientWindow.Y, TitleConstants.Title);
-            Raylib.SetExitKey(KeyboardKey.KEY_NULL); //disable escape to close
+            Raylib.SetExitKey(KeyboardKey.Null); //disable escape to close
             Raylib.SetWindowIcon(logo);
             Raylib.SetTargetFPS(60);
 
             _logger.LogInformation("Window created with Raylib and sent to video card");
 
             _screenManager.ScreenScale = monitorSize.Y / 650.0f;
-            _screenManager.BackgroundColor = Color.DARKGRAY;
+            _screenManager.BackgroundColor = Color.DarkGray;
 
             _logger.LogInformation($"GUI Scaling calculated to be: {_screenManager.ScreenScale}");
 

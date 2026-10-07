@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Enums
 {
     [Flags]
     public enum SpriteDrawFlags

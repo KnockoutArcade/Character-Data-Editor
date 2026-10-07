@@ -8,6 +8,7 @@ using Raylib_cs;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using CharacterDataEditor.Enums;
 
 namespace CharacterDataEditor.Screens
 {
@@ -116,6 +117,7 @@ namespace CharacterDataEditor.Screens
                     ImGui.Text($"{item.LastOpened.ToShortDateString()} {item.LastOpened.ToShortTimeString()}");
                 }
             }
+
         }
 
         private void DrawLogo(float scale)
@@ -176,7 +178,7 @@ namespace CharacterDataEditor.Screens
             switch (themeName)
             {
                 case "Light":
-                    screenManager.BackgroundColor = Color.LIGHTGRAY;
+                    screenManager.BackgroundColor = Color.LightGray;
                     ImGui.StyleColorsLight();
                     break;
                 case "Classic":
@@ -185,7 +187,7 @@ namespace CharacterDataEditor.Screens
                     break;
                 case "Dark":
                 default:
-                    screenManager.BackgroundColor = Color.DARKGRAY;
+                    screenManager.BackgroundColor = Color.DarkGray;
                     ImGui.StyleColorsDark();
                     break;
             }

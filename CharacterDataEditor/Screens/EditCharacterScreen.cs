@@ -45,26 +45,26 @@ namespace CharacterDataEditor.Screens
         private Texture2D soundPlayTexture;
         private Texture2D soundMuteTexture;
 
-        private List<string> spiritDataList = new List<string>();
-        private List<CharacterDataModel> spiritCharacters = new List<CharacterDataModel>();
-        private List<string> spiritNames = new List<string>();
+        private List<string> spiritDataList = new();
+        private List<CharacterDataModel> spiritCharacters = new();
+        private List<string> spiritNames = new();
         private MoveDataModel moveInEditor;
         private PaletteModel paletteInEditor;
-        private List<string> moveTypesList = new List<string>();
-        private List<string> specialMoveTypesList = new List<string>();
-        private List<string> positionTypesList = new List<string>();
-        private List<string> allMoveTypesList = new List<string>(); // Used for selecing the move type, combines both moveType enums
+        private List<string> moveTypesList = new();
+        private List<string> specialMoveTypesList = new();
+        private List<string> positionTypesList = new();
+        private List<string> allMoveTypesList = new(); // Used for selecing the move type, combines both moveType enums
         private int allMoveTypesListIndex;
-        private List<string> attackTypesList = new List<string>();
-        private List<string> spriteTypesList = new List<string>();
-        private List<string> directionsList = new List<string>();
-        private List<string> commandButtonsList = new List<string>();
-        private List<string> superTypesList = new List<string>();
+        private List<string> attackTypesList = new();
+        private List<string> spriteTypesList = new();
+        private List<string> directionsList = new();
+        private List<string> commandButtonsList = new();
+        private List<string> superTypesList = new();
         private List<SpriteDataModel> allSprites;
         private List<ScriptDataModel> allScripts;
         private List<SoundDataModel> allSounds;
-        private List<ProjectileDataModel> projectiles = new List<ProjectileDataModel>();
-        private List<string> projectileNames = new List<string>();
+        private List<ProjectileDataModel> projectiles = new();
+        private List<string> projectileNames = new();
 
         private string spriteToDraw;
         private string prevSpriteToDraw;
@@ -338,12 +338,12 @@ namespace CharacterDataEditor.Screens
                 }
                 
                 var messageRect = new Rectangle();
-                messageRect.x = 0.0f;
-                messageRect.height = (200.0f * screenManager.ScreenScale);
-                messageRect.width = width;
-                messageRect.y = (height / 2.0f) - messageRect.height / 2.0f;
+                messageRect.X = 0.0f;
+                messageRect.Height = (200.0f * screenManager.ScreenScale);
+                messageRect.Width = width;
+                messageRect.Y = (height / 2.0f) - messageRect.Height / 2.0f;
 
-                Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.BLACK);
+                Raylib.DrawRectanglePro(messageRect, Vector2.Zero, 0.0f, Color.Black);
 
                 var fontSize = (int)(24.0f * screenManager.ScreenScale);
 
@@ -353,7 +353,7 @@ namespace CharacterDataEditor.Screens
                 var messageYCoord = (int)((height / 2.0f) - (fontSize / 2.0f));
 
                 Raylib.DrawText(MessageConstants.UnsavedMessage,
-                    messageXCoord, messageYCoord, fontSize, Color.WHITE);
+                    messageXCoord, messageYCoord, fontSize, Color.White);
             }
         }
 
@@ -498,8 +498,8 @@ namespace CharacterDataEditor.Screens
 
         private void RenderHitHurtBox(float scale)
         {
-            Color hitboxDrawColor = Color.RED;
-            Color hurtboxDrawColor = Color.BLUE;
+            Color hitboxDrawColor = Color.Red;
+            Color hurtboxDrawColor = Color.Blue;
 
             if (spriteData != null)
             {
@@ -545,13 +545,13 @@ namespace CharacterDataEditor.Screens
                                 var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
                                 var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
 
-                                var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                                var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].y * spriteFinalScale;
+                                var xOffsetAdjusted = hurtboxRects[i][currentFrame - 1].X * spriteFinalScale;
+                                var yOffsetAdjusted = hurtboxRects[i][currentFrame - 1].Y * spriteFinalScale;
 
                                 var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
                                 var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                                var finalWidth = hurtboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                                var finalHeight = hurtboxRects[i][currentFrame - 1].height * spriteFinalScale;
+                                var finalWidth = hurtboxRects[i][currentFrame - 1].Width * spriteFinalScale;
+                                var finalHeight = hurtboxRects[i][currentFrame - 1].Height * spriteFinalScale;
 
                                 yDrawPos -= yOffsetAdjusted;
                                 xDrawPos += xOffsetAdjusted;
@@ -611,13 +611,13 @@ namespace CharacterDataEditor.Screens
                                 var xOriginAdjustment = spriteData.Sequence.xorigin * spriteFinalScale;
                                 var yOriginAdjustment = spriteData.Sequence.yorigin * spriteFinalScale;
 
-                                var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].x * spriteFinalScale;
-                                var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].y * spriteFinalScale;
+                                var xOffsetAdjusted = hitboxRects[i][currentFrame - 1].X * spriteFinalScale;
+                                var yOffsetAdjusted = hitboxRects[i][currentFrame - 1].Y * spriteFinalScale;
 
                                 var xDrawPos = spriteDrawData.DrawOrigin.X + xOriginAdjustment;
                                 var yDrawPos = spriteDrawData.DrawOrigin.Y + yOriginAdjustment;
-                                var finalWidth = hitboxRects[i][currentFrame - 1].width * spriteFinalScale;
-                                var finalHeight = hitboxRects[i][currentFrame - 1].height * spriteFinalScale;
+                                var finalWidth = hitboxRects[i][currentFrame - 1].Width * spriteFinalScale;
+                                var finalHeight = hitboxRects[i][currentFrame - 1].Height * spriteFinalScale;
 
                                 yDrawPos -= yOffsetAdjusted;
                                 xDrawPos += xOffsetAdjusted;
@@ -733,7 +733,7 @@ namespace CharacterDataEditor.Screens
             else
             {
                 // Select the move
-                string[] allMoves = allMoveTypesList.ToArray();
+                var allMoves = allMoveTypesList.ToArray();
                 if (moveInEditor.EnhanceMoveType != EnhanceMoveType.None)
                 {
                     var moveTypeName = moveInEditor.EnhanceMoveType.ToString();
@@ -2431,7 +2431,7 @@ namespace CharacterDataEditor.Screens
 
                 ImGui.Text($"Total Sprite Frames: {spriteFramesCount}");
 
-                var imageButtonSize = new Vector2((advanceOneFrameBackTexture.width / 2) * scale, (advanceOneFrameBackTexture.height / 2) * scale);
+                var imageButtonSize = new Vector2((advanceOneFrameBackTexture.Width / 2) * scale, (advanceOneFrameBackTexture.Height / 2) * scale);
 
                 cursorPos = new Vector2(((windowSize.X / 2) - imageButtonSize.X * 2) - buttonSpacing * 7.5f, (315 * scale) - imageButtonSize.Y);
 
@@ -2439,7 +2439,7 @@ namespace CharacterDataEditor.Screens
 
                 if (showHitHurtboxes)
                 {
-                    if (ImGui.ImageButton("##ShowHitboxes", (IntPtr)showHitboxesTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##ShowHitboxes", (IntPtr)showHitboxesTexture.Id, imageButtonSize))
                     {
                         boxDrawMode = BoxDrawMode.None;
                         showHitHurtboxes = false;
@@ -2447,7 +2447,7 @@ namespace CharacterDataEditor.Screens
                 }
                 else
                 {
-                    if (ImGui.ImageButton("##HideHitboxes", (IntPtr)hideHitboxesTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##HideHitboxes", (IntPtr)hideHitboxesTexture.Id, imageButtonSize))
                     {
                         boxDrawMode = BoxDrawMode.Both;
                         showHitHurtboxes = true;
@@ -2456,7 +2456,7 @@ namespace CharacterDataEditor.Screens
 
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton("##ADVBack", (IntPtr)advanceOneFrameBackTexture.id, imageButtonSize))
+                if (ImGui.ImageButton("##ADVBack", (IntPtr)advanceOneFrameBackTexture.Id, imageButtonSize))
                 {
                     animationPaused = true;
                     frameAdvance = FrameAdvance.Backward;
@@ -2466,14 +2466,14 @@ namespace CharacterDataEditor.Screens
                 
                 if (animationPaused)
                 {
-                    if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##Play", (IntPtr)playButtonTexture.Id, imageButtonSize))
                     {
                         animationPaused = false;
                     }
                 }
                 else
                 {
-                    if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##Pause", (IntPtr)pauseButtonTexture.Id, imageButtonSize))
                     {
                         animationPaused = true;
                     }
@@ -2481,7 +2481,7 @@ namespace CharacterDataEditor.Screens
                 
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton("##ADVFwd", (IntPtr)advanceOneFrameForwardTexture.id, imageButtonSize))
+                if (ImGui.ImageButton("##ADVFwd", (IntPtr)advanceOneFrameForwardTexture.Id, imageButtonSize))
                 {
                     animationPaused = true;
                     frameAdvance = FrameAdvance.Forward;
@@ -2491,14 +2491,14 @@ namespace CharacterDataEditor.Screens
 
                 if (playSound)
                 {
-                    if (ImGui.ImageButton("##PlaySound", (IntPtr)soundPlayTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##PlaySound", (IntPtr)soundPlayTexture.Id, imageButtonSize))
                     {
                         playSound = false;
                     }
                 }
                 else
                 {
-                    if (ImGui.ImageButton("##MuteSound", (IntPtr)soundMuteTexture.id, imageButtonSize))
+                    if (ImGui.ImageButton("##MuteSound", (IntPtr)soundMuteTexture.Id, imageButtonSize))
                     {
                         playSound = true;
                     }
@@ -3364,16 +3364,16 @@ namespace CharacterDataEditor.Screens
                     {
                         exitConfirmAction = (keycode) =>
                         {
-                            if (keycode == (int)KeyboardKey.KEY_S)
+                            if (keycode == (int)KeyboardKey.S)
                             {
                                 SaveCharacter();
                                 screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
                             }
-                            else if (keycode == (int)KeyboardKey.KEY_X)
+                            else if (keycode == (int)KeyboardKey.X)
                             {
                                 screenManager.NavigateTo(typeof(ProjectHomeScreen), new { height, width, projectData });
                             }
-                            else if (keycode == (int)KeyboardKey.KEY_C)
+                            else if (keycode == (int)KeyboardKey.C)
                             {
                                 exiting = false;
                             }
@@ -3396,16 +3396,16 @@ namespace CharacterDataEditor.Screens
                     {
                         exitConfirmAction = (keycode) =>
                         {
-                            if (keycode == (int)KeyboardKey.KEY_S)
+                            if (keycode == (int)KeyboardKey.S)
                             {
                                 SaveCharacter();
                                 screenManager.NavigateTo(typeof(MainScreen), new { height, width });
                             }
-                            else if (keycode == (int)KeyboardKey.KEY_X)
+                            else if (keycode == (int)KeyboardKey.X)
                             {
                                 screenManager.NavigateTo(typeof(MainScreen), new { height, width });
                             }
-                            else if (keycode == (int)KeyboardKey.KEY_C)
+                            else if (keycode == (int)KeyboardKey.C)
                             {
                                 exiting = false;
                             }
@@ -3429,16 +3429,16 @@ namespace CharacterDataEditor.Screens
                     {
                         exitConfirmAction = (keycode) =>
                         {
-                            if (keycode == (int)KeyboardKey.KEY_S)
+                            if (keycode == (int)KeyboardKey.S)
                             {
                                 SaveCharacter();
                                 screenManager.ExitWindow = true;
                             }
-                            else if (keycode == (int)KeyboardKey.KEY_X)
+                            else if (keycode == (int)KeyboardKey.X)
                             {
                                 screenManager.ExitWindow = true;
                             }
-                            else if (keycode == (int)KeyboardKey.KEY_C)
+                            else if (keycode == (int)KeyboardKey.C)
                             {
                                 exiting = false;
                             }
@@ -3466,16 +3466,16 @@ namespace CharacterDataEditor.Screens
             {
                 exitConfirmAction = (keycode) =>
                 {
-                    if (keycode == (int)KeyboardKey.KEY_S)
+                    if (keycode == (int)KeyboardKey.S)
                     {
                         SaveCharacter();
                         screenManager.ExitWindow = true;
                     }
-                    else if (keycode == (int)KeyboardKey.KEY_X)
+                    else if (keycode == (int)KeyboardKey.X)
                     {
                         screenManager.ExitWindow = true;
                     }
-                    else if (keycode == (int)KeyboardKey.KEY_C)
+                    else if (keycode == (int)KeyboardKey.C)
                     {
                         exiting = false;
                     }

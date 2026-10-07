@@ -6,6 +6,6 @@ namespace CharacterDataEditor.Extensions
     public static class RectangleExtensions
     {
         public static Vector4 ToVector4(this Rectangle rect) =>
-            new Vector4(rect.x, rect.y, rect.width, rect.height);
+            new Vector4(rect.X, rect.Y, rect.Width, rect.Height);
     }
 }

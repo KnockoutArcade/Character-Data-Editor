@@ -29,7 +29,7 @@ namespace CharacterDataEditor
                     .MinimumLevel.Override(LogSourceConstants.Microsoft, Serilog.Events.LogEventLevel.Information)
                     .MinimumLevel.Override(LogSourceConstants.System, Serilog.Events.LogEventLevel.Warning)
                     .MinimumLevel.Information()
-                    .Enrich.With(new MachineNameEnricher())
+                    .Enrich.WithMachineName()
                     .WriteTo.Console()
                     .CreateLogger();
             }
@@ -39,7 +39,7 @@ namespace CharacterDataEditor
                     .MinimumLevel.Override(LogSourceConstants.Microsoft, Serilog.Events.LogEventLevel.Information)
                     .MinimumLevel.Override(LogSourceConstants.System, Serilog.Events.LogEventLevel.Warning)
                     .MinimumLevel.Information()
-                    .Enrich.With(new MachineNameEnricher())
+                    .Enrich.WithMachineName()
                     .WriteTo.Console()
                     .WriteTo.File(path: $"{argValues.LogPath}KOArcadeLog-{DateTime.Now.Year}{DateTime.Now.Month.ToString().PadLeft(2, '0')}{DateTime.Now.Day.ToString().PadLeft(2, '0')}.log")
                     .CreateLogger();

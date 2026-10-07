@@ -8,17 +8,13 @@ namespace CharacterDataEditor
 {
     internal unsafe class GuiController
     {
-        private Vector2 mousePosition;
+        private Vector2 _mousePosition;
         private Vector2 displaySize;
         private float delta;
-        private bool isKeyCtrl;
-        private bool isKeyShift;
-        private bool isKeyAlt;
-        private bool isKeySuper;
 
-        static double g_Time = 0.0;
-        static bool g_UnloadAtlas = false;
-        static uint g_AtlasTexID = 0;
+        static double _previousFrameTime;
+        static bool _fontAtlasLoaded;
+        static Texture2D _fontAtlasTexture;
 
         static string GetClipboardText()
         {
@@ -39,31 +35,8 @@ namespace CharacterDataEditor
         {
             var io = ImGui.GetIO();
 
-            io.KeyMap[(int)ImGuiKey.Tab] = (int)KeyboardKey.KEY_TAB;
-            io.KeyMap[(int)ImGuiKey.LeftArrow] = (int)KeyboardKey.KEY_LEFT;
-            io.KeyMap[(int)ImGuiKey.RightArrow] = (int)KeyboardKey.KEY_RIGHT;
-            io.KeyMap[(int)ImGuiKey.UpArrow] = (int)KeyboardKey.KEY_UP;
-            io.KeyMap[(int)ImGuiKey.DownArrow] = (int)KeyboardKey.KEY_DOWN;
-            io.KeyMap[(int)ImGuiKey.PageUp] = (int)KeyboardKey.KEY_PAGE_UP;
-            io.KeyMap[(int)ImGuiKey.PageDown] = (int)KeyboardKey.KEY_PAGE_DOWN;
-            io.KeyMap[(int)ImGuiKey.Home] = (int)KeyboardKey.KEY_HOME;
-            io.KeyMap[(int)ImGuiKey.End] = (int)KeyboardKey.KEY_END;
-            io.KeyMap[(int)ImGuiKey.Insert] = (int)KeyboardKey.KEY_INSERT;
-            io.KeyMap[(int)ImGuiKey.Delete] = (int)KeyboardKey.KEY_DELETE;
-            io.KeyMap[(int)ImGuiKey.Backspace] = (int)KeyboardKey.KEY_BACKSPACE;
-            io.KeyMap[(int)ImGuiKey.Space] = (int)KeyboardKey.KEY_SPACE;
-            io.KeyMap[(int)ImGuiKey.Enter] = (int)KeyboardKey.KEY_ENTER;
-            io.KeyMap[(int)ImGuiKey.Escape] = (int)KeyboardKey.KEY_ESCAPE;
-            io.KeyMap[(int)ImGuiKey.KeypadEnter] = (int)KeyboardKey.KEY_KP_ENTER;
-            io.KeyMap[(int)ImGuiKey.A] = (int)KeyboardKey.KEY_A;
-            io.KeyMap[(int)ImGuiKey.C] = (int)KeyboardKey.KEY_C;
-            io.KeyMap[(int)ImGuiKey.V] = (int)KeyboardKey.KEY_V;
-            io.KeyMap[(int)ImGuiKey.X] = (int)KeyboardKey.KEY_X;
-            io.KeyMap[(int)ImGuiKey.Y] = (int)KeyboardKey.KEY_Y;
-            io.KeyMap[(int)ImGuiKey.Z] = (int)KeyboardKey.KEY_Z;
-
-            mousePosition = new Vector2(0, 0);
-            io.MousePos = mousePosition;
+            _mousePosition = new Vector2(0, 0);
+            io.AddMousePosEvent(_mousePosition.X, _mousePosition.Y);
 
             // Use this space to add more fonts
             LoadDefaultFontAtlas();
@@ -71,11 +44,15 @@ namespace CharacterDataEditor
 
         public void Shutdown()
         {
-            if (g_UnloadAtlas)
+            if (_fontAtlasLoaded)
             {
                 ImGui.GetIO().Fonts.ClearFonts();
+                ImGui.GetIO().Fonts.TexID = IntPtr.Zero;
+                Raylib.UnloadTexture(_fontAtlasTexture);
+                _fontAtlasTexture = default;
+                _fontAtlasLoaded = false;
             }
-            g_Time = 0.0;
+            _previousFrameTime = 0.0;
         }
 
         private void UpdateMousePosAndButtons()
@@ -83,26 +60,32 @@ namespace CharacterDataEditor
             var io = ImGui.GetIO();
 
             if (io.WantSetMousePos)
+            {
                 Raylib.SetMousePosition((int)io.MousePos.X, (int)io.MousePos.Y);
+            }
 
-            io.MouseDown[0] = Raylib.IsMouseButtonDown(MouseButton.MOUSE_LEFT_BUTTON);
-            io.MouseDown[1] = Raylib.IsMouseButtonDown(MouseButton.MOUSE_RIGHT_BUTTON);
-            io.MouseDown[2] = Raylib.IsMouseButtonDown(MouseButton.MOUSE_MIDDLE_BUTTON);
+            io.AddMouseButtonEvent(0, Raylib.IsMouseButtonDown(MouseButton.Left));
+            io.AddMouseButtonEvent(1, Raylib.IsMouseButtonDown(MouseButton.Right));
+            io.AddMouseButtonEvent(2, Raylib.IsMouseButtonDown(MouseButton.Middle));
 
             if (!Raylib.IsWindowMinimized())
-                mousePosition = new Vector2(Raylib.GetMouseX(), Raylib.GetMouseY());
+            {
+                _mousePosition = new Vector2(Raylib.GetMouseX(), Raylib.GetMouseY());
+            }
 
-            io.MousePos = mousePosition;
+            io.AddMousePosEvent(_mousePosition.X, _mousePosition.Y);
         }
 
         private void UpdateMouseCursor()
         {
             var io = ImGui.GetIO();
             if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.NoMouseCursorChange))
+            {
                 return;
+            }
 
-            var imgui_cursor = ImGui.GetMouseCursor();
-            if (io.MouseDrawCursor || imgui_cursor == ImGuiMouseCursor.None)
+            var mouseCursor = ImGui.GetMouseCursor();
+            if (io.MouseDrawCursor || mouseCursor == ImGuiMouseCursor.None)
             {
                 Raylib.HideCursor();
             }
@@ -119,30 +102,18 @@ namespace CharacterDataEditor
             displaySize = new Vector2(Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
             io.DisplaySize = displaySize;
 
-            double current_time = Raylib.GetTime();
-            delta = g_Time > 0.0 ? (float)(current_time - g_Time) : 1.0f / 60.0f;
-            io.DeltaTime = delta;
-
-            isKeyCtrl = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_CONTROL) || Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_CONTROL);
-            isKeyShift = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_SHIFT) || Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
-            isKeyAlt = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_ALT) || Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_ALT);
-            isKeySuper = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_SUPER) || Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER);
-
-            io.KeyCtrl = isKeyCtrl;
-            io.KeyAlt = isKeyAlt;
-            io.KeyShift = isKeyShift;
-            io.KeySuper = isKeySuper;
+            var currentTime = Raylib.GetTime();
+            delta = _previousFrameTime > 0.0 ? (float)(currentTime - _previousFrameTime) : 1.0f / 60.0f;
+            io.DeltaTime = delta > 0.0f ? delta : 1.0f / 60.0f;
+            _previousFrameTime = currentTime;
 
             UpdateMousePosAndButtons();
             UpdateMouseCursor();
 
-            if (Raylib.GetMouseWheelMove() > 0)
+            var wheel = Raylib.GetMouseWheelMoveV();
+            if (wheel != Vector2.Zero)
             {
-                io.MouseWheel += 1;
-            }
-            else if (Raylib.GetMouseWheelMove() < 0)
-            {
-                io.MouseWheel -= 1;
+                io.AddMouseWheelEvent(wheel.X, wheel.Y);
             }
         }
 
@@ -150,212 +121,221 @@ namespace CharacterDataEditor
         {
             var io = ImGui.GetIO();
 
-            io.KeysDown[(int)KeyboardKey.KEY_APOSTROPHE] = Raylib.IsKeyDown(KeyboardKey.KEY_APOSTROPHE);
-            io.KeysDown[(int)KeyboardKey.KEY_COMMA] = Raylib.IsKeyDown(KeyboardKey.KEY_COMMA);
-            io.KeysDown[(int)KeyboardKey.KEY_MINUS] = Raylib.IsKeyDown(KeyboardKey.KEY_MINUS);
-            io.KeysDown[(int)KeyboardKey.KEY_PERIOD] = Raylib.IsKeyDown(KeyboardKey.KEY_PERIOD);
-            io.KeysDown[(int)KeyboardKey.KEY_SLASH] = Raylib.IsKeyDown(KeyboardKey.KEY_SLASH);
-            io.KeysDown[(int)KeyboardKey.KEY_ZERO] = Raylib.IsKeyDown(KeyboardKey.KEY_ZERO);
-            io.KeysDown[(int)KeyboardKey.KEY_ONE] = Raylib.IsKeyDown(KeyboardKey.KEY_ONE);
-            io.KeysDown[(int)KeyboardKey.KEY_TWO] = Raylib.IsKeyDown(KeyboardKey.KEY_TWO);
-            io.KeysDown[(int)KeyboardKey.KEY_THREE] = Raylib.IsKeyDown(KeyboardKey.KEY_THREE);
-            io.KeysDown[(int)KeyboardKey.KEY_FOUR] = Raylib.IsKeyDown(KeyboardKey.KEY_FOUR);
-            io.KeysDown[(int)KeyboardKey.KEY_FIVE] = Raylib.IsKeyDown(KeyboardKey.KEY_FIVE);
-            io.KeysDown[(int)KeyboardKey.KEY_SIX] = Raylib.IsKeyDown(KeyboardKey.KEY_SIX);
-            io.KeysDown[(int)KeyboardKey.KEY_SEVEN] = Raylib.IsKeyDown(KeyboardKey.KEY_SEVEN);
-            io.KeysDown[(int)KeyboardKey.KEY_EIGHT] = Raylib.IsKeyDown(KeyboardKey.KEY_EIGHT);
-            io.KeysDown[(int)KeyboardKey.KEY_NINE] = Raylib.IsKeyDown(KeyboardKey.KEY_NINE);
-            io.KeysDown[(int)KeyboardKey.KEY_SEMICOLON] = Raylib.IsKeyDown(KeyboardKey.KEY_SEMICOLON);
-            io.KeysDown[(int)KeyboardKey.KEY_EQUAL] = Raylib.IsKeyDown(KeyboardKey.KEY_EQUAL);
-            io.KeysDown[(int)KeyboardKey.KEY_A] = Raylib.IsKeyDown(KeyboardKey.KEY_A);
-            io.KeysDown[(int)KeyboardKey.KEY_B] = Raylib.IsKeyDown(KeyboardKey.KEY_B);
-            io.KeysDown[(int)KeyboardKey.KEY_C] = Raylib.IsKeyDown(KeyboardKey.KEY_C);
-            io.KeysDown[(int)KeyboardKey.KEY_D] = Raylib.IsKeyDown(KeyboardKey.KEY_D);
-            io.KeysDown[(int)KeyboardKey.KEY_E] = Raylib.IsKeyDown(KeyboardKey.KEY_E);
-            io.KeysDown[(int)KeyboardKey.KEY_F] = Raylib.IsKeyDown(KeyboardKey.KEY_F);
-            io.KeysDown[(int)KeyboardKey.KEY_G] = Raylib.IsKeyDown(KeyboardKey.KEY_G);
-            io.KeysDown[(int)KeyboardKey.KEY_H] = Raylib.IsKeyDown(KeyboardKey.KEY_H);
-            io.KeysDown[(int)KeyboardKey.KEY_I] = Raylib.IsKeyDown(KeyboardKey.KEY_I);
-            io.KeysDown[(int)KeyboardKey.KEY_J] = Raylib.IsKeyDown(KeyboardKey.KEY_J);
-            io.KeysDown[(int)KeyboardKey.KEY_K] = Raylib.IsKeyDown(KeyboardKey.KEY_K);
-            io.KeysDown[(int)KeyboardKey.KEY_L] = Raylib.IsKeyDown(KeyboardKey.KEY_L);
-            io.KeysDown[(int)KeyboardKey.KEY_M] = Raylib.IsKeyDown(KeyboardKey.KEY_M);
-            io.KeysDown[(int)KeyboardKey.KEY_N] = Raylib.IsKeyDown(KeyboardKey.KEY_N);
-            io.KeysDown[(int)KeyboardKey.KEY_O] = Raylib.IsKeyDown(KeyboardKey.KEY_O);
-            io.KeysDown[(int)KeyboardKey.KEY_P] = Raylib.IsKeyDown(KeyboardKey.KEY_P);
-            io.KeysDown[(int)KeyboardKey.KEY_Q] = Raylib.IsKeyDown(KeyboardKey.KEY_Q);
-            io.KeysDown[(int)KeyboardKey.KEY_R] = Raylib.IsKeyDown(KeyboardKey.KEY_R);
-            io.KeysDown[(int)KeyboardKey.KEY_S] = Raylib.IsKeyDown(KeyboardKey.KEY_S);
-            io.KeysDown[(int)KeyboardKey.KEY_T] = Raylib.IsKeyDown(KeyboardKey.KEY_T);
-            io.KeysDown[(int)KeyboardKey.KEY_U] = Raylib.IsKeyDown(KeyboardKey.KEY_U);
-            io.KeysDown[(int)KeyboardKey.KEY_V] = Raylib.IsKeyDown(KeyboardKey.KEY_V);
-            io.KeysDown[(int)KeyboardKey.KEY_W] = Raylib.IsKeyDown(KeyboardKey.KEY_W);
-            io.KeysDown[(int)KeyboardKey.KEY_X] = Raylib.IsKeyDown(KeyboardKey.KEY_X);
-            io.KeysDown[(int)KeyboardKey.KEY_Y] = Raylib.IsKeyDown(KeyboardKey.KEY_Y);
-            io.KeysDown[(int)KeyboardKey.KEY_Z] = Raylib.IsKeyDown(KeyboardKey.KEY_Z);
-            io.KeysDown[(int)KeyboardKey.KEY_SPACE] = Raylib.IsKeyDown(KeyboardKey.KEY_SPACE);
-            io.KeysDown[(int)KeyboardKey.KEY_ESCAPE] = Raylib.IsKeyDown(KeyboardKey.KEY_ESCAPE);
-            io.KeysDown[(int)KeyboardKey.KEY_ENTER] = Raylib.IsKeyDown(KeyboardKey.KEY_ENTER);
-            io.KeysDown[(int)KeyboardKey.KEY_TAB] = Raylib.IsKeyDown(KeyboardKey.KEY_TAB);
-            io.KeysDown[(int)KeyboardKey.KEY_BACKSPACE] = Raylib.IsKeyDown(KeyboardKey.KEY_BACKSPACE);
-            io.KeysDown[(int)KeyboardKey.KEY_INSERT] = Raylib.IsKeyDown(KeyboardKey.KEY_INSERT);
-            io.KeysDown[(int)KeyboardKey.KEY_DELETE] = Raylib.IsKeyDown(KeyboardKey.KEY_DELETE);
-            io.KeysDown[(int)KeyboardKey.KEY_RIGHT] = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT);
-            io.KeysDown[(int)KeyboardKey.KEY_LEFT] = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT);
-            io.KeysDown[(int)KeyboardKey.KEY_DOWN] = Raylib.IsKeyDown(KeyboardKey.KEY_DOWN);
-            io.KeysDown[(int)KeyboardKey.KEY_UP] = Raylib.IsKeyDown(KeyboardKey.KEY_UP);
-            io.KeysDown[(int)KeyboardKey.KEY_PAGE_UP] = Raylib.IsKeyDown(KeyboardKey.KEY_PAGE_UP);
-            io.KeysDown[(int)KeyboardKey.KEY_PAGE_DOWN] = Raylib.IsKeyDown(KeyboardKey.KEY_PAGE_DOWN);
-            io.KeysDown[(int)KeyboardKey.KEY_HOME] = Raylib.IsKeyDown(KeyboardKey.KEY_HOME);
-            io.KeysDown[(int)KeyboardKey.KEY_END] = Raylib.IsKeyDown(KeyboardKey.KEY_END);
-            io.KeysDown[(int)KeyboardKey.KEY_CAPS_LOCK] = Raylib.IsKeyDown(KeyboardKey.KEY_CAPS_LOCK);
-            io.KeysDown[(int)KeyboardKey.KEY_SCROLL_LOCK] = Raylib.IsKeyDown(KeyboardKey.KEY_SCROLL_LOCK);
-            io.KeysDown[(int)KeyboardKey.KEY_NUM_LOCK] = Raylib.IsKeyDown(KeyboardKey.KEY_NUM_LOCK);
-            io.KeysDown[(int)KeyboardKey.KEY_PRINT_SCREEN] = Raylib.IsKeyDown(KeyboardKey.KEY_PRINT_SCREEN);
-            io.KeysDown[(int)KeyboardKey.KEY_PAUSE] = Raylib.IsKeyDown(KeyboardKey.KEY_PAUSE);
-            io.KeysDown[(int)KeyboardKey.KEY_F1] = Raylib.IsKeyDown(KeyboardKey.KEY_F1);
-            io.KeysDown[(int)KeyboardKey.KEY_F2] = Raylib.IsKeyDown(KeyboardKey.KEY_F2);
-            io.KeysDown[(int)KeyboardKey.KEY_F3] = Raylib.IsKeyDown(KeyboardKey.KEY_F3);
-            io.KeysDown[(int)KeyboardKey.KEY_F4] = Raylib.IsKeyDown(KeyboardKey.KEY_F4);
-            io.KeysDown[(int)KeyboardKey.KEY_F5] = Raylib.IsKeyDown(KeyboardKey.KEY_F5);
-            io.KeysDown[(int)KeyboardKey.KEY_F6] = Raylib.IsKeyDown(KeyboardKey.KEY_F6);
-            io.KeysDown[(int)KeyboardKey.KEY_F7] = Raylib.IsKeyDown(KeyboardKey.KEY_F7);
-            io.KeysDown[(int)KeyboardKey.KEY_F8] = Raylib.IsKeyDown(KeyboardKey.KEY_F8);
-            io.KeysDown[(int)KeyboardKey.KEY_F9] = Raylib.IsKeyDown(KeyboardKey.KEY_F9);
-            io.KeysDown[(int)KeyboardKey.KEY_F10] = Raylib.IsKeyDown(KeyboardKey.KEY_F10);
-            io.KeysDown[(int)KeyboardKey.KEY_F11] = Raylib.IsKeyDown(KeyboardKey.KEY_F11);
-            io.KeysDown[(int)KeyboardKey.KEY_F12] = Raylib.IsKeyDown(KeyboardKey.KEY_F12);
-            io.KeysDown[(int)KeyboardKey.KEY_LEFT_SHIFT] = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
-            io.KeysDown[(int)KeyboardKey.KEY_LEFT_CONTROL] = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_CONTROL);
-            io.KeysDown[(int)KeyboardKey.KEY_LEFT_ALT] = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_ALT);
-            io.KeysDown[(int)KeyboardKey.KEY_LEFT_SUPER] = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER);
-            io.KeysDown[(int)KeyboardKey.KEY_RIGHT_SHIFT] = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_SHIFT);
-            io.KeysDown[(int)KeyboardKey.KEY_RIGHT_CONTROL] = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_CONTROL);
-            io.KeysDown[(int)KeyboardKey.KEY_RIGHT_ALT] = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_ALT);
-            io.KeysDown[(int)KeyboardKey.KEY_RIGHT_SUPER] = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_SUPER);
-            io.KeysDown[(int)KeyboardKey.KEY_KB_MENU] = Raylib.IsKeyDown(KeyboardKey.KEY_KB_MENU);
-            io.KeysDown[(int)KeyboardKey.KEY_LEFT_BRACKET] = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_BRACKET);
-            io.KeysDown[(int)KeyboardKey.KEY_BACKSLASH] = Raylib.IsKeyDown(KeyboardKey.KEY_BACKSLASH);
-            io.KeysDown[(int)KeyboardKey.KEY_RIGHT_BRACKET] = Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT_BRACKET);
-            io.KeysDown[(int)KeyboardKey.KEY_GRAVE] = Raylib.IsKeyDown(KeyboardKey.KEY_GRAVE);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_0] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_0);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_1] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_1);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_2] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_2);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_3] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_3);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_4] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_4);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_5] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_5);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_6] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_6);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_7] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_7);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_8] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_8);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_9] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_9);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_DECIMAL] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_DECIMAL);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_DIVIDE] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_DIVIDE);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_MULTIPLY] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_MULTIPLY);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_SUBTRACT] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_SUBTRACT);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_ADD] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_ADD);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_ENTER] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_ENTER);
-            io.KeysDown[(int)KeyboardKey.KEY_KP_EQUAL] = Raylib.IsKeyDown(KeyboardKey.KEY_KP_EQUAL);
-            io.KeysDown[(int)KeyboardKey.KEY_BACK] = Raylib.IsKeyDown(KeyboardKey.KEY_BACK);
-            io.KeysDown[(int)KeyboardKey.KEY_MENU] = Raylib.IsKeyDown(KeyboardKey.KEY_MENU);
-            io.KeysDown[(int)KeyboardKey.KEY_VOLUME_UP] = Raylib.IsKeyDown(KeyboardKey.KEY_VOLUME_UP);
-            io.KeysDown[(int)KeyboardKey.KEY_VOLUME_DOWN] = Raylib.IsKeyDown(KeyboardKey.KEY_VOLUME_DOWN);
+            io.AddKeyEvent(ImGuiKey.ModCtrl, Raylib.IsKeyDown(KeyboardKey.LeftControl) || Raylib.IsKeyDown(KeyboardKey.RightControl));
+            io.AddKeyEvent(ImGuiKey.ModShift, Raylib.IsKeyDown(KeyboardKey.LeftShift) || Raylib.IsKeyDown(KeyboardKey.RightShift));
+            io.AddKeyEvent(ImGuiKey.ModAlt, Raylib.IsKeyDown(KeyboardKey.LeftAlt) || Raylib.IsKeyDown(KeyboardKey.RightAlt));
+            io.AddKeyEvent(ImGuiKey.ModSuper, Raylib.IsKeyDown(KeyboardKey.LeftSuper) || Raylib.IsKeyDown(KeyboardKey.RightSuper));
 
-            int length = 0;
-            io.AddInputCharactersUTF8(Raylib.CodepointToUTF8(Raylib.GetCharPressed(), ref length));
+            io.AddKeyEvent(ImGuiKey.Apostrophe, Raylib.IsKeyDown(KeyboardKey.Apostrophe));
+            io.AddKeyEvent(ImGuiKey.Comma, Raylib.IsKeyDown(KeyboardKey.Comma));
+            io.AddKeyEvent(ImGuiKey.Minus, Raylib.IsKeyDown(KeyboardKey.Minus));
+            io.AddKeyEvent(ImGuiKey.Period, Raylib.IsKeyDown(KeyboardKey.Period));
+            io.AddKeyEvent(ImGuiKey.Slash, Raylib.IsKeyDown(KeyboardKey.Slash));
+            io.AddKeyEvent(ImGuiKey._0, Raylib.IsKeyDown(KeyboardKey.Zero));
+            io.AddKeyEvent(ImGuiKey._1, Raylib.IsKeyDown(KeyboardKey.One));
+            io.AddKeyEvent(ImGuiKey._2, Raylib.IsKeyDown(KeyboardKey.Two));
+            io.AddKeyEvent(ImGuiKey._3, Raylib.IsKeyDown(KeyboardKey.Three));
+            io.AddKeyEvent(ImGuiKey._4, Raylib.IsKeyDown(KeyboardKey.Four));
+            io.AddKeyEvent(ImGuiKey._5, Raylib.IsKeyDown(KeyboardKey.Five));
+            io.AddKeyEvent(ImGuiKey._6, Raylib.IsKeyDown(KeyboardKey.Six));
+            io.AddKeyEvent(ImGuiKey._7, Raylib.IsKeyDown(KeyboardKey.Seven));
+            io.AddKeyEvent(ImGuiKey._8, Raylib.IsKeyDown(KeyboardKey.Eight));
+            io.AddKeyEvent(ImGuiKey._9, Raylib.IsKeyDown(KeyboardKey.Nine));
+            io.AddKeyEvent(ImGuiKey.Semicolon, Raylib.IsKeyDown(KeyboardKey.Semicolon));
+            io.AddKeyEvent(ImGuiKey.Equal, Raylib.IsKeyDown(KeyboardKey.Equal));
+            io.AddKeyEvent(ImGuiKey.A, Raylib.IsKeyDown(KeyboardKey.A));
+            io.AddKeyEvent(ImGuiKey.B, Raylib.IsKeyDown(KeyboardKey.B));
+            io.AddKeyEvent(ImGuiKey.C, Raylib.IsKeyDown(KeyboardKey.C));
+            io.AddKeyEvent(ImGuiKey.D, Raylib.IsKeyDown(KeyboardKey.D));
+            io.AddKeyEvent(ImGuiKey.E, Raylib.IsKeyDown(KeyboardKey.E));
+            io.AddKeyEvent(ImGuiKey.F, Raylib.IsKeyDown(KeyboardKey.F));
+            io.AddKeyEvent(ImGuiKey.G, Raylib.IsKeyDown(KeyboardKey.G));
+            io.AddKeyEvent(ImGuiKey.H, Raylib.IsKeyDown(KeyboardKey.H));
+            io.AddKeyEvent(ImGuiKey.I, Raylib.IsKeyDown(KeyboardKey.I));
+            io.AddKeyEvent(ImGuiKey.J, Raylib.IsKeyDown(KeyboardKey.J));
+            io.AddKeyEvent(ImGuiKey.K, Raylib.IsKeyDown(KeyboardKey.K));
+            io.AddKeyEvent(ImGuiKey.L, Raylib.IsKeyDown(KeyboardKey.L));
+            io.AddKeyEvent(ImGuiKey.M, Raylib.IsKeyDown(KeyboardKey.M));
+            io.AddKeyEvent(ImGuiKey.N, Raylib.IsKeyDown(KeyboardKey.N));
+            io.AddKeyEvent(ImGuiKey.O, Raylib.IsKeyDown(KeyboardKey.O));
+            io.AddKeyEvent(ImGuiKey.P, Raylib.IsKeyDown(KeyboardKey.P));
+            io.AddKeyEvent(ImGuiKey.Q, Raylib.IsKeyDown(KeyboardKey.Q));
+            io.AddKeyEvent(ImGuiKey.R, Raylib.IsKeyDown(KeyboardKey.R));
+            io.AddKeyEvent(ImGuiKey.S, Raylib.IsKeyDown(KeyboardKey.S));
+            io.AddKeyEvent(ImGuiKey.T, Raylib.IsKeyDown(KeyboardKey.T));
+            io.AddKeyEvent(ImGuiKey.U, Raylib.IsKeyDown(KeyboardKey.U));
+            io.AddKeyEvent(ImGuiKey.V, Raylib.IsKeyDown(KeyboardKey.V));
+            io.AddKeyEvent(ImGuiKey.W, Raylib.IsKeyDown(KeyboardKey.W));
+            io.AddKeyEvent(ImGuiKey.X, Raylib.IsKeyDown(KeyboardKey.X));
+            io.AddKeyEvent(ImGuiKey.Y, Raylib.IsKeyDown(KeyboardKey.Y));
+            io.AddKeyEvent(ImGuiKey.Z, Raylib.IsKeyDown(KeyboardKey.Z));
+            io.AddKeyEvent(ImGuiKey.Space, Raylib.IsKeyDown(KeyboardKey.Space));
+            io.AddKeyEvent(ImGuiKey.Escape, Raylib.IsKeyDown(KeyboardKey.Escape));
+            io.AddKeyEvent(ImGuiKey.Enter, Raylib.IsKeyDown(KeyboardKey.Enter));
+            io.AddKeyEvent(ImGuiKey.Tab, Raylib.IsKeyDown(KeyboardKey.Tab));
+            io.AddKeyEvent(ImGuiKey.Backspace, Raylib.IsKeyDown(KeyboardKey.Backspace));
+            io.AddKeyEvent(ImGuiKey.Insert, Raylib.IsKeyDown(KeyboardKey.Insert));
+            io.AddKeyEvent(ImGuiKey.Delete, Raylib.IsKeyDown(KeyboardKey.Delete));
+            io.AddKeyEvent(ImGuiKey.RightArrow, Raylib.IsKeyDown(KeyboardKey.Right));
+            io.AddKeyEvent(ImGuiKey.LeftArrow, Raylib.IsKeyDown(KeyboardKey.Left));
+            io.AddKeyEvent(ImGuiKey.DownArrow, Raylib.IsKeyDown(KeyboardKey.Down));
+            io.AddKeyEvent(ImGuiKey.UpArrow, Raylib.IsKeyDown(KeyboardKey.Up));
+            io.AddKeyEvent(ImGuiKey.PageUp, Raylib.IsKeyDown(KeyboardKey.PageUp));
+            io.AddKeyEvent(ImGuiKey.PageDown, Raylib.IsKeyDown(KeyboardKey.PageDown));
+            io.AddKeyEvent(ImGuiKey.Home, Raylib.IsKeyDown(KeyboardKey.Home));
+            io.AddKeyEvent(ImGuiKey.End, Raylib.IsKeyDown(KeyboardKey.End));
+            io.AddKeyEvent(ImGuiKey.CapsLock, Raylib.IsKeyDown(KeyboardKey.CapsLock));
+            io.AddKeyEvent(ImGuiKey.ScrollLock, Raylib.IsKeyDown(KeyboardKey.ScrollLock));
+            io.AddKeyEvent(ImGuiKey.NumLock, Raylib.IsKeyDown(KeyboardKey.NumLock));
+            io.AddKeyEvent(ImGuiKey.PrintScreen, Raylib.IsKeyDown(KeyboardKey.PrintScreen));
+            io.AddKeyEvent(ImGuiKey.Pause, Raylib.IsKeyDown(KeyboardKey.Pause));
+            io.AddKeyEvent(ImGuiKey.F1, Raylib.IsKeyDown(KeyboardKey.F1));
+            io.AddKeyEvent(ImGuiKey.F2, Raylib.IsKeyDown(KeyboardKey.F2));
+            io.AddKeyEvent(ImGuiKey.F3, Raylib.IsKeyDown(KeyboardKey.F3));
+            io.AddKeyEvent(ImGuiKey.F4, Raylib.IsKeyDown(KeyboardKey.F4));
+            io.AddKeyEvent(ImGuiKey.F5, Raylib.IsKeyDown(KeyboardKey.F5));
+            io.AddKeyEvent(ImGuiKey.F6, Raylib.IsKeyDown(KeyboardKey.F6));
+            io.AddKeyEvent(ImGuiKey.F7, Raylib.IsKeyDown(KeyboardKey.F7));
+            io.AddKeyEvent(ImGuiKey.F8, Raylib.IsKeyDown(KeyboardKey.F8));
+            io.AddKeyEvent(ImGuiKey.F9, Raylib.IsKeyDown(KeyboardKey.F9));
+            io.AddKeyEvent(ImGuiKey.F10, Raylib.IsKeyDown(KeyboardKey.F10));
+            io.AddKeyEvent(ImGuiKey.F11, Raylib.IsKeyDown(KeyboardKey.F11));
+            io.AddKeyEvent(ImGuiKey.F12, Raylib.IsKeyDown(KeyboardKey.F12));
+            io.AddKeyEvent(ImGuiKey.LeftShift, Raylib.IsKeyDown(KeyboardKey.LeftShift));
+            io.AddKeyEvent(ImGuiKey.LeftCtrl, Raylib.IsKeyDown(KeyboardKey.LeftControl));
+            io.AddKeyEvent(ImGuiKey.LeftAlt, Raylib.IsKeyDown(KeyboardKey.LeftAlt));
+            io.AddKeyEvent(ImGuiKey.LeftSuper, Raylib.IsKeyDown(KeyboardKey.LeftSuper));
+            io.AddKeyEvent(ImGuiKey.RightShift, Raylib.IsKeyDown(KeyboardKey.RightShift));
+            io.AddKeyEvent(ImGuiKey.RightCtrl, Raylib.IsKeyDown(KeyboardKey.RightControl));
+            io.AddKeyEvent(ImGuiKey.RightAlt, Raylib.IsKeyDown(KeyboardKey.RightAlt));
+            io.AddKeyEvent(ImGuiKey.RightSuper, Raylib.IsKeyDown(KeyboardKey.RightSuper));
+            io.AddKeyEvent(ImGuiKey.Menu, Raylib.IsKeyDown(KeyboardKey.KeyboardMenu) || Raylib.IsKeyDown(KeyboardKey.Menu));
+            io.AddKeyEvent(ImGuiKey.LeftBracket, Raylib.IsKeyDown(KeyboardKey.LeftBracket));
+            io.AddKeyEvent(ImGuiKey.Backslash, Raylib.IsKeyDown(KeyboardKey.Backslash));
+            io.AddKeyEvent(ImGuiKey.RightBracket, Raylib.IsKeyDown(KeyboardKey.RightBracket));
+            io.AddKeyEvent(ImGuiKey.GraveAccent, Raylib.IsKeyDown(KeyboardKey.Grave));
+            io.AddKeyEvent(ImGuiKey.Keypad0, Raylib.IsKeyDown(KeyboardKey.Kp0));
+            io.AddKeyEvent(ImGuiKey.Keypad1, Raylib.IsKeyDown(KeyboardKey.Kp1));
+            io.AddKeyEvent(ImGuiKey.Keypad2, Raylib.IsKeyDown(KeyboardKey.Kp2));
+            io.AddKeyEvent(ImGuiKey.Keypad3, Raylib.IsKeyDown(KeyboardKey.Kp3));
+            io.AddKeyEvent(ImGuiKey.Keypad4, Raylib.IsKeyDown(KeyboardKey.Kp4));
+            io.AddKeyEvent(ImGuiKey.Keypad5, Raylib.IsKeyDown(KeyboardKey.Kp5));
+            io.AddKeyEvent(ImGuiKey.Keypad6, Raylib.IsKeyDown(KeyboardKey.Kp6));
+            io.AddKeyEvent(ImGuiKey.Keypad7, Raylib.IsKeyDown(KeyboardKey.Kp7));
+            io.AddKeyEvent(ImGuiKey.Keypad8, Raylib.IsKeyDown(KeyboardKey.Kp8));
+            io.AddKeyEvent(ImGuiKey.Keypad9, Raylib.IsKeyDown(KeyboardKey.Kp9));
+            io.AddKeyEvent(ImGuiKey.KeypadDecimal, Raylib.IsKeyDown(KeyboardKey.KpDecimal));
+            io.AddKeyEvent(ImGuiKey.KeypadDivide, Raylib.IsKeyDown(KeyboardKey.KpDivide));
+            io.AddKeyEvent(ImGuiKey.KeypadMultiply, Raylib.IsKeyDown(KeyboardKey.KpMultiply));
+            io.AddKeyEvent(ImGuiKey.KeypadSubtract, Raylib.IsKeyDown(KeyboardKey.KpSubtract));
+            io.AddKeyEvent(ImGuiKey.KeypadAdd, Raylib.IsKeyDown(KeyboardKey.KpAdd));
+            io.AddKeyEvent(ImGuiKey.KeypadEnter, Raylib.IsKeyDown(KeyboardKey.KpEnter));
+            io.AddKeyEvent(ImGuiKey.KeypadEqual, Raylib.IsKeyDown(KeyboardKey.KpEqual));
+            io.AddKeyEvent(ImGuiKey.AppBack, Raylib.IsKeyDown(KeyboardKey.Back));
+
+            int codepoint;
+            while ((codepoint = Raylib.GetCharPressed()) > 0)
+            {
+                io.AddInputCharacter((uint)codepoint);
+            }
 
             return true;
         }
 
         void LoadDefaultFontAtlas()
         {
-            if (!g_UnloadAtlas)
+            if (!_fontAtlasLoaded)
             {
                 var io = ImGui.GetIO();
-                byte* pixels;
-                int width, height, bpp;
-                Image image;
+                Image image = new();
 
-                io.Fonts.GetTexDataAsRGBA32(out pixels, out width, out height, out bpp);
-                var size = Raylib.GetPixelDataSize(width, height, PixelFormat.PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
-                image.data = (void*)Marshal.AllocHGlobal(size);
-                Buffer.MemoryCopy(pixels, image.data, size, size);
-                image.width = width;
-                image.height = height;
-                image.mipmaps = 1;
-                image.format = PixelFormat.PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-                var tex = Raylib.LoadTextureFromImage(image);
-                g_AtlasTexID = tex.id;
-                io.Fonts.TexID = (IntPtr)g_AtlasTexID;
-                Marshal.FreeHGlobal((IntPtr)pixels);
-                Marshal.FreeHGlobal((IntPtr)image.data);
-                g_UnloadAtlas = true;
+                io.Fonts.GetTexDataAsRGBA32(out byte* pixels, out var width, out var height, out _);
+                image.Data = pixels;
+                image.Width = width;
+                image.Height = height;
+                image.Mipmaps = 1;
+                image.Format = PixelFormat.UncompressedR8G8B8A8;
+
+                _fontAtlasTexture = Raylib.LoadTextureFromImage(image);
+                if (_fontAtlasTexture.Id == 0)
+                {
+                    throw new InvalidOperationException("failed to upload font atlas");
+                }
+                io.Fonts.TexID = (IntPtr)_fontAtlasTexture.Id;
+                io.Fonts.ClearTexData();
+                _fontAtlasLoaded = true;
             }
         }
 
-        public void Render(ImDrawDataPtr draw_data)
+        public void Render(ImDrawDataPtr drawData)
         {
-            Rlgl.rlDisableBackfaceCulling();
-            for (int n = 0; n < draw_data.CmdListsCount; n++)
+            if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0)
             {
-                ImDrawListPtr cmd_list = draw_data.CmdListsRange[n];
-                uint idx_index = 0;
-                for (int i = 0; i < cmd_list.CmdBuffer.Size; i++)
+                return;
+            }
+
+            Rlgl.DisableBackfaceCulling();
+            for (var n = 0; n < drawData.CmdListsCount; n++)
                 {
-                    var pcmd = cmd_list.CmdBuffer[i];
-                    var pos = draw_data.DisplayPos;
-                    var rectX = (int)(pcmd.ClipRect.X - pos.X);
-                    var rectY = (int)(pcmd.ClipRect.Y - pos.Y);
-                    var rectW = (int)(pcmd.ClipRect.Z - rectX);
-                    var rectH = (int)(pcmd.ClipRect.W - rectY);
+                var drawList = drawData.CmdLists[n];
+                uint indexBufferOffset = 0;
+                for (var i = 0; i < drawList.CmdBuffer.Size; i++)
+                {
+                    var drawCommand = drawList.CmdBuffer[i];
+                    var pos = drawData.DisplayPos;
+                    var rectX = (int)(drawCommand.ClipRect.X - pos.X);
+                    var rectY = (int)(drawCommand.ClipRect.Y - pos.Y);
+                    var rectW = (int)(drawCommand.ClipRect.Z - rectX);
+                    var rectH = (int)(drawCommand.ClipRect.W - rectY);
                     Raylib.BeginScissorMode(rectX, rectY, rectW, rectH);
                     {
-                        var ti = pcmd.TextureId;
-                        for (int j = 0; j <= (pcmd.ElemCount - 3); j += 3)
+                        var textureId = drawCommand.TextureId;
+                        for (var j = 0; j <= (drawCommand.ElemCount - 3); j += 3)
                         {
-                            if (pcmd.ElemCount == 0)
+                            if (drawCommand.ElemCount == 0)
                             {
                                 break;
                             }
 
-                            Rlgl.rlPushMatrix();
-                            Rlgl.rlBegin(DrawMode.TRIANGLES);
-                            Rlgl.rlSetTexture((uint)ti.ToInt32());
+                            Rlgl.PushMatrix();
+                            Rlgl.Begin(DrawMode.Triangles);
+                            Rlgl.SetTexture((uint)textureId.ToInt32());
 
                             ImDrawVertPtr vertex;
                             ushort index;
 
-                            index = cmd_list.IdxBuffer[(int)(j + idx_index)];
-                            vertex = cmd_list.VtxBuffer[index];
+                            index = drawList.IdxBuffer[(int)(j + indexBufferOffset)];
+                            vertex = drawList.VtxBuffer[index];
                             DrawTriangleVertex(vertex);
 
-                            index = cmd_list.IdxBuffer[(int)(j + 2 + idx_index)];
-                            vertex = cmd_list.VtxBuffer[index];
+                            index = drawList.IdxBuffer[(int)(j + 2 + indexBufferOffset)];
+                            vertex = drawList.VtxBuffer[index];
                             DrawTriangleVertex(vertex);
 
-                            index = cmd_list.IdxBuffer[(int)(j + 1 + idx_index)];
-                            vertex = cmd_list.VtxBuffer[index];
+                            index = drawList.IdxBuffer[(int)(j + 1 + indexBufferOffset)];
+                            vertex = drawList.VtxBuffer[index];
                             DrawTriangleVertex(vertex);
 
-                            Rlgl.rlDisableTexture();
-                            Rlgl.rlEnd();
-                            Rlgl.rlPopMatrix();
+                            Rlgl.DisableTexture();
+                            Rlgl.End();
+                            Rlgl.PopMatrix();
                         }
                     }
 
-                    idx_index += pcmd.ElemCount;
+                    indexBufferOffset += drawCommand.ElemCount;
                 }
             }
 
             Raylib.EndScissorMode();
-            Rlgl.rlEnableBackfaceCulling();
+            Rlgl.EnableBackfaceCulling();
         }
 
-        void DrawTriangleVertex(ImDrawVertPtr idx_vert)
+        void DrawTriangleVertex(ImDrawVertPtr vertex)
         {
-            Color c = new Color((byte)(idx_vert.col >> 0), (byte)(idx_vert.col >> 8), (byte)(idx_vert.col >> 16), (byte)(idx_vert.col >> 24));
-            Rlgl.rlColor4ub(c.r, c.g, c.b, c.a);
-            Rlgl.rlTexCoord2f(idx_vert.uv.X, idx_vert.uv.Y);
-            Rlgl.rlVertex2f(idx_vert.pos.X, idx_vert.pos.Y);
+            var color = new Color((byte)(vertex.col >> 0), (byte)(vertex.col >> 8), (byte)(vertex.col >> 16), (byte)(vertex.col >> 24));
+            Rlgl.Color4ub(color.R, color.G, color.B, color.A);
+            Rlgl.TexCoord2f(vertex.uv.X, vertex.uv.Y);
+            Rlgl.Vertex2f(vertex.pos.X, vertex.pos.Y);
         }
     }
 }

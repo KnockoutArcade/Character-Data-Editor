@@ -68,12 +68,12 @@ namespace CharacterDataEditor.Helpers
                 textureToDraw = spriteTextures[currentAnimationFrame].Texture;
             }
 
-            Rectangle textureSourceRectangle = new Rectangle(0.0f, 0.0f, textureToDraw.width, textureToDraw.height);
+            Rectangle textureSourceRectangle = new Rectangle(0.0f, 0.0f, textureToDraw.Width, textureToDraw.Height);
 
             //destination rectangle determines the size to scale it to and the position on screen
             Rectangle destinationRectangle = new Rectangle();
-            destinationRectangle.width = (textureToDraw.width * 3) * data.Scale;
-            destinationRectangle.height = (textureToDraw.height * 3) * data.Scale;
+            destinationRectangle.Width = (textureToDraw.Width * 3) * data.Scale;
+            destinationRectangle.Height = (textureToDraw.Height * 3) * data.Scale;
 
             //check if sprite destination is above max size, if so... determine the scale between x and y, and adjust the larger to the bounds
             // and the smaller to be scaled appropriately
@@ -109,38 +109,38 @@ namespace CharacterDataEditor.Helpers
                 return new Vector2(w, h);
             }
 
-            if (data.MaxDrawSize != Vector2.Zero && (destinationRectangle.width > data.MaxDrawSize.X || destinationRectangle.height > data.MaxDrawSize.Y))
+            if (data.MaxDrawSize != Vector2.Zero && (destinationRectangle.Width > data.MaxDrawSize.X || destinationRectangle.Height > data.MaxDrawSize.Y))
             {
                 data.MaxDrawSize *= data.Scale;
-                var newWH = Rescale(destinationRectangle.width, destinationRectangle.height, data.MaxDrawSize);
+                var newWH = Rescale(destinationRectangle.Width, destinationRectangle.Height, data.MaxDrawSize);
 
-                destinationRectangle.width = newWH.X;
-                destinationRectangle.height = newWH.Y;
+                destinationRectangle.Width = newWH.X;
+                destinationRectangle.Height = newWH.Y;
             }
 
             if (data.Flags.HasFlag(SpriteDrawFlags.CenterHorizontal))
             {
-                var centerHorizontal = ClientWindow.X / 2 - (destinationRectangle.width / 2);
-                destinationRectangle.x = centerHorizontal;
+                var centerHorizontal = ClientWindow.X / 2 - (destinationRectangle.Width / 2);
+                destinationRectangle.X = centerHorizontal;
             }
             else
             {
-                destinationRectangle.x = data.DrawPosition.X * data.Scale;
+                destinationRectangle.X = data.DrawPosition.X * data.Scale;
             }
 
             if (data.Flags.HasFlag(SpriteDrawFlags.CenterVertical))
             {
-                var centerVertical = ClientWindow.Y / 2 - (destinationRectangle.height / 2);
-                destinationRectangle.y = centerVertical;
+                var centerVertical = ClientWindow.Y / 2 - (destinationRectangle.Height / 2);
+                destinationRectangle.Y = centerVertical;
             }
             else
             {
-                destinationRectangle.y = data.DrawPosition.Y * data.Scale;
+                destinationRectangle.Y = data.DrawPosition.Y * data.Scale;
             }
 
             if (data.Flags.HasFlag(SpriteDrawFlags.ShowSpriteOutline))
             {
-                Raylib.DrawRectangle((int)destinationRectangle.x, (int)destinationRectangle.y, (int)destinationRectangle.width, (int)destinationRectangle.height, Color.BLACK);
+                Raylib.DrawRectangle((int)destinationRectangle.X, (int)destinationRectangle.Y, (int)destinationRectangle.Width, (int)destinationRectangle.Height, Color.Black);
             }
 
             if (data.Flags.HasFlag(SpriteDrawFlags.PaletteSwapActive) && data.BaseColor?.ColorPalette?.Count > 0 && data.SwapColor?.ColorPalette?.Count > 0)
@@ -152,14 +152,14 @@ namespace CharacterDataEditor.Helpers
 
                 for (int i = 0; i < baseColorArray.Length; i++)
                 {
-                    ShaderHelper.SetValue($"basecolor{i}", baseColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
-                    ShaderHelper.SetValue($"swapcolor{i}", swapColorArray[i], ShaderUniformDataType.SHADER_UNIFORM_VEC4);
+                    ShaderHelper.SetValue($"basecolor{i}", baseColorArray[i], ShaderUniformDataType.Vec4);
+                    ShaderHelper.SetValue($"swapcolor{i}", swapColorArray[i], ShaderUniformDataType.Vec4);
                 }
             }
 
             // Origin determines where everything is based, passing 0x0y keeps it default
             // Color.White is used to not tint the texture at all
-            Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, Vector2.Zero, 0.0f, Color.WHITE);
+            Raylib.DrawTexturePro(textureToDraw, textureSourceRectangle, destinationRectangle, Vector2.Zero, 0.0f, Color.White);
 
             if (data.Flags.HasFlag(SpriteDrawFlags.PaletteSwapActive))
             {
@@ -168,20 +168,20 @@ namespace CharacterDataEditor.Helpers
 
             if (data.Flags.HasFlag(SpriteDrawFlags.DrawOrigin))
             {
-                var srcRect = new Rectangle(0.0f, 0.0f, bullseye.width, bullseye.height);
+                var srcRect = new Rectangle(0.0f, 0.0f, bullseye.Width, bullseye.Height);
                 // x and y will be the destination rect for the main sprite's X and Y, then adjust for the
                 // origin, then adjust by 1/2 the destination drawing size...
 
-                var destRect = new Rectangle(destinationRectangle.x, destinationRectangle.y, bullseye.width * data.Scale, bullseye.height * data.Scale);
+                var destRect = new Rectangle(destinationRectangle.X, destinationRectangle.Y, bullseye.Width * data.Scale, bullseye.Height * data.Scale);
 
                 // determine actual scale of sprite to original
-                var spriteScale = destinationRectangle.width / textureSourceRectangle.width;
+                var spriteScale = destinationRectangle.Width / textureSourceRectangle.Width;
 
                 // adjust the draw x and y to reflect the "origin" set by GMS2
-                destRect.x += ((data.Origin.X * spriteScale) - (destRect.width / 2.0f));
-                destRect.y += ((data.Origin.Y * spriteScale) - (destRect.height / 2.0f));
+                destRect.X += ((data.Origin.X * spriteScale) - (destRect.Width / 2.0f));
+                destRect.Y += ((data.Origin.Y * spriteScale) - (destRect.Height / 2.0f));
 
-                Raylib.DrawTexturePro(bullseye, srcRect, destRect, Vector2.Zero, 0.0f, Color.WHITE);
+                Raylib.DrawTexturePro(bullseye, srcRect, destRect, Vector2.Zero, 0.0f, Color.White);
             }
             
 
@@ -189,8 +189,8 @@ namespace CharacterDataEditor.Helpers
             return new AnimatedSpriteReturnDataModel
             {
                 CurrentFrame = currentTotalFrame,
-                DrawOrigin = new Vector2(destinationRectangle.x, destinationRectangle.y),
-                ScaledDrawSize = new Vector2(destinationRectangle.width, destinationRectangle.height)
+                DrawOrigin = new Vector2(destinationRectangle.X, destinationRectangle.Y),
+                ScaledDrawSize = new Vector2(destinationRectangle.Width, destinationRectangle.Height)
             };
         }
 

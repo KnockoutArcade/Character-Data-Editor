@@ -1,11 +1,12 @@
-﻿// This class was taken from https://markheath.net/post/fire-and-forget-audio-playback-with to use sound effects
-
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+// This class was taken from https://markheath.net/post/fire-and-forget-audio-playback-with to use sound effects
+
 
 namespace CharacterDataEditor.NAudio
 {
@@ -19,11 +20,15 @@ namespace CharacterDataEditor.NAudio
             this.WaveFormat = reader.WaveFormat;
         }
 
-        public int Read(float[] buffer, int offset, int count)
+        //public int Read(float[] buffer, int offset, int count)
+        public int Read(Span<float> buffer)
         {
             if (isDisposed)
+            {
                 return 0;
-            int read = reader.Read(buffer, offset, count);
+            }
+
+            var read = reader.Read(buffer);
             if (read == 0)
             {
                 reader.Dispose();
