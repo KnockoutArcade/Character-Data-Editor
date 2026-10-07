@@ -348,7 +348,7 @@ namespace CharacterDataEditor.Screens
                 {
                     foreach (var character in characters)
                     {
-                        if (ImGui.Selectable(character.Name, characterItemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
+                        if (ImGui.Selectable($"{character.Name}##character{characters.IndexOf(character)}", characterItemSelected[characters.IndexOf(character)], ImGuiSelectableFlags.AllowDoubleClick))
                         {
                             var sprite = allSprites.Where(x => x.Name == character.CharacterSprites?.Idle).FirstOrDefault();
                             spriteData = sprite;
@@ -363,6 +363,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
             }
+            ImGui.End();
 
             var drawPos = new Vector2
             {
@@ -402,7 +403,7 @@ namespace CharacterDataEditor.Screens
                 {
                     foreach (var projectile in projectiles)
                     {
-                        if (ImGui.Selectable(projectile.Name, projectileItemSelected[projectiles.IndexOf(projectile)], ImGuiSelectableFlags.AllowDoubleClick))
+                        if (ImGui.Selectable($"{projectile.Name}##projectile{projectiles.IndexOf(projectile)}", projectileItemSelected[projectiles.IndexOf(projectile)], ImGuiSelectableFlags.AllowDoubleClick))
                         {
                             var sprite = allSprites.Where(x => x.Name == projectile.ProjectileSprites?.Sprite).FirstOrDefault();
                             spriteData = sprite;
@@ -417,6 +418,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
             }
+            ImGui.End();
         }
 
         private void DrawNewCharacterPanel(float scale, IScreenManager screenManager)
@@ -442,11 +444,15 @@ namespace CharacterDataEditor.Screens
                     CreateNewProjectile(screenManager);
                 }
             }
+            ImGui.End();
         }
 
         private void DrawMainMenu(float scale, IScreenManager screenManager)
         {
-            ImGui.BeginMainMenuBar();
+            if (!ImGui.BeginMainMenuBar())
+            {
+                return;
+            }
 
             ImGui.SetWindowFontScale(scale);
 
@@ -472,7 +478,7 @@ namespace CharacterDataEditor.Screens
                     Environment.Exit(0);
                 }
 
-                ImGui.End();
+                ImGui.EndMenu();
             }
 
             ImGui.EndMainMenuBar();

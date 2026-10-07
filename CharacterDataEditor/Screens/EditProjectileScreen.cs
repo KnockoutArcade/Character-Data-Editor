@@ -566,8 +566,8 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderPaletteEditor(float scale)
@@ -667,8 +667,8 @@ namespace CharacterDataEditor.Screens
                         break;
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderSpriteDisplayArea(float scale, IScreenManager screenManager)
@@ -798,8 +798,8 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderProjectileDataWindow(float scale)
@@ -820,9 +820,10 @@ namespace CharacterDataEditor.Screens
                 {
                     var projectileName = projectile.Name ?? string.Empty;
 
-                    ImGui.BeginTable("projectileDataTable", 2);
+                    if (ImGui.BeginTable("projectileDataTable", 2))
+                    {
                     var tableFlags = ImGuiTableColumnFlags.NoSort;
-                    ImGui.TableSetupColumn("", tableFlags, ImGui.CalcTextSize("Projectile Name ").X);
+                        ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("Projectile Name ").X);
                     ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthStretch);
 
                     ImGui.TableNextColumn();
@@ -835,6 +836,7 @@ namespace CharacterDataEditor.Screens
 
                     ImGui.TableNextColumn();
                     ImGui.EndTable();
+                    }
 
                     var hasLifetime = projectile.HasLifetime;
                     var lifetime = projectile.Lifetime;
@@ -1447,13 +1449,16 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderMainMenu(float scale, IScreenManager screenManager)
         {
-            ImGui.BeginMainMenuBar();
+            if (!ImGui.BeginMainMenuBar())
+            {
+                return;
+            }
 
             ImGui.SetWindowFontScale(scale);
 
@@ -1585,7 +1590,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
+                ImGui.EndMenu();
             }
 
             ImGui.EndMainMenuBar();

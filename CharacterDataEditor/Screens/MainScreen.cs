@@ -101,7 +101,7 @@ namespace CharacterDataEditor.Screens
 
                 foreach (var item in _recentProjects)
                 {
-                    if (ImGui.Button(item.ProjectFileName))
+                    if (ImGui.Button($"{item.ProjectFileName}##recentProject:{item.FullPath}"))
                     {
                         //open the item here
                         _recentFiles.AddRecentProjectFile(item.FullPath);
@@ -118,6 +118,7 @@ namespace CharacterDataEditor.Screens
                 }
             }
 
+            ImGui.End();
         }
 
         private void DrawLogo(float scale)
@@ -168,8 +169,8 @@ namespace CharacterDataEditor.Screens
                         ChangeTheme(screenManager, "Classic");
                     }
 
-                    ImGui.End();
                 }
+                    ImGui.End();
             }
         }
 
@@ -204,7 +205,10 @@ namespace CharacterDataEditor.Screens
 
         private void DrawMainMenu(float scale)
         {
-            ImGui.BeginMainMenuBar();
+            if (!ImGui.BeginMainMenuBar())
+            {
+                return;
+            }
 
             ImGui.SetWindowFontScale(scale);
 

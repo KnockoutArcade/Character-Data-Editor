@@ -16,9 +16,8 @@ namespace CharacterDataEditor.Helpers
         public static void DrawHelpMarker(string description, float scale = 2.0f)
         {
             ImGui.TextDisabled("(?)");
-            if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayShort))
+            if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayShort) && ImGui.BeginTooltip())
             {
-                ImGui.BeginTooltip();
 
                 ImGui.SetWindowFontScale(scale);
 
@@ -30,7 +29,7 @@ namespace CharacterDataEditor.Helpers
             }
         }
 
-        public static bool DrawIntInput(string label, ref int value, int minValue = int.MinValue, int? maxValue = null, string tooltip = "")
+        public static bool DrawIntInput(string label, ref int value, int minValue = int.MinValue, int? maxValue = null, string tooltip = "", string id = null)
         {
             ImGui.Columns(2);
 
@@ -45,7 +44,7 @@ namespace CharacterDataEditor.Helpers
             ImGui.NextColumn();
 
             //draw the input without a label
-            ImGui.InputInt($"##{label}", ref value);
+            ImGui.InputInt($"##{id ?? label}", ref value);
 
             if (maxValue != null && value > maxValue.Value)
             {
@@ -174,7 +173,7 @@ namespace CharacterDataEditor.Helpers
             ImGui.Columns(1);
         }
 
-        public static bool DrawDecimalInput(string label, ref float value, float step = 0.1f, float minValue = float.MinValue, float? maxValue = null)
+        public static bool DrawDecimalInput(string label, ref float value, float step = 0.1f, float minValue = float.MinValue, float? maxValue = null, string id = null)
         {
             ImGui.Columns(2);
 
@@ -182,7 +181,7 @@ namespace CharacterDataEditor.Helpers
 
             ImGui.NextColumn();
 
-            ImGui.InputFloat($"##{label}", ref value, step);
+            ImGui.InputFloat($"##{id ?? label}", ref value, step);
 
             if (maxValue != null && value > maxValue.Value)
             {
@@ -199,7 +198,7 @@ namespace CharacterDataEditor.Helpers
             return itemSelected;
         }
 
-        public static void DrawBoolInput(string label, ref bool value, string tooltip = "")
+        public static void DrawBoolInput(string label, ref bool value, string tooltip = "", string id = null)
         {
             ImGui.Columns(2);
             ImGui.Text(label.UpperCaseFirstLetter().AddSpacesToCamelCase());
@@ -209,7 +208,7 @@ namespace CharacterDataEditor.Helpers
                 DrawHelpMarker(tooltip);
             }
             ImGui.NextColumn();
-            ImGui.Checkbox($"##{label}", ref value);
+            ImGui.Checkbox($"##{id ?? label}", ref value);
 
             ImGui.Columns(1);
         }
@@ -264,10 +263,13 @@ namespace CharacterDataEditor.Helpers
 
         public static void DrawPaletteEditor(ref List<RGBModel> palettes, float scale)
         {
-            ImGui.BeginTable("paletteEditor", 2, ImGuiTableFlags.NoBordersInBody);
+            if (!ImGui.BeginTable("paletteEditor", 2, ImGuiTableFlags.NoBordersInBody))
+            {
+                return;
+            }
 
             var tableFlags = ImGuiTableColumnFlags.NoSort;
-            ImGui.TableSetupColumn("", tableFlags, 100.0f * scale);
+            ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthFixed, 100.0f * scale);
             ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthStretch);
 
             for (int i = 0; i < palettes.Count; i++)
@@ -298,10 +300,13 @@ namespace CharacterDataEditor.Helpers
 
         public static void DrawPaletteEditor(ref List<ProjectileRGBModel> palettes, float scale)
         {
-            ImGui.BeginTable("paletteEditor", 2, ImGuiTableFlags.NoBordersInBody);
+            if (!ImGui.BeginTable("paletteEditor", 2, ImGuiTableFlags.NoBordersInBody))
+            {
+                return;
+            }
 
             var tableFlags = ImGuiTableColumnFlags.NoSort;
-            ImGui.TableSetupColumn("", tableFlags, 100.0f * scale);
+            ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthFixed, 100.0f * scale);
             ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthStretch);
 
             for (int i = 0; i < palettes.Count; i++)
@@ -335,17 +340,22 @@ namespace CharacterDataEditor.Helpers
             var cursorPos = ImGui.GetCursorPos();
             cursorPos.Y += (unitsToMove * scale);
             ImGui.SetCursorPos(cursorPos);
+            ImGui.Dummy(Vector2.Zero);
+            ImGui.SetCursorPos(cursorPos);
         }
 
         public static bool DrawSelectableWithRemove(Action selectAction, Action duplicateAction, string label, bool selected, int id = -1)
         {
-            ImGui.BeginTable($"selectable##{label}${id}", 2, ImGuiTableFlags.NoBordersInBody);
+            if (!ImGui.BeginTable($"selectable##{label}${id}", 2, ImGuiTableFlags.NoBordersInBody))
+            {
+                return false;
+            }
             
             var tableFlags = ImGuiTableColumnFlags.NoSort;
             var sizeOfButton = ImGui.CalcTextSize("Remove");
 
             ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("", tableFlags, sizeOfButton.X * 1.3f);
+            ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthFixed, sizeOfButton.X * 1.3f);
 
             ImGui.TableNextColumn();
 
@@ -368,6 +378,7 @@ namespace CharacterDataEditor.Helpers
 
             if (ImGui.Button("Remove"))
             {
+                ImGui.EndTable();
                 return true;
             }
 

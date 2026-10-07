@@ -718,8 +718,8 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderMoveEditor(float scale)
@@ -2020,13 +2020,13 @@ namespace CharacterDataEditor.Screens
                     float gravityScale = moveInEditor.AirMovementData.GravityScale;
                     float fallScale = moveInEditor.AirMovementData.FallScale;
 
-                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
-                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
+                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale, id: "airMovementGravityScale");
+                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale, id: "airMovementFallScale");
 
                     moveInEditor.AirMovementData.FallScale = fallScale;
                     moveInEditor.AirMovementData.GravityScale = gravityScale;
 
-                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
+                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount, id: "airMovementFrameCount");
 
                     if (movementDataCount < 0)
                     {
@@ -2091,13 +2091,13 @@ namespace CharacterDataEditor.Screens
                     float gravityScale = moveInEditor.GroundMovementData.GravityScale;
                     float fallScale = moveInEditor.GroundMovementData.FallScale;
 
-                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale);
-                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale);
+                    ImguiDrawingHelper.DrawDecimalInput("gravityScale", ref gravityScale, id: "groundMovementGravityScale");
+                    ImguiDrawingHelper.DrawDecimalInput("fallScale", ref fallScale, id: "groundMovementFallScale");
 
                     moveInEditor.GroundMovementData.FallScale = fallScale;
                     moveInEditor.GroundMovementData.GravityScale = gravityScale;
 
-                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount);
+                    ImguiDrawingHelper.DrawIntInput("numberOfMovementDataFrames", ref movementDataCount, id: "groundMovementFrameCount");
 
                     if (movementDataCount < 0)
                     {
@@ -2242,7 +2242,6 @@ namespace CharacterDataEditor.Screens
                             moveInEditor.SpiritData.OnlyInSpiritOff = false;
                         }
 
-                        ImGui.TreePop();
                     }
                     else
                     {
@@ -2373,8 +2372,8 @@ namespace CharacterDataEditor.Screens
                         break;
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderSpriteDisplayArea(float scale, IScreenManager screenManager)
@@ -2504,8 +2503,8 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderCharacterDataWindow(float scale)
@@ -2526,9 +2525,10 @@ namespace CharacterDataEditor.Screens
                 {
                     var characterName = character.Name ?? string.Empty;
 
-                    ImGui.BeginTable("characterDataTable", 2);
+                    if (ImGui.BeginTable("characterDataTable", 2))
+                    {
                     var tableFlags = ImGuiTableColumnFlags.NoSort;
-                    ImGui.TableSetupColumn("", tableFlags, ImGui.CalcTextSize("Character Name ").X);
+                        ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("Character Name ").X);
                     ImGui.TableSetupColumn("", tableFlags | ImGuiTableColumnFlags.WidthStretch);
 
                     ImGui.TableNextColumn();
@@ -2541,6 +2541,7 @@ namespace CharacterDataEditor.Screens
                     
                     ImGui.TableNextColumn();
                     ImGui.EndTable();
+                    }
 
                     var maxHitPoints = character.MaxHitPoints;
                     ImguiDrawingHelper.DrawIntInput("maxHitPoints", ref maxHitPoints);
@@ -2850,7 +2851,7 @@ namespace CharacterDataEditor.Screens
                                     isSelected = true;
                                 }
 
-                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected, id: $"walkForwardFootstepFrame{i + 1}");
                                 if (isSelected && !walkForwardFootsteps.Contains(i + 1))
                                 {
                                     walkForwardFootsteps.Add(i + 1);
@@ -2929,7 +2930,7 @@ namespace CharacterDataEditor.Screens
                                     isSelected = true;
                                 }
 
-                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected, id: $"walkBackwardFootstepFrame{i + 1}");
                                 if (isSelected && !walkBackwardFootsteps.Contains(i + 1))
                                 {
                                     walkBackwardFootsteps.Add(i + 1);
@@ -3008,7 +3009,7 @@ namespace CharacterDataEditor.Screens
                                     isSelected = true;
                                 }
 
-                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected, id: $"runForwardFootstepFrame{i + 1}");
                                 if (isSelected && !runForwardFootsteps.Contains(i + 1))
                                 {
                                     runForwardFootsteps.Add(i + 1);
@@ -3087,7 +3088,7 @@ namespace CharacterDataEditor.Screens
                                     isSelected = true;
                                 }
 
-                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected);
+                                ImguiDrawingHelper.DrawBoolInput("Frame" + (i + 1).ToString(), ref isSelected, id: $"runBackwardFootstepFrame{i + 1}");
                                 if (isSelected && !runBackwardFootsteps.Contains(i + 1))
                                 {
                                     runBackwardFootsteps.Add(i + 1);
@@ -3314,13 +3315,16 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
             }
+                ImGui.End();
         }
 
         private void RenderMainMenu(float scale, IScreenManager screenManager)
         {
-            ImGui.BeginMainMenuBar();
+            if (!ImGui.BeginMainMenuBar())
+            {
+                return;
+            }
 
             ImGui.SetWindowFontScale(scale);
 
@@ -3452,7 +3456,7 @@ namespace CharacterDataEditor.Screens
                     }
                 }
 
-                ImGui.End();
+                ImGui.EndMenu();
             }
 
             ImGui.EndMainMenuBar();
