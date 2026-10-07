@@ -1,11 +1,10 @@
-﻿using Raylib_cs;
-using System.Numerics;
+﻿using System.Numerics;
+using Raylib_cs;
 
-namespace CharacterDataEditor.Extensions
+namespace CharacterDataEditor.Extensions;
+
+public static class RectangleExtensions
 {
-    public static class RectangleExtensions
-    {
-        public static Vector4 ToVector4(this Rectangle rect) =>
-            new Vector4(rect.X, rect.Y, rect.Width, rect.Height);
-    }
+    public static Vector4 ToVector4(this Rectangle rect) =>
+        new(rect.X, rect.Y, rect.Width, rect.Height);
 }

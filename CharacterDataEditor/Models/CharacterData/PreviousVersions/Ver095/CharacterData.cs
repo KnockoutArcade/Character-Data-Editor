@@ -1,55 +1,54 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095
-{
-    public class CharacterDataModel : BaseCharacter
-    {
-        public string Name { get; set; } = string.Empty;
-        public string BaseSprite { get; set; } = string.Empty;
-        public PaletteModel BaseColor { get; set; } = new PaletteModel();
-        public int NumberOfPalettes { get { return Palettes?.Count ?? 0; } }
-        public List<PaletteModel> Palettes { get; set; } = new List<PaletteModel>();
-        public List<MoveDataModel> MoveData { get; set; } = new List<MoveDataModel>();
+namespace CharacterDataEditor.Models.CharacterData.PreviousVersions.Ver095;
 
-        public override int GetHashCode()
+public class CharacterDataModel : BaseCharacter
+{
+    public string Name { get; set; } = string.Empty;
+    public string BaseSprite { get; set; } = string.Empty;
+    public PaletteModel BaseColor { get; set; } = new PaletteModel();
+    public int NumberOfPalettes { get { return Palettes?.Count ?? 0; } }
+    public List<PaletteModel> Palettes { get; set; } = new List<PaletteModel>();
+    public List<MoveDataModel> MoveData { get; set; } = new List<MoveDataModel>();
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Name, BaseSprite, BaseColor, Palettes, MoveData);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null)
         {
-            return HashCode.Combine(Name, BaseSprite, BaseColor, Palettes, MoveData);
+            return false;
         }
 
-        public override bool Equals(object obj)
+        if (obj.GetType() != typeof(CharacterDataModel))
         {
-            if (obj == null)
-            {
-                return false;
-            }
+            return false;
+        }
 
-            if (obj.GetType() != typeof(CharacterDataModel))
-            {
-                return false;
-            }
+        var objAsCharacterDataModel = (CharacterDataModel)obj;
 
-            var objAsCharacterDataModel = (CharacterDataModel)obj;
-
-            if (objAsCharacterDataModel.Name.Equals(Name))
+        if (objAsCharacterDataModel.Name.Equals(Name))
+        {
+            if (objAsCharacterDataModel.BaseSprite.Equals(BaseSprite))
             {
-                if (objAsCharacterDataModel.BaseSprite.Equals(BaseSprite))
+                if (objAsCharacterDataModel.BaseColor.Equals(BaseColor))
                 {
-                    if (objAsCharacterDataModel.BaseColor.Equals(BaseColor))
+                    if (objAsCharacterDataModel.Palettes.SequenceEqual(Palettes))
                     {
-                        if (objAsCharacterDataModel.Palettes.SequenceEqual(Palettes))
+                        if (objAsCharacterDataModel.MoveData.SequenceEqual(MoveData))
                         {
-                            if (objAsCharacterDataModel.MoveData.SequenceEqual(MoveData))
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
             }
-
-            return false;
         }
+
+        return false;
     }
 }

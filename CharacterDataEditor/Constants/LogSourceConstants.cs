@@ -1,8 +1,7 @@
-﻿namespace CharacterDataEditor.Constants
+﻿namespace CharacterDataEditor.Constants;
+
+public class LogSourceConstants
 {
-    public class LogSourceConstants
-    {
-        public const string Microsoft = "Microsoft";
-        public const string System = "System";
-    }
+    public const string Microsoft = "Microsoft";
+    public const string System = "System";
 }

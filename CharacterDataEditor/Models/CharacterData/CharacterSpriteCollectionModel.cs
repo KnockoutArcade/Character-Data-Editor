@@ -1,87 +1,86 @@
 ﻿using System;
 
-namespace CharacterDataEditor.Models.CharacterData
+namespace CharacterDataEditor.Models.CharacterData;
+
+public class CharacterSpriteCollectionModel
 {
-    public class CharacterSpriteCollectionModel
+    public string Idle { get; set; } = string.Empty;
+    public string Crouch { get; set; } = string.Empty;
+    public string StandBlock { get; set; } = string.Empty;
+    public string CrouchBlock { get; set; } = string.Empty;
+    public string WalkForward { get; set; } = string.Empty;
+    public string WalkBackward { get; set; } = string.Empty;
+    public string RunForward { get; set; } = string.Empty;
+    public string RunBackward { get; set; } = string.Empty;
+    public string JumpSquat { get; set; } = string.Empty;
+    public string Jump { get; set; } = string.Empty;
+    public string Hurt { get; set; } = string.Empty;
+    public string Grab { get; set; } = string.Empty;
+    public string Hold { get; set; } = string.Empty;
+    public string Launched { get; set; } = string.Empty;
+    public string Knockdown { get; set; } = string.Empty;
+    public string GetUp { get; set; } = string.Empty;
+    public string RushCancel { get; set; } = string.Empty;
+    public string WallSplat { get; set; } = string.Empty;
+    public string QuickGetup { get; set; } = string.Empty;
+    public string TechRoll { get; set; } = string.Empty;
+    public string LandingLag { get; set; } = string.Empty;
+    public string Victory { get; set; } = string.Empty;
+    public string TimeOut { get; set; } = string.Empty;
+    public string Taunt { get; set; } = string.Empty;
+
+    public override int GetHashCode()
     {
-        public string Idle { get; set; } = string.Empty;
-        public string Crouch { get; set; } = string.Empty;
-        public string StandBlock { get; set; } = string.Empty;
-        public string CrouchBlock { get; set; } = string.Empty;
-        public string WalkForward { get; set; } = string.Empty;
-        public string WalkBackward { get; set; } = string.Empty;
-        public string RunForward { get; set; } = string.Empty;
-        public string RunBackward { get; set; } = string.Empty;
-        public string JumpSquat { get; set; } = string.Empty;
-        public string Jump { get; set; } = string.Empty;
-        public string Hurt { get; set; } = string.Empty;
-        public string Grab { get; set; } = string.Empty;
-        public string Hold { get; set; } = string.Empty;
-        public string Launched { get; set; } = string.Empty;
-        public string Knockdown { get; set; } = string.Empty;
-        public string GetUp { get; set; } = string.Empty;
-        public string RushCancel { get; set; } = string.Empty;
-        public string WallSplat { get; set; } = string.Empty;
-        public string QuickGetup { get; set; } = string.Empty;
-        public string TechRoll { get; set; } = string.Empty;
-        public string LandingLag { get; set; } = string.Empty;
-        public string Victory { get; set; } = string.Empty;
-        public string TimeOut { get; set; } = string.Empty;
-        public string Taunt { get; set; } = string.Empty;
+        var hash = HashCode.Combine(Idle, Crouch, StandBlock, CrouchBlock, WalkForward, WalkBackward, RunForward, RunBackward);
+        hash = HashCode.Combine(hash, JumpSquat, Jump, Hurt, Grab, Hold, Launched, Knockdown);
+        hash = HashCode.Combine(hash, GetUp, RushCancel, WallSplat, QuickGetup, TechRoll, LandingLag, Victory);
+        hash = HashCode.Combine(hash, TimeOut, Taunt);
 
-        public override int GetHashCode()
+        return hash;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null)
         {
-            var hash = HashCode.Combine(Idle, Crouch, StandBlock, CrouchBlock, WalkForward, WalkBackward, RunForward, RunBackward);
-            hash = HashCode.Combine(hash, JumpSquat, Jump, Hurt, Grab, Hold, Launched, Knockdown);
-            hash = HashCode.Combine(hash, GetUp, RushCancel, WallSplat, QuickGetup, TechRoll, LandingLag, Victory);
-            hash = HashCode.Combine(hash, TimeOut, Taunt);
-
-            return hash;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-            {
-                return false;
-            }
-
-            if (obj.GetType() != typeof(CharacterSpriteCollectionModel))
-            {
-                return false;
-            }
-
-            var objAsCharacterSpriteCollection = obj as CharacterSpriteCollectionModel;
-
-            if (objAsCharacterSpriteCollection.Idle.Equals(Idle) &&
-                objAsCharacterSpriteCollection.Crouch.Equals(Crouch) &&
-                objAsCharacterSpriteCollection.StandBlock.Equals(StandBlock) &&
-                objAsCharacterSpriteCollection.CrouchBlock.Equals(CrouchBlock) &&
-                objAsCharacterSpriteCollection.WalkForward.Equals(WalkForward) &&
-                objAsCharacterSpriteCollection.WalkBackward.Equals(WalkBackward) &&
-                objAsCharacterSpriteCollection.RunForward.Equals(RunForward) &&
-                objAsCharacterSpriteCollection.RunBackward.Equals(RunBackward) &&
-                objAsCharacterSpriteCollection.JumpSquat.Equals(JumpSquat) &&
-                objAsCharacterSpriteCollection.Jump.Equals(Jump) &&
-                objAsCharacterSpriteCollection.Hurt.Equals(Hurt) &&
-                objAsCharacterSpriteCollection.Grab.Equals(Grab) &&
-                objAsCharacterSpriteCollection.Hold.Equals(Hold) &&
-                objAsCharacterSpriteCollection.Launched.Equals(Launched) &&
-                objAsCharacterSpriteCollection.Knockdown.Equals(Knockdown) &&
-                objAsCharacterSpriteCollection.GetUp.Equals(GetUp) &&
-                objAsCharacterSpriteCollection.RushCancel.Equals(RushCancel) &&
-                objAsCharacterSpriteCollection.WallSplat.Equals(WallSplat) &&
-                objAsCharacterSpriteCollection.QuickGetup.Equals(QuickGetup) &&
-                objAsCharacterSpriteCollection.TechRoll.Equals(TechRoll) &&
-                objAsCharacterSpriteCollection.LandingLag.Equals(LandingLag) &&
-                objAsCharacterSpriteCollection.Victory.Equals(Victory) &&
-                objAsCharacterSpriteCollection.TimeOut.Equals(TimeOut) &&
-                objAsCharacterSpriteCollection.Taunt.Equals(Taunt))
-            {
-                return true;
-            }
-
             return false;
         }
+
+        if (obj.GetType() != typeof(CharacterSpriteCollectionModel))
+        {
+            return false;
+        }
+
+        var objAsCharacterSpriteCollection = obj as CharacterSpriteCollectionModel;
+
+        if (objAsCharacterSpriteCollection.Idle.Equals(Idle) &&
+            objAsCharacterSpriteCollection.Crouch.Equals(Crouch) &&
+            objAsCharacterSpriteCollection.StandBlock.Equals(StandBlock) &&
+            objAsCharacterSpriteCollection.CrouchBlock.Equals(CrouchBlock) &&
+            objAsCharacterSpriteCollection.WalkForward.Equals(WalkForward) &&
+            objAsCharacterSpriteCollection.WalkBackward.Equals(WalkBackward) &&
+            objAsCharacterSpriteCollection.RunForward.Equals(RunForward) &&
+            objAsCharacterSpriteCollection.RunBackward.Equals(RunBackward) &&
+            objAsCharacterSpriteCollection.JumpSquat.Equals(JumpSquat) &&
+            objAsCharacterSpriteCollection.Jump.Equals(Jump) &&
+            objAsCharacterSpriteCollection.Hurt.Equals(Hurt) &&
+            objAsCharacterSpriteCollection.Grab.Equals(Grab) &&
+            objAsCharacterSpriteCollection.Hold.Equals(Hold) &&
+            objAsCharacterSpriteCollection.Launched.Equals(Launched) &&
+            objAsCharacterSpriteCollection.Knockdown.Equals(Knockdown) &&
+            objAsCharacterSpriteCollection.GetUp.Equals(GetUp) &&
+            objAsCharacterSpriteCollection.RushCancel.Equals(RushCancel) &&
+            objAsCharacterSpriteCollection.WallSplat.Equals(WallSplat) &&
+            objAsCharacterSpriteCollection.QuickGetup.Equals(QuickGetup) &&
+            objAsCharacterSpriteCollection.TechRoll.Equals(TechRoll) &&
+            objAsCharacterSpriteCollection.LandingLag.Equals(LandingLag) &&
+            objAsCharacterSpriteCollection.Victory.Equals(Victory) &&
+            objAsCharacterSpriteCollection.TimeOut.Equals(TimeOut) &&
+            objAsCharacterSpriteCollection.Taunt.Equals(Taunt))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -1,51 +1,50 @@
-﻿using CharacterDataEditor.Enums;
-using System;
+﻿using System;
+using CharacterDataEditor.Enums;
 
-namespace CharacterDataEditor.Models.CharacterData
+namespace CharacterDataEditor.Models.CharacterData;
+
+public class CommandNormalDataModel
 {
-    public class CommandNormalDataModel
+    public DirectionType NumpadDirection { get; set; } = DirectionType.None;
+    public CommandButton Button { get; set; } = CommandButton.Light;
+    public bool GroundOrAir { get; set; } = false;
+    public bool CancelWhenLanding { get; set; } = false;
+
+    public override int GetHashCode()
     {
-        public DirectionType NumpadDirection { get; set; } = DirectionType.None;
-        public CommandButton Button { get; set; } = CommandButton.Light;
-        public bool GroundOrAir { get; set; } = false;
-        public bool CancelWhenLanding { get; set; } = false;
+        var hash = HashCode.Combine(NumpadDirection, Button, GroundOrAir, CancelWhenLanding);
 
-        public override int GetHashCode()
+        return hash;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null)
         {
-            var hash = HashCode.Combine(NumpadDirection, Button, GroundOrAir, CancelWhenLanding);
-
-            return hash;
+            return false;
         }
 
-        public override bool Equals(object obj)
+        if (obj.GetType() != typeof(CommandNormalDataModel))
         {
-            if (obj == null)
-            {
-                return false;
-            }
+            return false;
+        }
 
-            if (obj.GetType() != typeof(CommandNormalDataModel))
-            {
-                return false;
-            }
+        var objAsCommandNormalData = obj as CommandNormalDataModel;
 
-            var objAsCommandNormalData = obj as CommandNormalDataModel;
-
-            if (objAsCommandNormalData.NumpadDirection == NumpadDirection)
+        if (objAsCommandNormalData.NumpadDirection == NumpadDirection)
+        {
+            if (objAsCommandNormalData.Button == Button)
             {
-                if (objAsCommandNormalData.Button == Button)
+                if (objAsCommandNormalData.GroundOrAir == GroundOrAir)
                 {
-                    if (objAsCommandNormalData.GroundOrAir == GroundOrAir)
+                    if (objAsCommandNormalData.CancelWhenLanding == CancelWhenLanding)
                     {
-                        if (objAsCommandNormalData.CancelWhenLanding == CancelWhenLanding)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
-
-            return false;
         }
+
+        return false;
     }
 }

@@ -1,72 +1,71 @@
-﻿using CharacterDataEditor.Screens;
-using Microsoft.Extensions.Logging;
-using Raylib_cs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CharacterDataEditor.Screens;
+using Microsoft.Extensions.Logging;
+using Raylib_cs;
 
-namespace CharacterDataEditor.Services
+namespace CharacterDataEditor.Services;
+
+public interface IScreenManager
 {
-    public interface IScreenManager
+    public IScreen CurrentScreen { get; }
+    public float ScreenScale { get; set; }
+    public bool ExitWindow { get; set; }
+    public Color BackgroundColor { get; set; }
+    public void NavigateTo(string screenName);
+    public void NavigateTo(Type screenType);
+    public void NavigateTo(string screenName, dynamic screenData);
+    public void NavigateTo(Type screenType, dynamic screenData);
+}
+
+public class ScreenManager : IScreenManager
+{
+    private readonly List<IScreen> _screens;
+    private readonly ILogger<IScreenManager> _logger;
+
+    public ScreenManager(IEnumerable<IScreen> screens, ILogger<IScreenManager> logger)
     {
-        public IScreen CurrentScreen { get; }
-        public float ScreenScale { get; set; }
-        public bool ExitWindow { get; set; }
-        public Color BackgroundColor { get; set; }
-        public void NavigateTo(string screenName);
-        public void NavigateTo(Type screenType);
-        public void NavigateTo(string screenName, dynamic screenData);
-        public void NavigateTo(Type screenType, dynamic screenData);
+        _screens = screens.ToList();
+        _logger = logger;
+        ExitWindow = false;
     }
 
-    public class ScreenManager : IScreenManager
+    private IScreen _currentScreen;
+    public IScreen CurrentScreen { get { return _currentScreen; } }
+    public float ScreenScale { get; set; }
+    public bool ExitWindow { get; set; }
+    public Color BackgroundColor { get; set; }
+
+    public void NavigateTo(string screenName)
     {
-        private readonly List<IScreen> _screens;
-        private readonly ILogger<IScreenManager> _logger;
+        NavigateTo(screenName, null);
+    }
 
-        public ScreenManager(IEnumerable<IScreen> screens, ILogger<IScreenManager> logger)
+    public void NavigateTo(Type screenType)
+    {
+        NavigateTo(screenType, null);
+    }
+
+    public void NavigateTo(string screenName, dynamic screenData)
+    {
+        var screenType = _screens.Where(x => x.GetType().Name == screenName).FirstOrDefault();
+
+        if (screenType == null)
         {
-            _screens = screens.ToList();
-            _logger = logger;
-            ExitWindow = false;
+            _logger.LogCritical($"Screen not found: {screenName}");
+            return;
         }
 
-        private IScreen _currentScreen;
-        public IScreen CurrentScreen { get { return _currentScreen; } }
-        public float ScreenScale { get; set; }
-        public bool ExitWindow { get; set; }
-        public Color BackgroundColor { get; set; }
+        NavigateTo(screenType.GetType(), screenData);
+    }
 
-        public void NavigateTo(string screenName)
-        {
-            NavigateTo(screenName, null);
-        }
+    public void NavigateTo(Type screenType, dynamic screenData)
+    {
+        _logger.LogInformation($"Navigating to: {screenType.Name}");
 
-        public void NavigateTo(Type screenType)
-        {
-            NavigateTo(screenType, null);
-        }
-
-        public void NavigateTo(string screenName, dynamic screenData)
-        {
-            var screenType = _screens.Where(x => x.GetType().Name == screenName).FirstOrDefault();
-
-            if (screenType == null)
-            {
-                _logger.LogCritical($"Screen not found: {screenName}");
-                return;
-            }
-
-            NavigateTo(screenType.GetType(), screenData);
-        }
-
-        public void NavigateTo(Type screenType, dynamic screenData)
-        {
-            _logger.LogInformation($"Navigating to: {screenType.Name}");
-
-            var screen = _screens.Where(x => x.GetType() == screenType).FirstOrDefault();
-            _currentScreen = screen;
-            _currentScreen.Init(screenData);
-        }
+        var screen = _screens.Where(x => x.GetType() == screenType).FirstOrDefault();
+        _currentScreen = screen;
+        _currentScreen.Init(screenData);
     }
 }

@@ -1,8 +1,7 @@
-﻿namespace CharacterDataEditor.Enums
+﻿namespace CharacterDataEditor.Enums;
+
+public enum SuperType
 {
-    public enum SuperType
-    {
-        Attack = 0,
-        Install = 1
-    }
+    Attack = 0,
+    Install = 1
 }

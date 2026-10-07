@@ -1,66 +1,63 @@
-﻿using CharacterDataEditor.Models;
+﻿using System;
+using System.IO;
+using CharacterDataEditor.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
-namespace CharacterDataEditor.Services
+namespace CharacterDataEditor.Services;
+
+public interface IEditorOptions
 {
-    public interface IEditorOptions
+    EditorOptionsModel GetEditorOptions();
+    void SetEditorOptions(EditorOptionsModel editorOptions);
+}
+
+public class EditorOptions : IEditorOptions
+{
+    private readonly ILogger<IEditorOptions> _logger;
+
+    public EditorOptions(ILogger<IEditorOptions> logger)
     {
-        EditorOptionsModel GetEditorOptions();
-        void SetEditorOptions(EditorOptionsModel editorOptions);
+        _logger = logger;
     }
 
-    public class EditorOptions : IEditorOptions
+    public EditorOptionsModel GetEditorOptions()
     {
-        private readonly ILogger<IEditorOptions> _logger;
-
-        public EditorOptions(ILogger<IEditorOptions> logger)
+        if (File.Exists(".EditorOptions"))
         {
-            _logger = logger;
-        }
+            _logger.LogInformation("Loading Editor Options...");
 
-        public EditorOptionsModel GetEditorOptions()
-        {
-            if (File.Exists(".EditorOptions"))
+            var path = Path.Combine(AppContext.BaseDirectory, ".EditorOptions");
+
+            using (var streamReader = new StreamReader(path))
             {
-                _logger.LogInformation("Loading Editor Options...");
+                var editorOptionsData = streamReader.ReadToEnd();
 
-                var path = Path.Combine(AppContext.BaseDirectory, ".EditorOptions");
-
-                using (StreamReader streamReader = new StreamReader(path))
-                {
-                    var editorOptionsData = streamReader.ReadToEnd();
-
-                    return JsonConvert.DeserializeObject<EditorOptionsModel>(editorOptionsData);
-                }
-            }
-            else
-            {
-                _logger.LogInformation("Editor Options file does not exist... creating it...");
-                var options = new EditorOptionsModel
-                {
-                    LastUpdated = DateTime.Now,
-                    ThemeName = "Dark"
-                };
-
-                SetEditorOptions(options);
-                return options;
+                return JsonConvert.DeserializeObject<EditorOptionsModel>(editorOptionsData);
             }
         }
-
-        public void SetEditorOptions(EditorOptionsModel editorOptions)
+        else
         {
-            _logger.LogInformation("Saving Editor Options...");
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".EditorOptions");
-            using (StreamWriter streamWriter = new StreamWriter(path, false))
+            _logger.LogInformation("Editor Options file does not exist... creating it...");
+            var options = new EditorOptionsModel
             {
-                var json = JsonConvert.SerializeObject(editorOptions);
-                streamWriter.Write(json);
-            }
+                LastUpdated = DateTime.Now,
+                ThemeName = "Dark"
+            };
+
+            SetEditorOptions(options);
+            return options;
+        }
+    }
+
+    public void SetEditorOptions(EditorOptionsModel editorOptions)
+    {
+        _logger.LogInformation("Saving Editor Options...");
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".EditorOptions");
+        using (var streamWriter = new StreamWriter(path, false))
+        {
+            var json = JsonConvert.SerializeObject(editorOptions);
+            streamWriter.Write(json);
         }
     }
 }

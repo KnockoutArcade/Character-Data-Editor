@@ -1,23 +1,22 @@
 ﻿using Newtonsoft.Json;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models;
+
+public class SoundDataModel : IBaseGameDataModel
 {
-    public class SoundDataModel : IBaseGameDataModel
+    [JsonProperty("resourceVersion")]
+    public string ResourceVersion { get; set; }
+    [JsonProperty("name")]
+    public string Name { get; set; }
+    [JsonProperty("resourceType")]
+    public string ResourceType { get; set; }
+
+    [JsonIgnore]
+    public string FilePath { get; set; }
+
+
+    public static string GetAssetFolder()
     {
-        [JsonProperty("resourceVersion")]
-        public string ResourceVersion { get; set; }
-        [JsonProperty("name")]
-        public string Name { get; set; }
-        [JsonProperty("resourceType")]
-        public string ResourceType { get; set; }
-
-        [JsonIgnore]
-        public string FilePath { get; set; }
-
-
-        public static string GetAssetFolder()
-        {
-            return "sounds";
-        }
+        return "sounds";
     }
 }

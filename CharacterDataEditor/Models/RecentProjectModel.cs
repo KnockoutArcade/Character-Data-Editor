@@ -1,20 +1,19 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using Newtonsoft.Json;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models;
+
+public class RecentProjectModel
 {
-    public class RecentProjectModel
+    public string ProjectFileName { get; set; }
+    public string FullPath { get; set; }
+    public DateTime LastOpened { get; set; }
+    [JsonIgnore]
+    public string ProjectPathOnly
     {
-        public string ProjectFileName { get; set; }
-        public string FullPath { get; set; }
-        public DateTime LastOpened { get; set; }
-        [JsonIgnore]
-        public string ProjectPathOnly
+        get
         {
-            get
-            {
-                return FullPath.Replace(ProjectFileName, string.Empty);
-            }
+            return FullPath.Replace(ProjectFileName, string.Empty);
         }
     }
 }
