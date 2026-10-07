@@ -3,7 +3,6 @@
 * Upgraded to .NET 10 and updated application dependencies.
 * Fixed ImGui assertion failures when opening projects and characters.
 * Improved display resolution detection and consistent interface scaling.
-* Added chip damage, landing lag, knockdowns, floor bounces, and sprites.
 * Updated Windows build, release, and code analysis workflows.
 
 ## Known Bugs
