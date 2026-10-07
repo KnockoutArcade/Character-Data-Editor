@@ -9,40 +9,45 @@ jobs:
   build:
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - name: Setup .NET
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 7.0.x
-      - name: get tag
-        run: echo "VTAG=$(echo ${GITHUB_REF:10})" >> $GITHUB_ENV
+          dotnet-version: '10.0.x'
       - name: get version tag
-        run: echo "VERSION=$(echo ${GITHUB_REF:11})" >> $GITHUB_ENV
+        shell: pwsh
+        run: |
+          "VTAG=$env:GITHUB_REF_NAME" >> $env:GITHUB_ENV
+          "VERSION=$($env:GITHUB_REF_NAME.Substring(1))" >> $env:GITHUB_ENV
       - name: Restore Dependencies
-        run: dotnet restore
+        run: dotnet restore CharacterDataEditor/CharacterDataEditor.csproj
       - name: build
-        run: dotnet build -c Release --no-restore
+        run: dotnet build CharacterDataEditor/CharacterDataEditor.csproj -c Release --no-restore
       - name: publish Windows version
-        run: dotnet publish -c Release -o ./publish -r win-x64 -p:Version="${{env.VERSION}}" -p:PublishSingleFile=true --self-contained
+        run: >
+          dotnet publish CharacterDataEditor/CharacterDataEditor.csproj
+          -c Release -r win-x64 --self-contained true
+          -o ./publish --no-restore "-p:Version=$env:VERSION"
       - name: rename Windows executable
-        run: mv ./publish/CharacterDataEditor.exe ./publish/Knockout-Arcade-Character-Editor-Windows-x64.exe
+        run: >
+          Rename-Item -LiteralPath ./publish/CharacterDataEditor.exe
+          -NewName Knockout-Arcade-Character-Editor-Windows-x64.exe
       - name: remove debug artifacts
-        run: rm ./publish/*.pdb -fr
+        run: Remove-Item -Path ./publish/*.pdb -Force
       - name: upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: publish_artifacts
           path: ./publish
       - name: zip publish artifacts
-        uses: vimtor/action-zip@v1
-        with: 
-          files: ./publish
-          dest: Character-Data-Editor-Windows-x64.zip
+        run: >
+          Compress-Archive -Path ./publish/*
+          -DestinationPath Character-Data-Editor-Windows-x64.zip
       - name: create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           body_path: .github/workflows/ReleaseNotes.md
           files: Character-Data-Editor-Windows-x64.zip
