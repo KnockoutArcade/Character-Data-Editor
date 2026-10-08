@@ -1,69 +1,65 @@
-﻿using CharacterDataEditor.Constants;
-using CharacterDataEditor.Options;
-using System;
+﻿using System;
 using System.CommandLine;
 using System.Linq;
-using System.Threading.Tasks;
+using CharacterDataEditor.Constants;
+using CharacterDataEditor.Options;
 
-namespace CharacterDataEditor.Helpers
+namespace CharacterDataEditor.Helpers;
+
+public class CommandHelper
 {
-    public class CommandHelper
+    public static int GenerateRootCommandAndExecuteHandler(string[] args, Func<ArgValues, string[], int> handler)
     {
-        public static int GenerateRootCommandAndExecuteHandler(string[] args, Func<ArgValues, string[], int> handler)
+        var rootCommand = new RootCommand(CommandConstants.RootDescription);
+
+        var logAliases = new string[]
         {
-            var rootCommand = new RootCommand(CommandConstants.RootDescription);
+            CommandConstants.LogPathCommandUnixLong,
+            CommandConstants.LogPathCommandUnixShort,
+            CommandConstants.LogPathCommandWindowsLong,
+            CommandConstants.LogPathCommandWindowsShort
+        };
 
-            var logAliases = new string[]
+        var logOption = GenerateOption<string>(
+            logAliases,
+            CommandConstants.LogPathCommandDescription,
+            CommandConstants.LogPathCommandHelpName,
+            CommandConstants.LogPathCommandName);
+
+        rootCommand.Options.Add(logOption);
+
+        rootCommand.SetAction(
+            parseResult =>
             {
-                CommandConstants.LogPathCommandUnixLong,
-                CommandConstants.LogPathCommandUnixShort,
-                CommandConstants.LogPathCommandWindowsLong,
-                CommandConstants.LogPathCommandWindowsShort
-            };
+                var log = parseResult.GetValue(logOption);
+                var options = ProcessCommandLineResults(log);
+                handler(options, args);
+            });
 
-            var logOption = GenerateOption<string>(
-                logAliases,
-                CommandConstants.LogPathCommandDescription,
-                CommandConstants.LogPathCommandHelpName,
-                CommandConstants.LogPathCommandName);
+        return rootCommand.Parse(args).Invoke();
+    }
 
-            rootCommand.AddOption(logOption);
+    private static Option<T> GenerateOption<T>(string[] aliases, string description, string helpName, string name, bool required = false) =>
+        new(name, [.. aliases.Where(alias => alias != name)])
+        {
+            Description = description,
+            HelpName = helpName,
+            Required = required
+        };
 
-            rootCommand.SetHandler(
-                (string log) =>
-                {
-                    var options = ProcessCommandLineResults(log);
-                    handler(options, args);
-                },
-                logOption);
+    private static ArgValues ProcessCommandLineResults(string logPath)
+    {
+        if (logPath != null && !logPath.EndsWith("\\") && !logPath.EndsWith('/'))
+        {
+            //make sure we use the correct slash if we need to use it
+            var useBackslash = logPath.Count(x => x.Equals('\\')) > logPath.Count(x => x.Equals('/'));
 
-            return rootCommand.Invoke(args);
+            logPath += useBackslash ? "\\" : "/";
         }
 
-        private static Option<T> GenerateOption<T>(string[] aliases, string description, string helpName, string name, bool required = false)
+        return new ArgValues
         {
-            var option = new Option<T>(aliases, description);
-            option.ArgumentHelpName = helpName;
-            option.Name = name;
-            option.IsRequired = required;
-
-            return option;
-        }
-
-        private static ArgValues ProcessCommandLineResults(string logPath)
-        {
-            if (logPath != null && !logPath.EndsWith("\\") && !logPath.EndsWith('/'))
-            {
-                //make sure we use the correct slash if we need to use it
-                bool useBackslash = logPath.Count(x => x.Equals('\\')) > logPath.Count(x => x.Equals('/'));
-
-                logPath += useBackslash ? "\\" : "/";
-            }
-
-            return new ArgValues
-            {
-                LogPath = logPath
-            };
-        }
+            LogPath = logPath
+        };
     }
 }

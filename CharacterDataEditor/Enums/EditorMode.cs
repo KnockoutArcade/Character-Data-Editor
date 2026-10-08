@@ -1,10 +1,9 @@
-﻿namespace CharacterDataEditor.Enums
+﻿namespace CharacterDataEditor.Enums;
+
+public enum EditorMode
 {
-    public enum EditorMode
-    {
-        None = 0,
-        Move = 1,
-        Palette = 2,
-        BasePalette = 3
-    }
+    None = 0,
+    Move = 1,
+    Palette = 2,
+    BasePalette = 3
 }

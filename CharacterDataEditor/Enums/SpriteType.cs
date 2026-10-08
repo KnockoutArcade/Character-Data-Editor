@@ -1,9 +1,8 @@
-namespace CharacterDataEditor.Enums
+namespace CharacterDataEditor.Enums;
+
+public enum SpriteType
 {
-    public enum SpriteType
-    {
-        HurtSprite = 0,
-        GrabSprite = 1,
-        KnockdownSprite = 2
-    }
+    HurtSprite = 0,
+    GrabSprite = 1,
+    KnockdownSprite = 2
 }

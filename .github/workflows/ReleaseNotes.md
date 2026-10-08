@@ -1,9 +1,9 @@
 ## What's Changed?
 
-* Added new sprite data for Rush Cancels and Wall Splats.
-* Added more data for supplementary move scripts. Now you can toggle whether you want to use them or not.
-* Added supplementary scripts for hits and projectiles.
-* Removed time stop duration for hits.
+* Upgraded to .NET 10 and updated application dependencies.
+* Fixed ImGui assertion failures when opening projects and characters.
+* Improved display resolution detection and consistent interface scaling.
+* Updated Windows build, release, and code analysis workflows.
 
 ## Known Bugs
 

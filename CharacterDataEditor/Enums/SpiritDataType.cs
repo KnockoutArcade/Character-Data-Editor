@@ -1,9 +1,8 @@
-﻿namespace CharacterDataEditor.Enums
+﻿namespace CharacterDataEditor.Enums;
+
+public enum SpiritDataType
 {
-    public enum SpiritDataType
-    {
-        None = 0,
-        HasSpirit = 1,
-        IsSpirit = 2
-    }
+    None = 0,
+    HasSpirit = 1,
+    IsSpirit = 2
 }

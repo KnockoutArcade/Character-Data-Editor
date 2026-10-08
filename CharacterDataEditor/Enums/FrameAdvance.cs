@@ -1,9 +1,8 @@
-﻿namespace CharacterDataEditor.Enums
+﻿namespace CharacterDataEditor.Enums;
+
+public enum FrameAdvance
 {
-    public enum FrameAdvance
-    {
-        None = 0,
-        Forward = 1,
-        Backward = 2
-    }
+    None = 0,
+    Forward = 1,
+    Backward = 2
 }

@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models;
+
+public class EditorOptionsModel
 {
-    public class EditorOptionsModel
-    {
-        public string ThemeName { get; set; }
-        public DateTime LastUpdated { get; set; }
-    }
+    public string ThemeName { get; set; }
+    public DateTime LastUpdated { get; set; }
 }

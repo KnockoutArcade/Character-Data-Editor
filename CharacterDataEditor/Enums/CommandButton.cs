@@ -1,9 +1,8 @@
-﻿namespace CharacterDataEditor.Enums
+﻿namespace CharacterDataEditor.Enums;
+
+public enum CommandButton
 {
-    public enum CommandButton
-    {
-        Light = 1,
-        Medium = 2,
-        Heavy = 3
-    }
+    Light = 1,
+    Medium = 2,
+    Heavy = 3
 }

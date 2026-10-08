@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace CharacterDataEditor.Models
+namespace CharacterDataEditor.Models;
+
+public class ProgramDataModel
 {
-    public class ProgramDataModel
-    {
-        public List<RecentProjectModel> RecentlyOpenedProjects { get; set; }
-    }
+    public List<RecentProjectModel> RecentlyOpenedProjects { get; set; }
 }

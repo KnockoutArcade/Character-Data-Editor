@@ -1,92 +1,91 @@
-﻿using CharacterDataEditor.Models;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CharacterDataEditor.Models;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
-namespace CharacterDataEditor.Services
+namespace CharacterDataEditor.Services;
+
+public interface IRecentFiles
 {
-    public interface IRecentFiles
+    List<RecentProjectModel> GetRecentProjectFiles();
+    RecentProjectModel AddRecentProjectFile(string fileFullPath);
+}
+
+public class RecentFiles : IRecentFiles
+{
+    private readonly ILogger<IRecentFiles> _logger;
+
+    public RecentFiles(ILogger<IRecentFiles> logger)
     {
-        List<RecentProjectModel> GetRecentProjectFiles();
-        RecentProjectModel AddRecentProjectFile(string fileFullPath);
+        _logger = logger;
     }
 
-    public class RecentFiles : IRecentFiles
+    public RecentProjectModel AddRecentProjectFile(string fileFullPath)
     {
-        private readonly ILogger<IRecentFiles> _logger;
+        var recentProjects = GetRecentProjectFiles();
 
-        public RecentFiles(ILogger<IRecentFiles> logger)
+        if (recentProjects.Any(x => x.FullPath == fileFullPath))
         {
-            _logger = logger;
-        }
+            var project = recentProjects.Where(x => x.FullPath == fileFullPath).FirstOrDefault();
 
-        public RecentProjectModel AddRecentProjectFile(string fileFullPath)
-        {
-            var recentProjects = GetRecentProjectFiles();
-
-            if (recentProjects.Any(x => x.FullPath == fileFullPath))
+            if (project != null)
             {
-                var project = recentProjects.Where(x => x.FullPath == fileFullPath).FirstOrDefault();
-
-                if (project != null)
-                {
-                    project.LastOpened = DateTime.Now;
-                }
-
-                SaveRecentProjects(recentProjects);
-                return project;
+                project.LastOpened = DateTime.Now;
             }
-
-            //create a RecentProjectModel from the full path
-            var recentProject = new RecentProjectModel();
-
-            recentProject.FullPath = fileFullPath;
-            recentProject.LastOpened = DateTime.Now;
-
-            var pathSplit = fileFullPath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries).ToList();
-
-            recentProject.ProjectFileName = pathSplit.Last();
-            recentProjects.Add(recentProject);
 
             SaveRecentProjects(recentProjects);
-            return recentProject;
+            return project;
         }
 
-        public List<RecentProjectModel> GetRecentProjectFiles()
+        //create a RecentProjectModel from the full path
+        var recentProject = new RecentProjectModel();
+
+        recentProject.FullPath = fileFullPath;
+        recentProject.LastOpened = DateTime.Now;
+
+        var pathSplit = fileFullPath.Split(new string[] { "/", "\\" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+        recentProject.ProjectFileName = pathSplit.Last();
+        recentProjects.Add(recentProject);
+
+        SaveRecentProjects(recentProjects);
+        return recentProject;
+    }
+
+    public List<RecentProjectModel> GetRecentProjectFiles()
+    {
+        //load the file we saved next to the exe with this data...
+        if (File.Exists(".EditorRecentFiles"))
         {
-            //load the file we saved next to the exe with this data...
-            if (File.Exists(".EditorRecentFiles"))
-            {
-                _logger.LogInformation("Loading Recent Files...");
+            _logger.LogInformation("Loading Recent Files...");
 
-                var path = Path.Combine(AppContext.BaseDirectory, ".EditorRecentFiles");
+            var path = Path.Combine(AppContext.BaseDirectory, ".EditorRecentFiles");
 
-                using (StreamReader streamReader = new StreamReader(path))
-                {
-                    var recentFileData = streamReader.ReadToEnd();
-                    //parse into a list of recent projects
-                    return JsonConvert.DeserializeObject<List<RecentProjectModel>>(recentFileData) ?? new List<RecentProjectModel>();
-                }
-            }
-            else
+            using (var streamReader = new StreamReader(path))
             {
-                _logger.LogInformation("Recent Files file does not exist... creating it...");
-                return new List<RecentProjectModel>();
+                var recentFileData = streamReader.ReadToEnd();
+                //parse into a list of recent projects
+                return JsonConvert.DeserializeObject<List<RecentProjectModel>>(recentFileData) ?? new List<RecentProjectModel>();
             }
         }
-
-        private void SaveRecentProjects(List<RecentProjectModel> recentProjects)
+        else
         {
-            //save new file
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".EditorRecentFiles");
-            using (StreamWriter streamWriter = new StreamWriter(path, false))
-            {
-                var json = JsonConvert.SerializeObject(recentProjects);
-                streamWriter.Write(json);
-            }
+            _logger.LogInformation("Recent Files file does not exist... creating it...");
+            return new List<RecentProjectModel>();
+        }
+    }
+
+    private void SaveRecentProjects(List<RecentProjectModel> recentProjects)
+    {
+        //save new file
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".EditorRecentFiles");
+        using (var streamWriter = new StreamWriter(path, false))
+        {
+            var json = JsonConvert.SerializeObject(recentProjects);
+            streamWriter.Write(json);
         }
     }
 }
