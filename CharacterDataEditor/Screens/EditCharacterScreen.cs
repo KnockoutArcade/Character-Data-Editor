@@ -914,6 +914,10 @@ public class EditCharacterScreen : IScreen
             ImguiDrawingHelper.DrawIntInput("landingLag", ref landingLag, 0);
             moveInEditor.LandingLag = landingLag;
 
+            var isJumpCancelable = moveInEditor.IsJumpCancelable;
+            ImguiDrawingHelper.DrawBoolInput("isJumpCancelable", ref isJumpCancelable);
+            moveInEditor.IsJumpCancelable = isJumpCancelable;
+
             // Windows dropdown
             if (ImGui.CollapsingHeader("Windows"))
             {

@@ -42,6 +42,7 @@ public class MoveDataModel
     public SpiritDataModel SpiritData { get; set; } = new SpiritDataModel();
     public SuperDataModel SuperData { get; set; } = new SuperDataModel();
     public int LandingLag { get; set; } = 0;
+    public bool IsJumpCancelable { get; set; } = false;
 
     public MoveDataModel GetDuplicate()
     {
@@ -57,7 +58,8 @@ public class MoveDataModel
         var hash = HashCode.Combine(UID, MoveType, EnhanceMoveType, InMovesets, SwitchMoveset, SwitchToMoveset, SpriteName, FrameData);
         hash = HashCode.Combine(hash, AttackData, IsThrow, HurtboxData, RehitData, OpponentPositionData, CounterData, CommandNormalData);
         hash = HashCode.Combine(hash, SpecialData, GroundMovementData, AirMovementData, UseMoveScript, SupplementaryMoveScript, Duration, ProjectileData);
-        hash = HashCode.Combine(hash, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData, LandingLag);
+        hash = HashCode.Combine(hash, MoveCanCancelInto, EnhanceMoveCanCancelInto, NumberOfSounds, MoveSoundData, SpiritData, SuperData);
+        hash = HashCode.Combine(hash, LandingLag, IsJumpCancelable);
 
         return hash;
     }
@@ -104,7 +106,8 @@ public class MoveDataModel
              objAsMoveData.MoveSoundData.SequenceEqual(MoveSoundData) &&
              objAsMoveData.SpiritData.Equals(SpiritData) &&
              objAsMoveData.SuperData.Equals(SuperData) &&
-             objAsMoveData.LandingLag.Equals(LandingLag))
+             objAsMoveData.LandingLag.Equals(LandingLag) &&
+             objAsMoveData.IsJumpCancelable.Equals(IsJumpCancelable))
         {
             return true;
         }

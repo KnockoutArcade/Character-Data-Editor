@@ -421,7 +421,7 @@ public static class CharacterDataUpgradeExtensions
 
     private static UpgradeResults Upgrade124to125(this CharacterDataModel previous, UpgradeResults previousOperationResults = null)
     {
-        // Added Landing Lag
+        // Added Landing Lag + Jump Canceling
 
         previous.Version = VersionConstants.Ver125;
 
